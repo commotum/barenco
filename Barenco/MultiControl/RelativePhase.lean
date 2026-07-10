@@ -301,6 +301,153 @@ theorem eval_hybridCorollary74BImplementation_mulVec_basisKet
   rw [eval_hybridCorollary74BImplementation]
   exact blockB_denotation_mulVec_basisKet layout input
 
+/-- Block A is an involution on the complete ambient basis assignment. -/
+theorem blockAUpdate_involutive {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n) :
+    Function.Involutive layout.blockAUpdate := by
+  intro input
+  funext wire
+  by_cases hwire : wire = layout.dirtyWire
+  · subst wire
+    rw [blockAUpdate_apply_dirtyWire, blockAUpdate_apply_dirtyWire,
+      leftProduct_blockAUpdate]
+    generalize input layout.dirtyWire = dirty
+    generalize layout.leftProduct input = controls
+    cases dirty <;> cases controls <;> rfl
+  · rw [blockAUpdate_apply_of_ne layout _ wire hwire,
+      blockAUpdate_apply_of_ne layout _ wire hwire]
+
+private theorem relativePhaseSign_mul_self (exponent : Bool) :
+    InwardLadderLayout.relativePhaseSign exponent *
+        InwardLadderLayout.relativePhaseSign exponent = 1 := by
+  cases exponent <;> simp
+
+/-- Inverse action of a signed involutive basis permutation. -/
+private theorem inverse_signedInvolution_mulVec_basisKet
+    {n : ℕ} (unitary : UnitaryGate n) (update : Basis n → Basis n)
+    (exponent : Basis n → Bool)
+    (hupdate : Function.Involutive update)
+    (haction : ∀ input,
+      (unitary : Gate n) *ᵥ basisKet input =
+        InwardLadderLayout.relativePhaseSign (exponent input) •
+          basisKet (update input))
+    (input : Basis n) :
+    ((unitary⁻¹ : UnitaryGate n) : Gate n) *ᵥ basisKet input =
+      InwardLadderLayout.relativePhaseSign (exponent (update input)) •
+        basisKet (update input) := by
+  have hforward := haction (update input)
+  rw [hupdate input] at hforward
+  have hinverse := congrArg
+    (fun state => ((unitary⁻¹ : UnitaryGate n) : Gate n) *ᵥ state) hforward
+  simp only [Matrix.mulVec_smul] at hinverse
+  rw [Matrix.mulVec_mulVec] at hinverse
+  change (((unitary⁻¹ * unitary : UnitaryGate n) : Gate n) *ᵥ
+      basisKet (update input)) = _ at hinverse
+  rw [inv_mul_cancel] at hinverse
+  simp only [Submonoid.coe_one, Matrix.one_mulVec] at hinverse
+  calc
+    ((unitary⁻¹ : UnitaryGate n) : Gate n) *ᵥ basisKet input =
+        (1 : ℂ) • (((unitary⁻¹ : UnitaryGate n) : Gate n) *ᵥ basisKet input) := by
+          simp
+    _ = (InwardLadderLayout.relativePhaseSign (exponent (update input)) *
+          InwardLadderLayout.relativePhaseSign (exponent (update input))) •
+        (((unitary⁻¹ : UnitaryGate n) : Gate n) *ᵥ basisKet input) := by
+          rw [relativePhaseSign_mul_self]
+    _ = InwardLadderLayout.relativePhaseSign (exponent (update input)) •
+        (InwardLadderLayout.relativePhaseSign (exponent (update input)) •
+          (((unitary⁻¹ : UnitaryGate n) : Gate n) *ᵥ basisKet input)) := by
+          rw [smul_smul]
+    _ = InwardLadderLayout.relativePhaseSign (exponent (update input)) •
+        basisKet (update input) := by
+          rw [← hinverse]
+
+/-- Exact signed basis action of the required adjoint A occurrence. -/
+theorem eval_adjoint_relativeCorollary74AImplementation_mulVec_basisKet
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2) (input : Basis n) :
+    (Circuit.eval
+        (Circuit.adjoint (layout.relativeCorollary74AImplementation hcapacity)) :
+      Gate n) *ᵥ basisKet input =
+      InwardLadderLayout.relativePhaseSign
+          (InwardLadderLayout.relativeInwardPhaseExponent
+            (layout.corollary74ALayout hcapacity) (layout.blockAUpdate input)) •
+        basisKet (layout.blockAUpdate input) := by
+  rw [Circuit.eval_adjoint]
+  apply inverse_signedInvolution_mulVec_basisKet
+      (Circuit.eval (layout.relativeCorollary74AImplementation hcapacity))
+      layout.blockAUpdate
+      (InwardLadderLayout.relativeInwardPhaseExponent
+        (layout.corollary74ALayout hcapacity))
+      (blockAUpdate_involutive layout)
+  exact eval_relativeCorollary74AImplementation_mulVec_basisKet layout hcapacity
+
+/-- Under the stronger capacity bound, A's last borrowed wire is not the final target. -/
+theorem relativeCorollary74A_lastBorrow_ne_targetWire
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2)
+    (htargetFree : leftTail ≤ rightTail + 1) :
+    (layout.corollary74ALayout hcapacity).borrowedWire (Fin.last leftTail) ≠
+      layout.targetWire := by
+  intro heq
+  apply layout.targetWire_not_mem_aInwardLadderLogicalSupport
+      (by omega) (by omega)
+  rw [← heq]
+  exact InwardLadderLayout.borrowedWire_mem_logicalSupport _ _
+
+/--
+The adjoint-A input phase equals the first A input phase along the exact
+`A;B;A` Boolean path.  This is the contextual cancellation obligation that
+basis-phase equivalence alone cannot discharge.
+-/
+theorem relativeCorollary74A_phase_after_ABA
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2)
+    (htargetFree : leftTail ≤ rightTail + 1) (input : Basis n) :
+    InwardLadderLayout.relativeInwardPhaseExponent
+        (layout.corollary74ALayout hcapacity)
+        (layout.blockAUpdate (layout.blockBUpdate (layout.blockAUpdate input))) =
+      InwardLadderLayout.relativeInwardPhaseExponent
+        (layout.corollary74ALayout hcapacity) input := by
+  let lastBorrow :=
+    (layout.corollary74ALayout hcapacity).borrowedWire (Fin.last leftTail)
+  have hborrowDirty : lastBorrow ≠ layout.dirtyWire := by
+    dsimp [lastBorrow]
+    rw [← show (layout.corollary74ALayout hcapacity).targetWire =
+        layout.dirtyWire by
+      exact layout.aInwardLadderLayout_targetWire _]
+    exact (layout.corollary74ALayout hcapacity).borrowedWire_ne_targetWire _
+  have hborrowTarget : lastBorrow ≠ layout.targetWire :=
+    relativeCorollary74A_lastBorrow_ne_targetWire layout hcapacity htargetFree
+  have hlastBorrow :
+      layout.blockAUpdate (layout.blockBUpdate (layout.blockAUpdate input))
+          lastBorrow = input lastBorrow := by
+    rw [blockAUpdate_apply_of_ne layout _ lastBorrow hborrowDirty,
+      blockBUpdate_apply_of_ne layout _ lastBorrow hborrowTarget,
+      blockAUpdate_apply_of_ne layout _ lastBorrow hborrowDirty]
+  have hdirty :
+      layout.blockAUpdate (layout.blockBUpdate (layout.blockAUpdate input))
+          layout.dirtyWire = input layout.dirtyWire := by
+    rw [blockAUpdate_apply_dirtyWire,
+      blockBUpdate_apply_of_ne layout _ layout.dirtyWire
+        layout.dirtyWire_ne_targetWire,
+      blockAUpdate_apply_dirtyWire]
+    simp only [leftProduct_blockAUpdate, leftProduct_blockBUpdate]
+    generalize input layout.dirtyWire = dirty
+    generalize layout.leftProduct input = controls
+    cases dirty <;> cases controls <;> rfl
+  rw [InwardLadderLayout.relativeInwardPhaseExponent,
+    InwardLadderLayout.relativeInwardPhaseExponent]
+  rw [relativeCorollary74A_controlProduct,
+    relativeCorollary74A_controlProduct]
+  simp only [leftProduct_blockAUpdate, leftProduct_blockBUpdate]
+  rw [show (layout.corollary74ALayout hcapacity).targetWire =
+      layout.dirtyWire by
+    exact layout.aInwardLadderLayout_targetWire _]
+  rw [hlastBorrow, hdirty]
+
 @[simp]
 theorem relativeCorollary74Circuit_toffoliCount {leftTail rightTail n : ℕ}
     (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
