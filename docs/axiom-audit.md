@@ -31,7 +31,10 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
 |---|---|---|---|---|
-| `Barenco.gate_mul_one` | `Barenco.Basic` | pending first full Stage 1 audit | bootstrap theorem | pending |
+| `Barenco.fromPaper_mul` | `Barenco.Basic` | `propext`, `Classical.choice`, `Quot.sound` | standard mathlib matrix foundations; no project axiom | 2026-07-09 |
+| `Barenco.fromPaper_mem_unitaryGroup_iff` | `Barenco.Basic` | `propext`, `Classical.choice`, `Quot.sound` | standard mathlib unitary-group foundations; no project axiom | 2026-07-09 |
+| `Barenco.evalGates_append` | `Barenco.Basic` | `propext`, `Classical.choice`, `Quot.sound` | standard mathlib matrix/list foundations; no project axiom | 2026-07-09 |
+| `Barenco.gate_mul_one` | `Barenco.Basic` | `propext`, `Classical.choice`, `Quot.sound` | standard mathlib matrix foundations; no project axiom | 2026-07-09 |
 | finite-register/circuit headline | planned | pending | Stage 2 | — |
 | controlled-U decomposition headline | planned | pending | Stage 5 | — |
 | multi-control construction headline | planned | pending | Stages 7–9 | — |
@@ -42,9 +45,9 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 | Item | Expected | Evidence |
 |---|---|---|
-| Lean toolchain | `leanprover/lean4:v4.31.0` | pinned in `lean-toolchain`; verification pending |
-| mathlib | commit `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` | pinned in `lakefile.toml`; manifest verification pending |
-| focused build | `lake env lean Barenco/Basic.lean` | pending recording in Stage 1 results |
-| full build | `lake build` | pending successful run after bootstrap fixes |
-| second unchanged full build | `lake build` | pending |
-
+| Lean toolchain | `leanprover/lean4:v4.31.0` | `lean --version`: 4.31.0, commit `68218e8…`, 2026-07-09 |
+| mathlib | commit `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` | exact input/resolved revision in `lakefile.toml` and `lake-manifest.json`, 2026-07-09 |
+| focused build | `lake env lean Barenco/Basic.lean`; `lake env lean Barenco/ApiSmoke.lean` | both successful, 2026-07-09 |
+| axiom audit | `lake env lean Barenco/AxiomAudit.lean` | four declarations printed; results above, 2026-07-09 |
+| full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
+| second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
