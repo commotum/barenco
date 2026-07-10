@@ -16,6 +16,7 @@ import Barenco.Optimization.FusionIR
 import Barenco.Optimization.FusionResources
 import Barenco.Optimization.Normalize
 import Barenco.Optimization.SymbolicCancellation
+import Barenco.Optimization.SymbolicExpose
 import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
@@ -43,6 +44,7 @@ import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
 import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.GrayFusion
+import Barenco.MultiControl.GrayMergers
 import Barenco.MultiControl.Recursive
 import Barenco.MultiControl.RecursiveExpansion
 import Barenco.MultiControl.Resources

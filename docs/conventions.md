@@ -625,8 +625,49 @@ For `tail + 1` controls the proved macro counts are
 
 These controlled-root nodes remain `.controlledOneQubit 1` macros, so
 `CostModel.oneQubitCNOT` correctly returns `none`. The paper's later merged
-one-qubit/CNOT counts require an explicit coordinated Section 5 expansion and are
-not inferred from the semantic equality or the macro counts.
+one-qubit/CNOT counts are not inferred from that semantic equality or the macro
+counts. They are established by a separate coherent expansion and executable
+boundarywise transformation.
+
+`grayFusionControlledViaRootCircuit` is the transparent raw regression input. It
+selects a valid factor package independently for each signed root and has exact
+profile `4(2^m−1)` one-qubit gates, `3·2^m−4` CNOTs, and `7·2^m−8` total for
+`m=tail+1>0`. Those independent choices do not expose an inverse relationship
+between the factors selected for `V` and `V⁻¹`, so this raw circuit is not used as
+syntactic evidence for boundary cancellation.
+
+The merged family instead chooses one `phase/A/B/C` package for `V`. Its positive
+block is the boundary-oriented chronology
+
+`A(target); phase(control); CNOT; B(target); CNOT; C(target)`,
+
+and its negative block is the literal formal adjoint
+
+`C⁻¹(target); CNOT; B⁻¹(target); CNOT; phase⁻¹(control); A⁻¹(target)`.
+
+Gray adjacency changes mask cardinality by exactly one, so these signs alternate.
+At every internal boundary, `normalizeAtWire target` moves the outgoing target
+atom only across gates certified disjoint from the target, then free-group
+normalization deletes the exposed formal inverse pair. No unitary-matrix equality
+test or phase quotient is involved. This is a streaming boundary transformation,
+not a claim that one global invocation of the exposure policy has the same literal
+ordering: a global pass also swaps the initial target `A` past its distinct-wire
+control phase.
+
+`mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm` identifies the actual
+streaming output with the explicit list containing the two outer endpoints, every
+four-node root core, and every unchanged Gray CNOT. Exact full-register evaluator
+and complete ordered-CNOT-trace theorems precede the resource results. For
+`m=tail+1>0` controls, the emitted profile is therefore
+
+- one-qubit nodes: `2·2^m`;
+- CNOT nodes: `3·2^m−4`;
+- total and accepted `oneQubitCNOT` cost: `5·2^m−4`.
+
+The broader Section 8 model charges the same literal total because this output
+contains only one-qubit and CNOT nodes. These are constructive counts for the
+named exact syntax, not minimality or optimizer-completeness statements. Zero
+controls remain the separate local-gate base case.
 
 Lemma 7.2 uses a different syntax and workspace contract.
 `InwardLadderLayout b ambientWidth` injects `b+2` ordered controls, `b` dirty

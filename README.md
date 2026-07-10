@@ -71,7 +71,7 @@ claim or a lower bound on arbitrary implementations of `U`.
 | Exact normalization | `Barenco.Optimization.*` | Payload-preserving fusion syntax, exact lowering, executable model-specific passes, barriers, and syntax-derived cost behavior |
 | One-qubit algebra | `Barenco.OneQubit.*` | Certified rotations, Euler decompositions, determinant phases, roots, and selected factors |
 | Controlled circuits | `Barenco.ControlledCircuit.*` | Target-block reasoning and exact Section 5 circuit decompositions |
-| Three and many qubits | `Barenco.ThreeQubit.*`, `Barenco.MultiControl.*` | Controlled-controlled gates, relative phases, recursive constructions, ancillas, approximation, and resources |
+| Three and many qubits | `Barenco.ThreeQubit.*`, `Barenco.MultiControl.*` | Controlled-controlled gates, relative phases, certified Gray mergers, recursive constructions, ancillas, approximation, and resources |
 | Equivalence and error | `Barenco.Equivalence.*` | Exact/global/basis-phase relations, measurement consequences, and operator-distance bounds |
 | Lower bounds | `Barenco.LowerBounds.*` | Restricted basic syntax, interaction graphs, tensor-factor obstructions, and CNOT lower bounds |
 | Exact universality | `Barenco.Universality.*` | Givens elimination, two-level and diagonal circuits, positive-width exact synthesis, and implementation costs |
@@ -122,6 +122,13 @@ claim or a lower bound on arbitrary implementations of `U`.
   minimality theorem is claimed. The original A and B lists remain seven-node
   syntax, and the three generic `U(4)` nodes are unsupported by
   `CostModel.oneQubitCNOT`.
+- The omitted general Gray post-merger schedule is reconstructed by selecting one
+  coherent controlled-root factor package and using literal adjoints for the
+  alternating signs. An executable target-directed boundary normalizer preserves
+  exact arbitrary-register semantics and the complete CNOT order, and emits
+  `2*2^m` one-qubit plus `3*2^m-4` CNOT nodes for every `m>0`. This verifies the
+  paper's count as a constructive upper bound; it does not prove minimality or the
+  time-dependent “most efficient known” claim.
 - The claimed six-`U(4)` synthesis and the heuristic dimension-counting lower
   bound are not established as theorems.
 - No dense-generation theorem for a fixed finite gate set is claimed. Arbitrary

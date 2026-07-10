@@ -15,6 +15,7 @@ import Barenco.Optimization.FusionIR
 import Barenco.Optimization.FusionResources
 import Barenco.Optimization.Normalize
 import Barenco.Optimization.SymbolicCancellation
+import Barenco.Optimization.SymbolicExpose
 import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.CanonicalSelected
 import Barenco.OneQubit.CircuitBridge
@@ -30,6 +31,7 @@ import Barenco.ThreeQubit.RelativePhase
 import Barenco.ThreeQubit.RelativePhaseFusion
 import Barenco.ThreeQubit.RelativePhaseThreeGate
 import Barenco.MultiControl.Lemma71
+import Barenco.MultiControl.GrayMergers
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
 import Barenco.MultiControl.FourBlock
@@ -215,6 +217,27 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_twoQubitCount
 #print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost
 #print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_oneQubitCNOTCost
+
+/-! ## Goal 2 Stage 7: certified Gray boundary mergers -/
+
+#print axioms Barenco.Optimization.SymbolicCircuit.eval_erase_exposeWire
+#print axioms Barenco.Optimization.SymbolicCircuit.eval_erase_normalizeAtWire
+#print axioms Barenco.Optimization.SymbolicCircuit.cnotTrace_normalizeAtWire
+#print axioms Barenco.Optimization.SymbolicCircuit.oneQubitCount_append
+#print axioms Barenco.MultiControl.GrayAdjacent.odd_card_iff_even_card
+#print axioms Barenco.MultiControl.signedGrayRoot_eq_inv_of_even
+#print axioms Barenco.MultiControl.eval_erase_coherentGrayRootSymbolicCircuit
+#print axioms Barenco.MultiControl.normalizeAtWire_grayBoundary
+#print axioms Barenco.MultiControl.OrderedControlLayout.coherentGrayNormalizedBoundaryAt_eq_singleton
+#print axioms Barenco.MultiControl.OrderedControlLayout.coherentGrayRegroupedViaRootCircuit_eq_raw
+#print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_raw
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_mergedGrayControlledViaRootFusionCircuit_eq_macro
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_mergedGrayControlledCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.cnotTrace_mergedGrayControlledViaRootSymbolicCircuit_eq_raw
+#print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootSymbolicCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_arbitraryTwoQubitCost
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose

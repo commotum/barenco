@@ -1012,22 +1012,30 @@ statement. “Open” means the repair is identified but not yet machine checked
   count of `2 * 2^(n-1)` one-bit gates and `3 * 2^(n-1) - 4` XOR gates. The
   inter-block one-qubit merger schedule is not displayed or proved. A semantic
   equality cannot by itself justify deleting or combining syntax nodes.
-- **Repair:** reconstruct the omitted Gray/parity invariant and price the literal
-  checked expansion before optimization. For `m=n-1` controls it has exactly
-  `4 * (2^m - 1)` one-qubit gates, `3 * 2^m - 4` CNOTs, and total
-  `7 * 2^m - 8`. Retain the smaller source one-qubit count as unresolved until an
-  explicit merged circuit and evaluator-preservation theorem are supplied.
+- **Repair:** retain the checked raw profile, then reconstruct the missing merger
+  with coherent factor provenance. Select the phase/A/B/C package once for `V`,
+  use its literal reverse/inverse block for `V⁻¹`, prove that consecutive nonempty
+  Gray masks have opposite cardinality parity, and expose each outgoing target
+  endpoint across the control-only Gray CNOT. Executable free-group normalization
+  deletes the resulting inverse endpoint pair at every one of the `2^m-2`
+  internal boundaries. A literal regrouping theorem connects these local rewrites
+  to the established raw schedule, and exact evaluator plus ordered-CNOT-trace
+  theorems connect the emitted syntax to the established Lemma 7.1 macro on an
+  arbitrary ambient register.
 - **Dependent impact:** Lemma 7.1 resource status, the historical small-width
   comparison, and any downstream formula that uses the source's merged primitive
   count. The exact Gray semantics and CNOT count are unaffected.
-- **Formal evidence:** `expandedGrayControlledCircuit`,
-  `eval_expandedGrayControlledCircuit`,
-  `expandedGrayControlledCircuit_oneQubitCount`,
-  `expandedGrayControlledCircuit_cnotCount`,
-  `expandedGrayControlledCircuit_gateCount`, and
-  `expandedGrayControlledCircuit_oneQubitCNOTCost`.
-- **Status:** exact semantics and the raw literal resource profile are proved; the
-  post-merger one-qubit count and a Gray-family asymptotic theorem are not exported.
+- **Formal evidence:** `coherentGrayControlledViaRootCircuit`,
+  `normalizeAtWire_grayBoundary`,
+  `coherentGrayRegroupedViaRootCircuit_eq_raw`,
+  `mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm`,
+  `eval_mergedGrayControlledCircuit`,
+  `cnotTrace_mergedGrayControlledViaRootSymbolicCircuit_eq_raw`, and the
+  `mergedGrayControlledViaRoot*Count`/cost theorems.
+- **Status:** corrected and proved. For `m=n-1>0` controls, the named exact emitted
+  syntax has `2 * 2^m` one-qubit nodes, `3 * 2^m - 4` CNOTs, and total/cost
+  `5 * 2^m - 4`, exactly the source's post-merger arithmetic. This is a
+  constructive upper count, not a minimum.
 
 ## C-036 — Section 8's cost-three statement omits the merged syntax and phase scope
 
@@ -1076,3 +1084,31 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Status:** clarified and proved as an explicit syntax-derived constructive upper
   count. Exact-Toffoli and global-phase equality are formally refuted; no channel,
   all-measurement, arbitrary-input measurement, or minimality theorem is claimed.
+
+## C-037 — Gray inverse mergers require one coherent factor choice
+
+- **Source:** Section 7, manuscript pp. 17–18; Markdown lines 616–665.
+- **Issue:** applying the Section 5 existence theorem independently to every
+  signed root produces correct controlled-`V` and controlled-`V⁻¹` blocks, but it
+  does not make their selected A/B/C factors definitionally or theoremically
+  inverse. Therefore the paper's boundary cancellation cannot be justified from
+  independently chosen decompositions, even though their complete matrices have
+  the desired semantics.
+- **Repair:** `grayFactorValuation V` makes exactly one selected factor package
+  visible to the optimizer. Odd Gray masks use the boundary-oriented positive
+  block `A; phase; CNOT; B; CNOT; C`; nonempty even masks use its literal formal
+  adjoint `C⁻¹; CNOT; B⁻¹; CNOT; phase⁻¹; A⁻¹`. The symbolic atom grammar records
+  inverse provenance, while the valuation theorem proves the positive and
+  negative blocks implement the required signed roots. No equality decision on
+  unitary matrices is used.
+- **Dependent impact:** this coherent family replaces the independently selected
+  raw fusion family only for the post-merger proof. The older raw builder and all
+  of its semantics/count theorems remain valid; they simply do not certify the
+  missing inverse relationship. The repair enables C-035 without changing the
+  controlled-unitary target or discarding scalar phase.
+- **Formal evidence:** `GrayFactorAtom`, `grayFactorValuation`,
+  `grayPositiveRootSymbolicCircuit`, `grayNegativeRootSymbolicCircuit`,
+  `eval_erase_coherentGrayRootSymbolicCircuit`, and
+  `eval_erase_coherentGrayControlledViaRootCircuit_eq_macro`.
+- **Status:** corrected and proved for every positive control count and arbitrary
+  ordered ambient layout.
