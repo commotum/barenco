@@ -18,6 +18,210 @@ namespace Barenco.MultiControl
 
 open scoped symmDiff
 
+/-!
+## Alignment of masks and generated toggle positions
+
+`GrayTransitionAlignment masks toggles` says that `toggles` labels every
+consecutive edge of `masks`, in order, by the unique position in the symmetric
+difference.  It is private implementation machinery; the public interface below
+is the indexed specification of the generated schedule.
+-/
+
+private inductive GrayTransitionAlignment {width : ℕ} :
+    List (GrayMask width) → List (Fin width) → Prop
+  | nil : GrayTransitionAlignment [] []
+  | singleton (mask : GrayMask width) : GrayTransitionAlignment [mask] []
+  | cons {first second : GrayMask width} {rest : List (GrayMask width)}
+      {changed : Fin width} {changes : List (Fin width)}
+      (hchange : first ∆ second = {changed})
+      (tail : GrayTransitionAlignment (second :: rest) changes) :
+      GrayTransitionAlignment (first :: second :: rest) (changed :: changes)
+
+private theorem GrayTransitionAlignment.tail {width : ℕ}
+    {first : GrayMask width} {masks : List (GrayMask width)}
+    {changes : List (Fin width)}
+    (h : GrayTransitionAlignment (first :: masks) changes) :
+    GrayTransitionAlignment masks changes.tail := by
+  cases h with
+  | singleton => exact .nil
+  | cons _ htail => exact htail
+
+private theorem GrayTransitionAlignment.lift {width : ℕ}
+    {masks : List (GrayMask width)} {changes : List (Fin width)}
+    (h : GrayTransitionAlignment masks changes) :
+    GrayTransitionAlignment
+      (masks.map liftGrayMask) (changes.map Fin.castSucc) := by
+  induction h with
+  | nil => exact .nil
+  | singleton mask => exact .singleton (liftGrayMask mask)
+  | @cons first second rest changed changes hchange _ ih =>
+      apply GrayTransitionAlignment.cons
+      · rw [symmDiff_liftGrayMask, hchange]
+        simp [liftGrayMask]
+      · exact ih
+
+private theorem GrayTransitionAlignment.withLast {width : ℕ}
+    {masks : List (GrayMask width)} {changes : List (Fin width)}
+    (h : GrayTransitionAlignment masks changes) :
+    GrayTransitionAlignment
+      (masks.map liftGrayMaskWithLast) (changes.map Fin.castSucc) := by
+  induction h with
+  | nil => exact .nil
+  | singleton mask => exact .singleton (liftGrayMaskWithLast mask)
+  | @cons first second rest changed changes hchange _ ih =>
+      apply GrayTransitionAlignment.cons
+      · rw [symmDiff_liftGrayMaskWithLast, hchange]
+        simp [liftGrayMask]
+      · exact ih
+
+private theorem GrayTransitionAlignment.append_cons {width : ℕ}
+    {masks : List (GrayMask width)} {changes : List (Fin width)}
+    {next : GrayMask width} {rest : List (GrayMask width)}
+    {nextChanges : List (Fin width)} {changed : Fin width}
+    (h : GrayTransitionAlignment masks changes) (hne : masks ≠ [])
+    (hnext : GrayTransitionAlignment (next :: rest) nextChanges)
+    (hboundary : ∀ last, last ∈ masks.getLast? → last ∆ next = {changed}) :
+    GrayTransitionAlignment (masks ++ next :: rest)
+      (changes ++ changed :: nextChanges) := by
+  induction h with
+  | nil => exact (hne rfl).elim
+  | singleton mask =>
+      exact GrayTransitionAlignment.cons (hboundary mask (by simp)) hnext
+  | @cons first second tail oldChange oldChanges hchange htail ih =>
+      apply GrayTransitionAlignment.cons hchange
+      apply ih
+      · simp
+      · intro last hlast
+        apply hboundary last
+        simpa using hlast
+
+private theorem GrayTransitionAlignment.append {width : ℕ}
+    {firstMasks secondMasks : List (GrayMask width)}
+    {firstChanges secondChanges : List (Fin width)} {changed : Fin width}
+    (hfirst : GrayTransitionAlignment firstMasks firstChanges)
+    (hsecond : GrayTransitionAlignment secondMasks secondChanges)
+    (hfirstNe : firstMasks ≠ []) (hsecondNe : secondMasks ≠ [])
+    (hboundary : ∀ first second,
+      first ∈ firstMasks.getLast? → second ∈ secondMasks.head? →
+        first ∆ second = {changed}) :
+    GrayTransitionAlignment (firstMasks ++ secondMasks)
+      (firstChanges ++ changed :: secondChanges) := by
+  cases secondMasks with
+  | nil => exact (hsecondNe rfl).elim
+  | cons second rest =>
+      exact hfirst.append_cons hfirstNe hsecond fun first hlast =>
+        hboundary first second hlast (by simp)
+
+private theorem GrayTransitionAlignment.reverse {width : ℕ}
+    {masks : List (GrayMask width)} {changes : List (Fin width)}
+    (h : GrayTransitionAlignment masks changes) :
+    GrayTransitionAlignment masks.reverse changes.reverse := by
+  induction h with
+  | nil => exact .nil
+  | singleton mask => exact .singleton mask
+  | @cons first second rest changed changes hchange htail ih =>
+      have happend :
+          GrayTransitionAlignment ((second :: rest).reverse ++ [first])
+            (changes.reverse ++ [changed]) := by
+        apply ih.append_cons
+        · simp
+        · exact .singleton first
+        · intro last hlast
+          have hlastEq : last = second := by
+            exact (by simpa using hlast : second = last).symm
+          subst last
+          simpa [symmDiff_comm] using hchange
+      simpa [List.reverse_cons, List.append_assoc] using happend
+
+private theorem liftGrayMask_symmDiff_liftGrayMaskWithLast {width : ℕ}
+    (mask : GrayMask width) :
+    liftGrayMask mask ∆ liftGrayMaskWithLast mask = {Fin.last width} := by
+  ext wire
+  rcases Fin.eq_castSucc_or_eq_last wire with ⟨wire, rfl⟩ | rfl
+  · simp [Finset.mem_symmDiff]
+  · simp [Finset.mem_symmDiff]
+
+private theorem fullGrayTransitionAlignment : ∀ width,
+    GrayTransitionAlignment (fullGrayCode width) (fullGrayToggles width) := by
+  intro width
+  induction width with
+  | zero => exact .singleton ∅
+  | succ width ih =>
+      rw [fullGrayCode_succ, fullGrayToggles_succ]
+      have hfirst := ih.lift
+      have hsecond := ih.reverse.withLast
+      have happend := hfirst.append (changed := Fin.last width) hsecond
+        (by simpa using fullGrayCode_ne_nil width)
+        (by simp [fullGrayCode_ne_nil width])
+        (by
+          intro first second hfirstLast hsecondHead
+          rw [List.getLast?_map] at hfirstLast
+          rw [List.head?_map, List.head?_reverse] at hsecondHead
+          rw [Option.mem_def] at hfirstLast hsecondHead
+          cases hlast : (fullGrayCode width).getLast? with
+          | none => simp [hlast] at hfirstLast
+          | some mask =>
+              simp [hlast] at hfirstLast hsecondHead
+              subst first
+              subst second
+              exact liftGrayMask_symmDiff_liftGrayMaskWithLast mask)
+      simpa [List.append_assoc] using happend
+
+private theorem grayTransitionAlignment (width : ℕ) :
+    GrayTransitionAlignment (grayCode width) (grayToggles width) := by
+  have hfull := fullGrayTransitionAlignment width
+  rw [← empty_cons_grayCode width] at hfull
+  exact hfull.tail
+
+private theorem GrayTransitionAlignment.length_changes {width : ℕ}
+    {masks : List (GrayMask width)} {changes : List (Fin width)}
+    (h : GrayTransitionAlignment masks changes) :
+    changes.length = masks.length - 1 := by
+  induction h with
+  | nil => simp
+  | singleton mask => simp
+  | cons _ _ ih => simp [ih]
+
+private theorem GrayTransitionAlignment.getElem {width : ℕ}
+    {masks : List (GrayMask width)} {changes : List (Fin width)}
+    (h : GrayTransitionAlignment masks changes) (index : ℕ)
+    (hindex : index + 1 < masks.length)
+    (hchangeIndex : index < changes.length) :
+    masks[index] ∆ masks[index + 1] = {changes[index]} := by
+  induction h generalizing index with
+  | nil => simp at hindex
+  | singleton mask => simp at hindex
+  | @cons first second rest changed changes hchange htail ih =>
+      cases index with
+      | zero => simpa using hchange
+      | succ index =>
+          simp only [List.getElem_cons_succ]
+          have htailIndex : index + 1 < (second :: rest).length := by
+            simpa using hindex
+          have hrestIndex : index < rest.length := by
+            simpa using htailIndex
+          have htailStep := ih index htailIndex (by simpa using hchangeIndex)
+          have hget : (second :: rest)[index + 1]'htailIndex =
+              rest[index]'hrestIndex := by
+            rfl
+          rw [hget] at htailStep
+          exact htailStep
+
+private theorem grayToggle_index_lt {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length) :
+    index < (grayToggles width).length := by
+  rw [length_grayCode] at hindex
+  rw [length_grayToggles]
+  omega
+
+/-- The generated toggle at each index is exactly the bit changed by that Gray edge. -/
+theorem grayCode_symmDiff_eq_singleton_grayToggle {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length) :
+    (grayCode width)[index] ∆ (grayCode width)[index + 1] =
+      {(grayToggles width)[index]'(grayToggle_index_lt hindex)} := by
+  exact GrayTransitionAlignment.getElem (grayTransitionAlignment width)
+    index hindex (grayToggle_index_lt hindex)
+
 /-- Consecutive accumulator pivots, before choosing each CNOT's control wire. -/
 def grayPivotPairs (width : ℕ) : List (Fin width × Fin width) :=
   (grayPivots width).zip (grayPivots width).tail
@@ -36,6 +240,22 @@ private def grayCNOTEdge {width : ℕ} (changed : Fin width)
 def grayCNOTEdges (width : ℕ) : List (Fin width × Fin width) :=
   List.zipWith grayCNOTEdge (grayToggles width) (grayPivotPairs width)
 
+/--
+Semantic specification of one generated CNOT transition.
+
+The public relation exposes the two masks, their generated toggle and pivots,
+and the resulting concrete edge without exposing the private edge selector.
+-/
+structure GrayCNOTStep {width : ℕ} (first second : GrayMask width)
+    (changed oldPivot newPivot : Fin width) (edge : Fin width × Fin width) : Prop where
+  change_eq : first ∆ second = {changed}
+  first_pivot : IsGrayPivot first oldPivot
+  second_pivot : IsGrayPivot second newPivot
+  pivot_le : oldPivot ≤ newPivot
+  edge_eq : edge =
+    if oldPivot = newPivot then (changed, newPivot) else (oldPivot, newPivot)
+  previous_singleton : oldPivot < newPivot → first = {oldPivot}
+
 @[simp]
 theorem length_grayPivotPairs (width : ℕ) :
     (grayPivotPairs width).length = 2 ^ width - 2 := by
@@ -50,6 +270,78 @@ theorem length_grayCNOTEdges (width : ℕ) :
   rw [grayCNOTEdges, List.length_zipWith, length_grayToggles,
     length_grayPivotPairs]
   simp
+
+private theorem grayPivot_index_lt {width index : ℕ}
+    (hindex : index < (grayCode width).length) :
+    index < (grayPivots width).length := by
+  rw [length_grayPivots_eq_grayCode]
+  exact hindex
+
+private theorem grayCNOTEdge_index_lt {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length) :
+    index < (grayCNOTEdges width).length := by
+  rw [length_grayCode] at hindex
+  rw [length_grayCNOTEdges]
+  omega
+
+private theorem grayPivotPair_index_lt {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length) :
+    index < (grayPivotPairs width).length := by
+  rw [length_grayCode] at hindex
+  rw [length_grayPivotPairs]
+  omega
+
+/-- The generated pivot at an index is the maximum member of its Gray mask. -/
+theorem grayCode_getElem_isGrayPivot {width index : ℕ}
+    (hindex : index < (grayCode width).length) :
+    IsGrayPivot
+      ((grayCode width)[index]'hindex)
+      ((grayPivots width)[index]'(grayPivot_index_lt hindex)) := by
+  exact (grayCode_pivots width).get hindex (grayPivot_index_lt hindex)
+
+/--
+Every generated edge is aligned pointwise with consecutive masks, the generated
+toggle, and the two generated maximum-mask pivots.
+-/
+theorem grayCNOTEdges_getElem_spec {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length) :
+    GrayCNOTStep
+      ((grayCode width)[index]'(by omega))
+      ((grayCode width)[index + 1]'hindex)
+      ((grayToggles width)[index]'(grayToggle_index_lt hindex))
+      ((grayPivots width)[index]'(grayPivot_index_lt (by omega)))
+      ((grayPivots width)[index + 1]'(grayPivot_index_lt hindex))
+      ((grayCNOTEdges width)[index]'(grayCNOTEdge_index_lt hindex)) := by
+  have hfirstPivot := grayCode_getElem_isGrayPivot (width := width)
+    (index := index) (by omega)
+  have hsecondPivot := grayCode_getElem_isGrayPivot (width := width)
+    (index := index + 1) hindex
+  refine
+    { change_eq := grayCode_symmDiff_eq_singleton_grayToggle hindex
+      first_pivot := hfirstPivot
+      second_pivot := hsecondPivot
+      pivot_le := (grayPivots_isChain width).getElem index
+        (grayPivot_index_lt hindex)
+      edge_eq := ?_
+      previous_singleton := ?_ }
+  · simp [grayCNOTEdges, grayPivotPairs, grayCNOTEdge]
+  · intro hpivotLt
+    have hrankLt :
+        pivotRank ((grayCode width)[index]'(by omega)) <
+          pivotRank ((grayCode width)[index + 1]'hindex) := by
+      rw [pivotRank_eq_max'_add_one _ hfirstPivot.nonempty,
+        hfirstPivot.eq_max',
+        pivotRank_eq_max'_add_one _ hsecondPivot.nonempty,
+        hsecondPivot.eq_max']
+      exact Nat.succ_lt_succ hpivotLt
+    rcases grayCode_previous_singleton_of_pivotRank_lt hindex hrankLt with
+      ⟨wire, hfirstEq⟩
+    have hpivotEq :
+        (grayPivots width)[index]'(grayPivot_index_lt (by omega)) = wire := by
+      have hpivotMem := hfirstPivot.1
+      rw [hfirstEq] at hpivotMem
+      simpa using hpivotMem
+    simpa [hpivotEq] using hfirstEq
 
 /-- The six CNOTs in the paper's displayed four-bit Gray construction. -/
 theorem grayCNOTEdges_three :

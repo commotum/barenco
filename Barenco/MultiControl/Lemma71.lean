@@ -1,5 +1,6 @@
 import Barenco.MultiControl.GrayAccumulator
 import Barenco.MultiControl.Layout
+import Barenco.OneQubit.Roots
 
 /-!
 # Gray-code circuit semantics for Lemma 7.1
@@ -15,7 +16,72 @@ after the generated Gray edge schedule has a general validity/restoration proof.
 
 namespace Barenco.MultiControl
 
-open scoped Matrix
+open scoped BigOperators Matrix
+
+/-! ## Signed target product, independent of the CNOT realization -/
+
+/-- The Gray traversal enumerates exactly the nonempty subsets of all control positions. -/
+theorem grayCode_toFinset (controlCount : ℕ) :
+    (grayCode controlCount).toFinset =
+      nonemptySubsets (Finset.univ : Finset (Fin controlCount)) := by
+  ext mask
+  simp [mem_grayCode_iff]
+
+/-- Alternating signed exponent accumulated over the Gray masks for one input. -/
+def grayExponentSum (controlCount : ℕ) (bits : Fin controlCount → Bool) : ℤ :=
+  ((grayCode controlCount).map
+    (fun mask => signedParityContribution mask bits)).sum
+
+/-- Gray order changes execution locality but not the inclusion-exclusion sum. -/
+theorem grayExponentSum_eq_parityInclusionExclusionSum (controlCount : ℕ)
+    (bits : Fin controlCount → Bool) :
+    grayExponentSum controlCount bits =
+      parityInclusionExclusionSum (Finset.univ : Finset (Fin controlCount)) bits := by
+  rw [grayExponentSum, ← List.sum_toFinset _ (nodup_grayCode controlCount),
+    grayCode_toFinset]
+  rfl
+
+/-- Closed exponent formula for a positive number of controls. -/
+theorem grayExponentSum_succ_formula (controlCount : ℕ)
+    (bits : Fin (controlCount + 1) → Bool) :
+    grayExponentSum (controlCount + 1) bits =
+      if (∀ control, bits control = true) then (2 : ℤ) ^ controlCount else 0 := by
+  rw [grayExponentSum_eq_parityInclusionExclusionSum]
+  simpa using parityInclusionExclusionSum_univ bits
+
+private theorem prod_zpow_eq_zpow_sum (V : QubitUnitary) :
+    ∀ exponents : List ℤ,
+      (exponents.map (fun exponent => V ^ exponent)).prod = V ^ exponents.sum := by
+  intro exponents
+  induction exponents with
+  | nil => simp
+  | cons exponent exponents ih =>
+      simp only [List.map_cons, List.prod_cons, List.sum_cons, ih]
+      rw [zpow_add]
+
+/-- Product of the controlled-root factors selected by all Gray parities. -/
+def grayRootProduct (controlCount : ℕ) (V : QubitUnitary)
+    (bits : Fin controlCount → Bool) : QubitUnitary :=
+  ((grayCode controlCount).map
+    (fun mask => V ^ signedParityContribution mask bits)).prod
+
+/-- The target product is the selected root raised to the signed Gray exponent. -/
+theorem grayRootProduct_eq_zpow (controlCount : ℕ) (V : QubitUnitary)
+    (bits : Fin controlCount → Bool) :
+    grayRootProduct controlCount V bits = V ^ grayExponentSum controlCount bits := by
+  rw [grayRootProduct, grayExponentSum]
+  simpa [List.map_map, Function.comp_def] using
+    prod_zpow_eq_zpow_sum V
+      ((grayCode controlCount).map
+        (fun mask => signedParityContribution mask bits))
+
+/-- The Gray target product is a large positive power only on the all-true branch. -/
+theorem grayRootProduct_succ_formula (controlCount : ℕ) (V : QubitUnitary)
+    (bits : Fin (controlCount + 1) → Bool) :
+    grayRootProduct (controlCount + 1) V bits =
+      if (∀ control, bits control = true) then V ^ ((2 : ℤ) ^ controlCount) else 1 := by
+  rw [grayRootProduct_eq_zpow, grayExponentSum_succ_formula]
+  by_cases hall : ∀ control, bits control = true <;> simp [hall]
 
 /-- Ambient computational-basis update of one logical-control CNOT. -/
 def embeddedCNOTUpdate {controlCount ambientWidth : ℕ}
@@ -157,9 +223,10 @@ theorem eval_cnotEdgeCircuit_mulVec_basisKet {controlCount ambientWidth : ℕ}
   | cons edge edges ih =>
       simp only [cnotEdgeCircuit, controlEdgePairs, List.map_cons,
         Circuit.eval_cons, Submonoid.coe_mul]
-      rw [← Matrix.mulVec_mulVec,
-        cnotPrimitive_mulVec_basisKet layout edge.control edge.target edge.ne input,
-        ih]
-      rfl
+      rw [← Matrix.mulVec_mulVec, OrderedControlLayout.cnotEdgePrimitive,
+        cnotPrimitive_mulVec_basisKet layout edge.control edge.target edge.ne input]
+      simpa only [cnotEdgeCircuit, controlEdgePairs, runEmbeddedCNOTUpdates,
+        List.foldl_cons, ControlEdge.toPair_fst, ControlEdge.toPair_snd] using
+        ih (embeddedCNOTUpdate layout edge.control edge.target input)
 
 end Barenco.MultiControl
