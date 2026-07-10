@@ -418,5 +418,6 @@ row below for each checked declaration.
 | Stage 13 final strict/trust-zero root and audit | direct warning-as-error compilation of `Barenco.lean` and `AxiomAudit.lean`, with and without `-t0`, after the clean build | all four checks successful; all 319 maintained declarations remain within the recorded standard axioms, 2026-07-10 |
 | Stage 13 post-clean focused/diagnostic build | `lake build Barenco.Universality.ResourceExamples Barenco.AxiomAudit Barenco` | successful, 3,587 jobs; the root-excluded resource diagnostic was rebuilt alongside the public root and audit, 2026-07-10 |
 | Stage 13 final strict/trust-zero resource diagnostic | direct warning-as-error compilation of `Barenco/Universality/ResourceExamples.lean`, with and without `-t0`, after the clean build | both checks successful, 2026-07-10 |
+| Stage 13 final cached full build | `lake build` after all final documentation and stage-status updates | successful, 3,585 jobs, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

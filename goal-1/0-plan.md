@@ -785,7 +785,7 @@ paper-to-Lean and axiom audit.
 - A clean build from an empty project build tree passed with 3,593 jobs; the
   post-clean public/diagnostic/audit build passed with 3,587 jobs. Strict and
   trust-zero warning-as-error checks passed for the root, audit, and resource
-  diagnostic.
+  diagnostic; the final cached full build passed with 3,585 jobs.
 - The maintained audit contains 319 `#print axioms` checks, all within the standard
   `propext`/`Classical.choice`/`Quot.sound` foundations. Final forbidden-token,
   project-axiom, asset-count, import-boundary, and `git diff --check` scans passed.

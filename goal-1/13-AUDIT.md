@@ -101,7 +101,9 @@ an explicit final report, diagram/resource inventory, and release-grade audit.
   3,593 jobs succeeded. A post-clean focused build of
   `Barenco.Universality.ResourceExamples`, `Barenco.AxiomAudit`, and `Barenco`
   succeeded with 3,587 jobs. Strict warning-as-error and trust-zero compilation
-  passed for the public root, the axiom audit, and the resource diagnostic.
+  passed for the public root, the axiom audit, and the resource diagnostic. A
+  final cached `lake build` after the documentation/status updates passed with
+  3,585 jobs.
 - Confirmed 319 maintained `#print axioms` checks. Exported headline theorems use
   only `propext`, `Classical.choice`, and `Quot.sound` (often a subset), with no
   project-specific axiom. Repository-wide scans found no `sorry`, `admit`, `by?`,
