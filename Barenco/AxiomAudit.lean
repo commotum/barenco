@@ -16,6 +16,7 @@ import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
 import Barenco.MultiControl.FourBlock
+import Barenco.MultiControl.Corollary74
 
 /-!
 # Kernel axiom audit
@@ -136,3 +137,13 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.FourBlockLayout.eval_fourBlockCircuit
 #print axioms Barenco.MultiControl.FourBlockLayout.fourBlockSubstitutionCircuit_gateCount
 #print axioms Barenco.MultiControl.FourBlockLayout.eval_fourBlockSubstitutionCircuit
+#print axioms Barenco.MultiControl.FourBlockLayout.aInwardLadderLayout_orderedControlLayout
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_corollary74Circuit
+#print axioms Barenco.MultiControl.FourBlockLayout.corollary74Circuit_toffoliCount
+#print axioms Barenco.MultiControl.FourBlockLayout.targetWire_not_mem_corollary74AImplementation_touchedSupport
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedTails_add_seven
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedLayout_dataControlCount
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedLayout_targetWire_not_mem_aImplementation_touchedSupport
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_balancedCorollary74Circuit
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCorollary74Circuit_gateCount
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCorollary74Circuit_oneQubitCNOTCost

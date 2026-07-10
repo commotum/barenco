@@ -117,17 +117,13 @@ def aWorkSumEmbedding {l r : ℕ} (hcapacity : l ≤ r + 2) :
             cases hsplit : (@finSumFinEquiv (r + 1) 1).symm
                 (Fin.castLE hcapacity firstBorrowed) with
             | inl right =>
-                have hbad : False := by
-                  simpa [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
-                    aWorkspaceSumEmbedding, hsplit] using h
-                exact hbad.elim
+                simp [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
+                  aWorkspaceSumEmbedding, hsplit] at h
             | inr last =>
                 have hlast : last = 0 := Subsingleton.elim _ _
                 subst last
-                have hbad : False := by
-                  simpa [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
-                    aWorkspaceSumEmbedding, hsplit] using h
-                exact hbad.elim
+                simp [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
+                  aWorkspaceSumEmbedding, hsplit] at h
     | inr firstTarget =>
         cases second with
         | inl secondBorrowed =>
@@ -136,17 +132,13 @@ def aWorkSumEmbedding {l r : ℕ} (hcapacity : l ≤ r + 2) :
             cases hsplit : (@finSumFinEquiv (r + 1) 1).symm
                 (Fin.castLE hcapacity secondBorrowed) with
             | inl right =>
-                have hbad : False := by
-                  simpa [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
-                    aWorkspaceSumEmbedding, hsplit] using h
-                exact hbad.elim
+                simp [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
+                  aWorkspaceSumEmbedding, hsplit] at h
             | inr last =>
                 have hlast : last = 0 := Subsingleton.elim _ _
                 subst last
-                have hbad : False := by
-                  simpa [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
-                    aWorkspaceSumEmbedding, hsplit] using h
-                exact hbad.elim
+                simp [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
+                  aWorkspaceSumEmbedding, hsplit] at h
         | inr secondTarget =>
             exact congrArg Sum.inr (Subsingleton.elim firstTarget secondTarget)
 
@@ -252,29 +244,21 @@ private theorem bControlSlotEmbedding_ne_bWorkSlotEmbedding {l r : ℕ}
   | inl right =>
       cases hwork : (@finSumFinEquiv r 1).symm work with
       | inl borrowed =>
-          have hbad : False := by
-            simpa [bControlSlotEmbedding, bControlSumEmbedding,
-              bWorkSlotEmbedding, bWorkSumEmbedding, bBorrowSlotEmbedding,
-              leftControlSlotEmbedding, hcontrol, hwork] using h
-          exact hbad.elim
+          simp [bControlSlotEmbedding, bControlSumEmbedding,
+            bWorkSlotEmbedding, bWorkSumEmbedding, bBorrowSlotEmbedding,
+            leftControlSlotEmbedding, hcontrol, hwork] at h
       | inr target =>
-          have hbad : False := by
-            simpa [bControlSlotEmbedding, bControlSumEmbedding,
-              bWorkSlotEmbedding, bWorkSumEmbedding, hcontrol, hwork] using h
-          exact hbad.elim
+          simp [bControlSlotEmbedding, bControlSumEmbedding,
+            bWorkSlotEmbedding, bWorkSumEmbedding, hcontrol, hwork] at h
   | inr dirty =>
       cases hwork : (@finSumFinEquiv r 1).symm work with
       | inl borrowed =>
-          have hbad : False := by
-            simpa [bControlSlotEmbedding, bControlSumEmbedding,
-              bWorkSlotEmbedding, bWorkSumEmbedding, bBorrowSlotEmbedding,
-              leftControlSlotEmbedding, hcontrol, hwork] using h
-          exact hbad.elim
+          simp [bControlSlotEmbedding, bControlSumEmbedding,
+            bWorkSlotEmbedding, bWorkSumEmbedding, bBorrowSlotEmbedding,
+            leftControlSlotEmbedding, hcontrol, hwork] at h
       | inr target =>
-          have hbad : False := by
-            simpa [bControlSlotEmbedding, bControlSumEmbedding,
-              bWorkSlotEmbedding, bWorkSumEmbedding, hcontrol, hwork] using h
-          exact hbad.elim
+          simp [bControlSlotEmbedding, bControlSumEmbedding,
+            bWorkSlotEmbedding, bWorkSumEmbedding, hcontrol, hwork] at h
 
 /-- All B-ladder logical slots inside the common four-block slot layout. -/
 def bLadderSlotEmbedding {l r : ℕ} (hcapacity : r ≤ l + 2) :
@@ -362,6 +346,33 @@ theorem bInwardLadderLayout_orderedControlLayout {l r n : ℕ}
     intro control
     rfl
   · exact layout.bInwardLadderLayout_targetWire hcapacity
+
+/-- If A fits in the right group alone, its complete logical support excludes the final target. -/
+theorem targetWire_not_mem_aInwardLadderLogicalSupport {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (hcapacity : l ≤ r + 2)
+    (htargetFree : l ≤ r + 1) :
+    layout.targetWire ∉
+      (layout.aInwardLadderLayout hcapacity).logicalSupport := by
+  intro hmem
+  rw [InwardLadderLayout.logicalSupport, Finset.mem_map] at hmem
+  rcases hmem with ⟨slot, _, hslot⟩
+  have hslot' : aLadderSlotEmbedding hcapacity slot =
+      (Sum.inr (Sum.inr 1) : FourBlockSlot l r) := by
+    apply layout.wire.injective
+    simpa [aInwardLadderLayout, targetWire] using hslot
+  cases slot with
+  | inl control => cases hslot'
+  | inr work =>
+      cases hwork : (@finSumFinEquiv l 1).symm work with
+      | inl borrowed =>
+          apply aBorrowSlotEmbedding_ne_target hcapacity htargetFree borrowed
+          simpa [aLadderSlotEmbedding, aWorkSlotEmbedding, aWorkSumEmbedding,
+            hwork] using hslot'
+      | inr last =>
+          have hlast : last = 0 := Subsingleton.elim _ _
+          subst last
+          simp [aLadderSlotEmbedding, aWorkSlotEmbedding, aWorkSumEmbedding,
+            hwork] at hslot'
 
 /-! ## Positive-tail Corollary 7.4 circuit -/
 
@@ -510,6 +521,21 @@ theorem corollary74Circuit_oneQubitCNOTCost {leftTail rightTail n : ℕ}
   simp [corollary74Circuit, fourBlockSubstitutionCircuit, Circuit.cost_append,
     corollary74AImplementation, corollary74BImplementation]
 
+/-- Under the stronger prefix bound, A's exact ladder never touches the final target. -/
+theorem targetWire_not_mem_corollary74AImplementation_touchedSupport
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2)
+    (htargetFree : leftTail ≤ rightTail + 1) :
+    layout.targetWire ∉
+      Circuit.touchedSupport (layout.corollary74AImplementation hcapacity) := by
+  intro hmem
+  apply layout.targetWire_not_mem_aInwardLadderLogicalSupport
+      (by omega) (by omega)
+  apply InwardLadderLayout.touchedSupport_inwardLadderCircuit_subset
+      (layout.corollary74ALayout hcapacity)
+  exact hmem
+
 /-! ## Balanced source-width partition -/
 
 /-- Left borrowed tail in the repaired floor partition for source width `sourceWidth`. -/
@@ -596,6 +622,34 @@ def balancedLayout (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
         have hsum := balancedTails_add_seven hwidth
         simp only [logicalWidth]
         omega))
+
+/-- The canonical layout uses exactly `sourceWidth` logical slots. -/
+theorem balancedLayout_logicalWidth (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    logicalWidth (balancedLeftTail sourceWidth + 1)
+      (balancedRightTail sourceWidth + 1) = sourceWidth := by
+  have hsum := balancedTails_add_seven hwidth
+  simp only [logicalWidth]
+  omega
+
+/-- The canonical target is controlled by exactly the paper's `sourceWidth - 2` wires. -/
+@[simp]
+theorem balancedLayout_dataControlCount (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    (balancedLayout sourceWidth hwidth).dataLayout.controlSet.card =
+      sourceWidth - 2 := by
+  rw [dataLayout_controlSet_card]
+  have hsum := balancedTails_add_seven hwidth
+  omega
+
+/-- In the balanced circuit, A's full Toffoli ladder never names the final target wire. -/
+theorem balancedLayout_targetWire_not_mem_aImplementation_touchedSupport
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    (balancedLayout sourceWidth hwidth).targetWire ∉
+      Circuit.touchedSupport
+        ((balancedLayout sourceWidth hwidth).corollary74AImplementation
+          (balancedLeftCapacity hwidth)) := by
+  apply targetWire_not_mem_corollary74AImplementation_touchedSupport
+  exact balancedLeftTail_le_right_add_one hwidth
 
 /-- The repaired floor-partition construction on exactly `sourceWidth` wires. -/
 def balancedCorollary74Circuit (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
