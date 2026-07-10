@@ -9,6 +9,7 @@ import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.ControlledDistance
 import Barenco.Equivalence.EventProbability
 import Barenco.Equivalence.Phase
+import Barenco.TwoWire.ControlledBridges
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
@@ -72,6 +73,23 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Primitive.toffoli_denotation_mulVec_basisKet
 #print axioms Barenco.Circuit.eval_append
 #print axioms Barenco.Circuit.eval_adjoint
+
+/-! ## Goal 2 Stage 2: certified ordered two-wire semantics -/
+
+#print axioms Barenco.OrderedWirePair.swap_swap
+#print axioms Barenco.splitTwoWire_snd_eq_iff
+#print axioms Barenco.setTwoWire_swap
+#print axioms Barenco.twoWireRaw_mulVec_basisKet_eq_sum
+#print axioms Barenco.twoWireRaw_mulVec
+#print axioms Barenco.twoWireUnitary_mul
+#print axioms Barenco.twoWireUnitary_inv
+#print axioms Barenco.twoWireUnitary_mk_proof_irrel
+#print axioms Barenco.twoWireUnitary_swap
+#print axioms Barenco.twoWireUnitary_localUnitary_zero
+#print axioms Barenco.twoWireUnitary_localUnitary_one
+#print axioms Barenco.twoWireUnitary_positiveControlledUnitary_zero_one
+#print axioms Barenco.twoWireUnitary_cnotUnitary_zero_one
+
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose
 #print axioms Barenco.BasisPhaseEq.toBasisMeasurementEq

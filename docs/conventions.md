@@ -87,7 +87,9 @@ support, so later cost models must reject or explicitly price it.
 `Primitive.toffoli` requires three pairwise-distinct wires and packages the
 certified two-control Pauli-X denotation; equal controls therefore cannot be
 mislabeled as a three-wire resource. The arbitrary-two-qubit kind deliberately
-has no smart constructor until its certified semantics exists.
+still has no smart constructor at this semantic layer; attaching trusted circuit
+syntax and resource metadata to the certified two-wire embedding is a separate
+construction.
 
 ## Wires, Controls, Targets, and Embeddings
 
@@ -116,6 +118,25 @@ are impossible. `localUnitary`, `controlledUnitary`, and
 entry and complete basis-column action theorems. `cnotUnitary control target h`
 requires `h : control ≠ target`, and its truth-table theorem quantifies over every
 basis assignment and register width.
+
+An arbitrary two-wire embedding is selected by `OrderedWirePair n`, whose `first`
+and `second` fields are accompanied by a proof that they are distinct. The order
+is semantic: local bit `0` is `pair.first`, local bit `1` is `pair.second`, and
+the corresponding local labels are `00, 01, 10, 11`. The equivalence
+`splitTwoWire pair : Basis n ≃ Basis 2 × PairComplementBasis pair` separates those
+bits from every spectator. `twoWireUnitary pair U` is the certified reindexing of
+`U ⊗ I`; its entry, basis-column, explicit four-term, and arbitrary-state action
+theorems prove spectator preservation directly. It does not infer locality from
+syntax metadata.
+
+Pair reversal is never implicit. `twoWireUnitary_swap` states that embedding `U`
+on `pair.swap` is embedding the explicitly wire-swapped reindexing of `U` on
+`pair`. The exact bridges identify local gates on bits `0` and `1` with the
+ambient first and second wires and identify canonical local CNOT `0 → 1` with
+ambient CNOT `pair.first → pair.second`. These are exact full-register equalities;
+no global or basis-dependent phase is discarded. Identity and scalar local gates
+remain valid inputs, so a later two-wire structural support declaration is an
+upper bound, not a claim of minimal semantic support.
 
 ## Unitary Gates
 

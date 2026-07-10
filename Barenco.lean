@@ -1,6 +1,9 @@
 import Barenco.Basic
 import Barenco.Semantics
 import Barenco.Controlled
+import Barenco.TwoWire.Layout
+import Barenco.TwoWire.Semantics
+import Barenco.TwoWire.ControlledBridges
 import Barenco.Circuit
 import Barenco.Equivalence.Phase
 import Barenco.Equivalence.Measurement

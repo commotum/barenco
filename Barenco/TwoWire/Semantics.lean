@@ -293,6 +293,16 @@ theorem twoWireRaw_mk_proof_irrel {n : ℕ} (first second : Fin n)
     ext <;> rfl
   rw [hp]
 
+/-- The distinctness proof carried by the pair cannot affect certified semantics. -/
+theorem twoWireUnitary_mk_proof_irrel {n : ℕ} (first second : Fin n)
+    (h h' : first ≠ second) (U : TwoQubitUnitary) :
+    twoWireUnitary (⟨first, second, h⟩ : OrderedWirePair n) U =
+      twoWireUnitary (⟨first, second, h'⟩ : OrderedWirePair n) U := by
+  have hp : (⟨first, second, h⟩ : OrderedWirePair n) =
+      ⟨first, second, h'⟩ := by
+    ext <;> rfl
+  rw [hp]
+
 /-- Reversing ambient pair orientation reindexes the local matrix by the local swap. -/
 theorem twoWireRaw_swap {n : ℕ} (pair : OrderedWirePair n)
     (U : TwoQubitMatrix) :
@@ -329,4 +339,3 @@ theorem twoWireUnitary_swap {n : ℕ} (pair : OrderedWirePair n)
     rw [if_neg hswap, if_neg hagree]
 
 end Barenco
-
