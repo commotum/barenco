@@ -128,6 +128,13 @@ extra assumption, omission, or unresolved obstruction.
   approximation-cost theorem is claimed.
 - Some Section 8 “lower bounds” are heuristic parameter counts rather than proved
   topological lower bounds and may need to remain explicitly non-theorem claims.
+- The core Lemma 7.7 lower-bound stack is now implemented for a proof-carrying
+  syntax containing exactly arbitrary one-qubit gates and distinct-wire CNOTs.
+  A duplicate-safe interaction graph, explicit arbitrary-cut Kronecker
+  factorization, and a separated-control scalar obstruction prove the stronger
+  exact no-ancilla bound of `n-1` CNOT occurrences. The source's total-basic-gate
+  and named-cost forms are corollaries; scalar, approximate, phase-relaxed,
+  measurement, and ancilla-assisted targets are outside the theorem.
 
 ## Success Metrics and Final Verification
 
@@ -588,18 +595,32 @@ heuristic parameter counts.
 
 ### Detailed Implementation Plan
 
-- Prove Lemma 7.7 through an explicit wire-dependency/support invariant for the
-  allowed primitive syntax and handle scalar/non-scalar boundary cases.
-- Audit Section 5/6 exact-minimum assertions and prove only those with exhaustive
-  algebraic or structural arguments.
-- Recast Section 8 dimension counting as clearly labeled evidence unless a full
-  manifold/dimension theorem and its assumptions can be established.
+- Retain the implemented `BasicPrimitive`/`BasicCircuit` restricted syntax and
+  exact erasure, evaluator, occurrence-count, total-count, and accepted-cost
+  bridges to the generic library.
+- Retain the duplicate-safe CNOT interaction graph and the explicit
+  selected-wires-first `wireSplit`/`partitionReindex` Kronecker semantics for
+  arbitrary, possibly noncontiguous cuts.
+- Retain the proved target-component factorization and separated-control scalar
+  obstruction, which combine into the stronger `n-1` CNOT-occurrence theorem and
+  its weaker total-gate and named-cost corollaries.
+- Add boundary examples, public-root imports, maintained axiom entries, and the
+  required strict/trust-zero, forbidden-token, diff, focused, and full-build
+  checks before marking the stage complete.
+- Preserve the Section 5/6 named-topology classifications and constructive counts
+  without promoting them to global minimum claims. Preserve Section 8 dimension
+  counting as excluded evidence unless a future manifold/image theorem supplies
+  the missing assumptions.
 
 ### Completion Requirements
 
 - Every exported lower bound names its primitive set and semantic target relation.
 - Lemma 7.7's `n - 1` bound follows from a mechanized invariant, not prose.
+- The arbitrary-cut tensor convention, exact/no-ancilla scope, nonscalar
+  hypothesis, and width-one/zero boundaries are documented explicitly.
 - Heuristic/excluded bounds have exact obstruction and no theorem-shaped claim.
+- Examples, public imports, axiom audit, and all required builds/checks pass before
+  the Stage Index box is checked.
 
 ## 11-UNIVERSALITY
 

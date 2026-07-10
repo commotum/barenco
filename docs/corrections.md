@@ -702,16 +702,19 @@ statement. “Open” means the repair is identified but not yet machine checked
 
 - **Source:** Corollaries 7.10 and 7.12, manuscript pp. 24–25; Markdown lines
   862–889.
-- **Issue:** both corollaries use `Θ(n)` after exhibiting a linear-size circuit,
-  but no matching lower bound is proved in the same gate/ancilla model. Read as a
-  statement about minimum cost uniformly over the target gate, it is immediately
-  false for the identity, which needs no operations. Corollary 7.12 additionally
-  changes the available resource by assuming one clean reusable bit.
+- **Issue:** both corollaries use `Θ(n)` after exhibiting a linear-size circuit
+  without stating the optimization quantifiers. Lemma 7.7 supplies a linear lower
+  invariant for exact, no-ancilla, nonscalar fully controlled targets, but it does
+  not cover Corollary 7.12's clean-ancilla model. Read as a statement about minimum
+  cost uniformly over every target gate, the claim is immediately false for the
+  identity, which needs no operations. Corollary 7.12 additionally changes the
+  available resource by assuming one clean reusable bit.
 - **Repair:** give exact component and total counts for each named syntax, then
-  state an `O(n)` upper bound if asymptotic packaging is useful. Reserve a
-  two-sided theorem for the executed count of that fixed unoptimized algorithm,
-  or for a future matching lower bound with the same target-family and ancilla
-  assumptions. Do not call either result optimal synthesis.
+  state an `O(n)` upper bound if asymptotic packaging is useful. A future
+  two-sided exact no-ancilla theorem may specialize Lemma 7.7 to the nonscalar
+  `W` family after explicitly bridging the counted construction into the same
+  restricted syntax and quantifiers. The clean-ancilla claim still needs a new
+  lower-bound invariant. Do not call either present result optimal synthesis.
 - **Dependent impact:** the intended corrected Corollary 7.10, the clean-ancilla
   Corollary 7.12, and any later comparison between no-ancilla and clean-ancilla
   resource models.
@@ -722,7 +725,10 @@ statement. “Open” means the repair is identified but not yet machine checked
   `linearSU2*CountAtWidth` and `cleanAncilla*CountAtWidth` theorems link the
   numeric functions back to those circuits. `linearSU2TotalCount_isBigOWith_width`
   and `cleanAncillaTotalCount_isBigOWith_width` prove construction-specific
-  `IsBigOWith 112` bounds, with ordinary `O(n)` corollaries.
+  `IsBigOWith 112` bounds, with ordinary `O(n)` corollaries. The separate
+  `fullyControlled_cnotCount_lowerBound` proves the exact no-ancilla nonscalar
+  lower invariant described in C-027; no theorem currently packages it with this
+  generic `Circuit` upper syntax into an optimal-cost function.
 - **Status:** corrected and proved as exact counts and linear upper bounds for the
   named constructions; optimal `Θ(n)` is intentionally not exported.
 

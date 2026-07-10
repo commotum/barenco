@@ -74,7 +74,7 @@ remain before the stage is complete).
 | Lemma 7.7 factorization | A disconnected network transformation "must therefore" be `A tensor B`. | Corrected and proved through `wireSplit`, `partitionReindex`, raw `TensorFactorsAcross`, primitive locality, multiplication closure, and exact evaluator factorization on the target component. |
 | Lemma 7.7 target obstruction | A nonscalar fully controlled target is not of that form. | Corrected and proved for every proper target-containing cut: a separated listed control forces the one-qubit target matrix to be scalar. The selected target component fixes the orientation needed by the lower-bound proof. |
 | Lemma 7.7 resource conclusion | At least `n-1` basic operations. | Strengthened and proved: exact no-ancilla synthesis by arbitrary one-qubit gates and CNOTs needs at least `n-1` CNOT occurrences; total-gate and accepted named-cost versions follow. |
-| Section 5 special topologies | Exact iff descriptions for the displayed two-CNOT and one-CNOT families. | Already proved for those named topologies; audit whether any genuinely global lower corollary follows without assuming a normal form. |
+| Section 5 special topologies | Exact iff descriptions for the displayed two-CNOT and one-CNOT families. | Proved only for those named topologies. No genuinely global minimum-CNOT corollary is exported because there is no normal-form or exhaustive-circuit theorem reducing every implementation to those families. |
 | Section 5/6 counts | Six and sixteen basic gates suffice for the displayed exact constructions. | Constructive upper bounds only; no minimum wording will be added. |
 | Section 8 small counts | Five/three/thirteen constructions and alleged six-gate general `U(8)`. | Upper constructions belong to later resource work; numerical minimality is excluded, and six-gate surjectivity remains unresolved. |
 | Section 8 dimension lower bound | Suggested `(4^n-3n-1)/9` arbitrary-two-qubit lower bound. | Intentionally excluded as an unconditional theorem; preserve the exact missing manifold/image assumptions in corrections and traceability. |
@@ -142,7 +142,8 @@ remain before the stage is complete).
 - [ ] Partition factorization is proved on arbitrary-width registers and is
   preserved by chronological composition.
 - [ ] A fully controlled nonscalar target is proved nonfactorable across every
-  nontrivial wire partition.
+  proper target-containing wire partition, which is the orientation supplied by
+  the disconnected target component.
 - [ ] Lemma 7.7 is exported with an explicit primitive set, exact target relation,
   CNOT count, total count, and cost-model corollary.
 - [ ] Section 5/6 topology and Section 8 heuristic/minimality claims are correctly
