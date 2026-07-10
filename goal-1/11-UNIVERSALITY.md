@@ -32,10 +32,11 @@ has begun).
   subspace. The construction must carry an explicit endpoint equivalence or insert
   the corresponding conjugation.
 - `Basis n = Fin n → Bool` is the circuit-semantic index. The pinned matrix APIs
-  support simultaneous reindexing, and `basisIndex` supplies the already-fixed
-  big-endian equivalence with `Fin (2^n)`. Algebraic elimination should remain
-  reusable over a general finite index or `Fin d`, with an explicit reindex bridge
-  to qubit bases.
+  support simultaneous reindexing. The current `basisIndex` is only a descriptive
+  natural-number function with four width-two checks; it has no proved range,
+  injectivity, or equivalence with `Fin (2^n)`. Algebraic elimination should remain
+  reusable over a general finite index (ideally directly `Basis n`); any later
+  lexicographic `Fin (2^n)` bridge is a separate theorem, not an existing API.
 - The project already has chronological `Circuit.append`/`Circuit.eval`, certified
   arbitrary one-qubit primitives, CNOT primitives, circuit adjoints, finite-mask
   Gray-code facts, and exact positive multi-control constructions. Whether the
