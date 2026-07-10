@@ -48,8 +48,10 @@ example (localGate : QubitUnitary) (payload : TwoQubitUnitary) :
           FusionPrimitive.twoQubit nonadjacentPair payload] =
       [FusionPrimitive.twoQubit nonadjacentPair
         (payload * localOnePayload localGate)] := by
+  have hne : nonadjacentPair.second ≠ nonadjacentPair.first := by decide
   simp [section8Normalize, promoteCNOTCircuit, NormalizeCore.normalize,
-    promoteCNOT, NormalizeCore.insert, section8IsIdentity, section8Combine]
+    promoteCNOT, NormalizeCore.insert, section8IsIdentity, section8Combine,
+    hne]
 
 /-- Reversed pair orientation is reindexed through the local bit swap. -/
 example {n : ℕ} (pair : OrderedWirePair n)
@@ -216,7 +218,8 @@ example {n : ℕ} (first second target : Fin n)
     NormalizeCore.normalize, NormalizeCore.insert, section8IsIdentity,
     section8Combine, FusionCircuit.gateCount, FusionCircuit.oneQubitCount,
     FusionCircuit.cnotCount, FusionCircuit.twoQubitCount,
-    FusionCircuit.kindCount, OrderedWirePair.eq_iff, *]
+    FusionCircuit.kindCount, FusionCircuit.cost, FusionPrimitive.cost,
+    FusionPrimitive.kind, Circuit.addCost, OrderedWirePair.eq_iff, *]
 
 /-! ## Barrier boundaries -/
 

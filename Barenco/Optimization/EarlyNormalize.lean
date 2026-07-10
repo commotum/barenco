@@ -404,6 +404,48 @@ def normalizeEarlyProgram {n : ℕ} (program : FusionProgram n) :
     FusionProgram n :=
   earlyNormalizeProgramAux [] program
 
+private theorem earlyNormalizeProgramAux_visible {n : ℕ}
+    (accumulated circuit : FusionCircuit n) :
+    earlyNormalizeProgramAux accumulated (FusionProgram.visible circuit) =
+      FusionProgram.visible
+        (normalizeEarly (FusionCircuit.append accumulated circuit)) := by
+  induction circuit generalizing accumulated with
+  | nil =>
+      simp [earlyNormalizeProgramAux, FusionProgram.visible,
+        FusionCircuit.append]
+  | cons gate circuit ih =>
+      change earlyNormalizeProgramAux
+          (FusionCircuit.append accumulated [gate])
+          (FusionProgram.visible circuit) =
+        FusionProgram.visible
+          (normalizeEarly
+            (FusionCircuit.append accumulated (gate :: circuit)))
+      rw [ih]
+      have happend :
+          FusionCircuit.append
+              (FusionCircuit.append accumulated [gate]) circuit =
+            FusionCircuit.append accumulated (gate :: circuit) := by
+        simp [FusionCircuit.append, List.append_assoc]
+      rw [happend]
+
+/-- A fully visible program is normalized by exactly the visible early pass. -/
+@[simp]
+theorem normalizeEarlyProgram_visible {n : ℕ}
+    (circuit : FusionCircuit n) :
+    normalizeEarlyProgram (FusionProgram.visible circuit) =
+      FusionProgram.visible (normalizeEarly circuit) := by
+  simpa only [normalizeEarlyProgram, FusionCircuit.append,
+    List.nil_append] using
+      earlyNormalizeProgramAux_visible ([] : FusionCircuit n) circuit
+
+/-- A leading barrier is copied verbatim and starts a fresh visible run. -/
+@[simp]
+theorem normalizeEarlyProgram_barrier {n : ℕ}
+    (primitive : Primitive n) (program : FusionProgram n) :
+    normalizeEarlyProgram (.barrier primitive :: program) =
+      .barrier primitive :: normalizeEarlyProgram program := by
+  rfl
+
 private theorem eval_earlyNormalizeProgramAux {n : ℕ}
     (visible : FusionCircuit n) (program : FusionProgram n) :
     FusionProgram.eval (earlyNormalizeProgramAux visible program) =

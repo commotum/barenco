@@ -49,7 +49,51 @@ theorem trans {first second third : Option ℕ}
   rcases hsecond secondCost hsecondCost with ⟨thirdCost, hthirdCost, hthirdLe⟩
   exact ⟨thirdCost, hthirdCost, hthirdLe.trans hsecondLe⟩
 
+/-- Adding two independently nonincreasing accepted costs preserves the relation. -/
+theorem addCost {firstInput firstOutput secondInput secondOutput : Option ℕ}
+    (hfirst : AcceptedCostNonincrease firstInput firstOutput)
+    (hsecond : AcceptedCostNonincrease secondInput secondOutput) :
+    AcceptedCostNonincrease
+      (Circuit.addCost firstInput secondInput)
+      (Circuit.addCost firstOutput secondOutput) := by
+  intro inputCost hinput
+  cases hfirstInput : firstInput with
+  | none => simp [Circuit.addCost, hfirstInput] at hinput
+  | some firstCost =>
+      cases hsecondInput : secondInput with
+      | none => simp [Circuit.addCost, hfirstInput, hsecondInput] at hinput
+      | some secondCost =>
+          have hinputCost : inputCost = firstCost + secondCost := by
+            simpa [Circuit.addCost, hfirstInput, hsecondInput] using hinput.symm
+          rcases hfirst firstCost hfirstInput with
+            ⟨firstOutputCost, hfirstOutput, hfirstLe⟩
+          rcases hsecond secondCost hsecondInput with
+            ⟨secondOutputCost, hsecondOutput, hsecondLe⟩
+          refine ⟨firstOutputCost + secondOutputCost, ?_, ?_⟩
+          · simp [Circuit.addCost, hfirstOutput, hsecondOutput]
+          · rw [hinputCost]
+            exact Nat.add_le_add hfirstLe hsecondLe
+
+/-- Removing a nonnegative accepted prefix cost cannot increase the remainder. -/
+theorem dropLeft (added : ℕ) (tail : Option ℕ) :
+    AcceptedCostNonincrease (Circuit.addCost (some added) tail) tail := by
+  intro inputCost hinput
+  cases htail : tail with
+  | none => simp [Circuit.addCost, htail] at hinput
+  | some tailCost =>
+      have hinputCost : inputCost = added + tailCost := by
+        simpa [Circuit.addCost, htail] using hinput.symm
+      exact ⟨tailCost, rfl, by omega⟩
+
 end AcceptedCostNonincrease
+
+private theorem addCost_zero_left (cost : Option ℕ) :
+    Circuit.addCost (some 0) cost = cost := by
+  cases cost <;> simp [Circuit.addCost]
+
+private theorem addCost_zero_right (cost : Option ℕ) :
+    Circuit.addCost cost (some 0) = cost := by
+  cases cost <;> simp [Circuit.addCost]
 
 /-! ## Concrete early-policy counts -/
 
@@ -72,14 +116,17 @@ private theorem kindCount_earlyExposeInsert {n : ℕ} (kind : PrimitiveKind)
               · simp [earlyExposeInsert, hsame]
               · by_cases horder : wire ≤ nextWire
                 · simp [earlyExposeInsert, hsame, horder]
-                · simp [earlyExposeInsert, hsame, horder, ih,
-                    FusionCircuit.kindCount_cons, FusionPrimitive.kind]
+                · simp only [earlyExposeInsert, hsame, horder, ↓reduceIte]
+                  rw [FusionCircuit.kindCount_cons, ih]
+                  simp only [FusionCircuit.kindCount_cons, FusionPrimitive.kind]
+                  omega
           | cnot control target hcontrolTarget =>
               by_cases htouch : wire = control ∨ wire = target
               · simp [earlyExposeInsert, htouch]
-              · simp [earlyExposeInsert, htouch, ih,
-                  FusionCircuit.kindCount_cons, FusionPrimitive.kind,
-                  Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+              · simp only [earlyExposeInsert, htouch, ↓reduceIte]
+                rw [FusionCircuit.kindCount_cons, ih]
+                simp only [FusionCircuit.kindCount_cons, FusionPrimitive.kind]
+                omega
 
 private theorem kindCount_earlyExpose {n : ℕ} (kind : PrimitiveKind)
     (circuit : FusionCircuit n) :
@@ -88,7 +135,8 @@ private theorem kindCount_earlyExpose {n : ℕ} (kind : PrimitiveKind)
   induction circuit with
   | nil => rfl
   | cons gate circuit ih =>
-      rw [earlyExpose, kindCount_earlyExposeInsert, ih]
+      rw [earlyExpose, kindCount_earlyExposeInsert,
+        FusionCircuit.kindCount_cons, FusionCircuit.kindCount_cons, ih]
 
 private theorem kindCount_earlyInsert_of_ne_oneQubit {n : ℕ}
     (kind : PrimitiveKind) (hkind : kind ≠ .oneQubit)
@@ -114,7 +162,8 @@ private theorem kindCount_earlyInsert_of_ne_oneQubit {n : ℕ}
                 simp only [earlyIsIdentity, Bool.false_eq_true, ↓reduceIte,
                   earlyCombine, ↓reduceIte]
                 rw [ih]
-                simp [FusionCircuit.kindCount_cons, FusionPrimitive.kind, hkind]
+                have hone : PrimitiveKind.oneQubit ≠ kind := Ne.symm hkind
+                simp [FusionCircuit.kindCount_cons, FusionPrimitive.kind, hone]
               · simp [NormalizeCore.insert, earlyIsIdentity, earlyCombine, hwire]
 
 private theorem kindCount_earlyAdjacentNormalize_of_ne_oneQubit {n : ℕ}
@@ -129,7 +178,8 @@ private theorem kindCount_earlyAdjacentNormalize_of_ne_oneQubit {n : ℕ}
   | nil => rfl
   | cons gate circuit ih =>
       rw [NormalizeCore.normalize,
-        kindCount_earlyInsert_of_ne_oneQubit kind hkind, ih]
+        kindCount_earlyInsert_of_ne_oneQubit kind hkind,
+        FusionCircuit.kindCount_cons, FusionCircuit.kindCount_cons, ih]
 
 /-- The complete early pass preserves the exact number of literal CNOT nodes. -/
 @[simp]
@@ -162,6 +212,17 @@ theorem gateCount_normalizeEarly_le {n : ℕ} (circuit : FusionCircuit n) :
       FusionCircuit.gateCount circuit :=
   length_normalizeEarly_le circuit
 
+/-- The early pass can only fuse one-qubit nodes, so their count cannot grow. -/
+theorem oneQubitCount_normalizeEarly_le {n : ℕ}
+    (circuit : FusionCircuit n) :
+    FusionCircuit.oneQubitCount (normalizeEarly circuit) ≤
+      FusionCircuit.oneQubitCount circuit := by
+  have htotal := gateCount_normalizeEarly_le circuit
+  rw [FusionCircuit.gateCount_eq_componentCounts,
+    FusionCircuit.gateCount_eq_componentCounts,
+    cnotCount_normalizeEarly, twoQubitCount_normalizeEarly] at htotal
+  omega
+
 /--
 When the input is accepted by the Sections 3--7 model, the literal early-pass
 output remains accepted and has no larger cost.
@@ -178,6 +239,15 @@ theorem normalizeEarly_oneQubitCNOT_acceptedCostNonincrease {n : ℕ}
   · apply (FusionCircuit.oneQubitCNOT_cost_eq_some_iff _).2
     exact ⟨by simpa using htwo, rfl⟩
   · simpa [hgate] using gateCount_normalizeEarly_le circuit
+
+/-- The same accepted-cost theorem after exact lowering to trusted syntax. -/
+theorem normalizeEarly_lower_oneQubitCNOT_acceptedCostNonincrease {n : ℕ}
+    (circuit : FusionCircuit n) :
+    AcceptedCostNonincrease
+      (Circuit.cost CostModel.oneQubitCNOT circuit.lower)
+      (Circuit.cost CostModel.oneQubitCNOT (normalizeEarly circuit).lower) := by
+  simpa only [FusionCircuit.cost_lower] using
+    normalizeEarly_oneQubitCNOT_acceptedCostNonincrease circuit
 
 /-! ## Section 8 visible resources -/
 
@@ -205,6 +275,16 @@ theorem section8Normalize_arbitraryTwoQubit_acceptedCostNonincrease {n : ℕ}
   · exact FusionCircuit.arbitraryTwoQubit_cost_eq_gateCount _
   · simpa [hinputCost] using section8Normalize_gateCount_nonincrease circuit
 
+/-- The Section 8 accepted-cost bound after exact lowering to trusted syntax. -/
+theorem section8Normalize_lower_arbitraryTwoQubit_acceptedCostNonincrease
+    {n : ℕ} (circuit : FusionCircuit n) :
+    AcceptedCostNonincrease
+      (Circuit.cost CostModel.arbitraryTwoQubit circuit.lower)
+      (Circuit.cost CostModel.arbitraryTwoQubit
+        (section8Normalize circuit).lower) := by
+  simpa only [FusionCircuit.cost_lower] using
+    section8Normalize_arbitraryTwoQubit_acceptedCostNonincrease circuit
+
 /-! ## Symbolic cancellation resources -/
 
 /--
@@ -225,5 +305,19 @@ theorem SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease
   refine ⟨SymbolicCircuit.gateCount (SymbolicCircuit.normalize circuit), ?_, ?_⟩
   · exact SymbolicCircuit.erase_oneQubitCNOTCost valuation _
   · simpa [hinputCost] using SymbolicCircuit.gateCount_normalize_le circuit
+
+/-- The symbolic accepted-cost bound after exact lowering to trusted syntax. -/
+theorem SymbolicCircuit.normalize_lower_erased_oneQubitCNOT_acceptedCostNonincrease
+    [DecidableEq Atom] (valuation : Atom → QubitUnitary)
+    (circuit : SymbolicCircuit Atom n) :
+    AcceptedCostNonincrease
+      (Circuit.cost CostModel.oneQubitCNOT
+        (SymbolicCircuit.erase valuation circuit).lower)
+      (Circuit.cost CostModel.oneQubitCNOT
+        (SymbolicCircuit.erase valuation
+          (SymbolicCircuit.normalize circuit)).lower) := by
+  simpa only [FusionCircuit.cost_lower] using
+    SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease
+      valuation circuit
 
 end Barenco.Optimization
