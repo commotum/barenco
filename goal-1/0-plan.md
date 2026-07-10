@@ -2,9 +2,9 @@
 
 Shorthand: `BARENCO`
 
-Status: active. The goal is complete only when the central mathematical claims of
-“Elementary Gates for Quantum Computation” have been independently checked,
-formalized to the documented scope, and audited as a reusable Lean library.
+Status: complete (2026-07-10). The central mathematical claims of “Elementary
+Gates for Quantum Computation” have been independently checked, formalized to the
+documented scope, and audited as a reusable Lean library.
 
 ## Big-Picture Objective
 
@@ -183,7 +183,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
 - [x] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
 - [x] `12-RESOURCES` — recurrences, asymptotics, and cost-model separation.
-- [ ] `13-AUDIT` — coverage closure, examples, build/axiom audit, final report.
+- [x] `13-AUDIT` — coverage closure, examples, build/axiom audit, final report.
 
 ## 1-GUARDRAILS
 
@@ -772,3 +772,20 @@ paper-to-Lean and axiom audit.
   explained.
 - The final report contains every deliverable requested in the original objective
   and gives concrete import/examples for downstream projects.
+
+### Stage Results
+
+- The paper-to-Lean traceability matrix and 35-entry correction log were reconciled
+  against the compiled declarations. All sixteen source images and all exact,
+  asymptotic, historical-efficiency, heuristic, and minimality claims now have an
+  explicit final classification.
+- `README.md` provides the concise library entry point; `docs/final-report.md`
+  records architecture, public APIs, conventions, diagram and resource coverage,
+  corrections, unresolved material, verification, and future-use guidance.
+- A clean build from an empty project build tree passed with 3,593 jobs; the
+  post-clean public/diagnostic/audit build passed with 3,587 jobs. Strict and
+  trust-zero warning-as-error checks passed for the root, audit, and resource
+  diagnostic.
+- The maintained audit contains 319 `#print axioms` checks, all within the standard
+  `propext`/`Classical.choice`/`Quot.sound` foundations. Final forbidden-token,
+  project-axiom, asset-count, import-boundary, and `git diff --check` scans passed.

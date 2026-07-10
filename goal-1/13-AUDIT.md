@@ -1,6 +1,6 @@
 # 13-AUDIT
 
-Status: in progress.
+Status: complete (2026-07-10).
 
 ## Starting Evidence
 
@@ -64,18 +64,46 @@ an explicit final report, diagram/resource inventory, and release-grade audit.
 
 ## Completion Requirements
 
-- [ ] Every traceability and correction entry matches the current compiled API.
-- [ ] All sixteen diagrams have a final layer-by-layer classification.
-- [ ] Every exact/asymptotic/minimality resource claim has a final classification.
-- [ ] `README.md` provides usable imports, conventions, examples, and navigation.
-- [ ] A detailed final report contains every deliverable requested by the user.
-- [ ] Public/diagnostic module boundaries and documentation links are verified.
-- [ ] Pinned Lean/mathlib versions, focused/full builds, strict/trust-zero checks,
+- [x] Every traceability and correction entry matches the current compiled API.
+- [x] All sixteen diagrams have a final layer-by-layer classification.
+- [x] Every exact/asymptotic/minimality resource claim has a final classification.
+- [x] `README.md` provides usable imports, conventions, examples, and navigation.
+- [x] A detailed final report contains every deliverable requested by the user.
+- [x] Public/diagnostic module boundaries and documentation links are verified.
+- [x] Pinned Lean/mathlib versions, focused/full builds, strict/trust-zero checks,
   forbidden scans, and the 319-entry axiom audit are recorded accurately.
-- [ ] `goal-1/0-plan.md`, this stage file, and the persistent goal status agree.
+- [x] `goal-1/0-plan.md`, this stage file, and the persistent goal status agree.
 
 ## Stage Results
 
-- Stage file created before final-audit implementation. Independent coverage,
-  diagram, resource, and release audits are beginning from the compiled Stage 12
-  state.
+- Reconciled the compiled API against the manuscript, traceability matrix, and
+  correction log. The final log contains 35 material corrections or
+  clarifications, each with its source, repair or obstruction, dependency impact,
+  formal evidence, and status.
+- Classified all sixteen source images by proof layer. Thirteen have explicit
+  named circuit syntax and evaluator proofs; the controlled-Z image has exact
+  arbitrary-register semantic equality but no separate countable circuit; the
+  notation figure is realized by general controlled-operation infrastructure;
+  and the six-`U(4)` architecture remains explicitly unresolved.
+- Reconciled every resource claim without promoting semantic equality to a cost
+  theorem. In particular, the fixed schedule has the proved finite sandwich
+  `2 * B(k) ≤ exactSynthesisCost k U ≤ 112 * B(k)` and its own `Theta(B(k))`
+  theorem, while historical efficiency, source-level gate mergers, target
+  minimality, and the dimension heuristic remain excluded or unresolved.
+- Added the user-facing `README.md` and `docs/final-report.md`, including the
+  requested project structure, public APIs, conventions, diagram/resource
+  inventories, corrections, omissions, audit results, and downstream guidance.
+- Verified the public/diagnostic boundary and documentation navigation. The final
+  tree has 109 Lean files below `Barenco/`; the manuscript has sixteen PNG
+  references matching the sixteen extracted PNG assets; root-excluded example
+  modules remain outside `Barenco.lean`.
+- Ran `lake clean` and then a full build from an empty project build tree:
+  3,593 jobs succeeded. A post-clean focused build of
+  `Barenco.Universality.ResourceExamples`, `Barenco.AxiomAudit`, and `Barenco`
+  succeeded with 3,587 jobs. Strict warning-as-error and trust-zero compilation
+  passed for the public root, the axiom audit, and the resource diagnostic.
+- Confirmed 319 maintained `#print axioms` checks. Exported headline theorems use
+  only `propext`, `Classical.choice`, and `Quot.sound` (often a subset), with no
+  project-specific axiom. Repository-wide scans found no `sorry`, `admit`, `by?`,
+  `native_decide`, `bv_decide`, `sorryAx`, `implemented_by`, custom `axiom`, or
+  `opaque` in project Lean sources; `git diff --check` passed.

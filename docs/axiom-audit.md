@@ -414,5 +414,9 @@ row below for each checked declaration.
 | Stage 12 warning-as-error root/audit/examples | direct `lake env lean -DwarningAsError=true` compilation after public integration | all successful; the maintained audit printed 319 declarations, including 34 new Stage 12 checks, and every result remains within the recorded standard axioms, 2026-07-10 |
 | Stage 12 trust-zero root/audit/examples | direct `lake env lean -t0 -DwarningAsError=true` compilation | all successful; all 319 maintained checks remain within the recorded standard axioms, 2026-07-10 |
 | Stage 12 full builds | two consecutive `lake build` runs after final public-root integration | both successful, 3,585 jobs each, 2026-07-10 |
+| Stage 13 clean build | `lake clean`, followed by `lake build` from the empty project build tree | successful, 3,593 jobs, 2026-07-10 |
+| Stage 13 final strict/trust-zero root and audit | direct warning-as-error compilation of `Barenco.lean` and `AxiomAudit.lean`, with and without `-t0`, after the clean build | all four checks successful; all 319 maintained declarations remain within the recorded standard axioms, 2026-07-10 |
+| Stage 13 post-clean focused/diagnostic build | `lake build Barenco.Universality.ResourceExamples Barenco.AxiomAudit Barenco` | successful, 3,587 jobs; the root-excluded resource diagnostic was rebuilt alongside the public root and audit, 2026-07-10 |
+| Stage 13 final strict/trust-zero resource diagnostic | direct warning-as-error compilation of `Barenco/Universality/ResourceExamples.lean`, with and without `-t0`, after the clean build | both checks successful, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

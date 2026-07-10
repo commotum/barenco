@@ -260,6 +260,11 @@ Stage 12 final verification before this report recorded:
 - `git diff --check` clean;
 - 319 maintained `#print axioms` checks.
 
+The final Stage 13 release audit then ran `lake clean` followed by a build from
+the empty project build tree; the clean build succeeded with 3,593 jobs. Strict
+and trust-zero warning-as-error compilation of both the public root and maintained
+axiom audit passed again afterward.
+
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic
 results use a strict subset). There is no project-specific axiom.
