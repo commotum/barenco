@@ -60,6 +60,23 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.Circuit.cost_adjoint` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | partial syntax-cost adjoint invariance; no project axiom | 2026-07-09 |
 | `Barenco.Circuit.touchedSupport_card_le_registerWidth` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | named syntactic support fits ambient circuit width; no project axiom | 2026-07-09 |
 | `Barenco.Primitive.namedModels_reject_unclassified_of_mem` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | unsupported primitives cannot silently receive zero cost; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.paperRy_mul` | `Barenco.OneQubit.Matrix` | `propext`, `Classical.choice`, `Quot.sound` | paper-row Y-rotation addition law; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.paperX_mul_paperRy_mul_paperX` | `Barenco.OneQubit.Matrix` | `propext`, `Classical.choice`, `Quot.sound` | paper-row Pauli-X conjugation identity; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.ry_mem_specialUnitaryGroup` | `Barenco.OneQubit.Certified` | `propext`, `Classical.choice`, `Quot.sound` | standard-column Y rotation is certified special unitary; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.sigmaX_mul_ry_mul_sigmaX` | `Barenco.OneQubit.Certified` | `propext`, `Classical.choice`, `Quot.sound` | semantic Pauli-X conjugation identity; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.paperA_mul_paperB_mul_paperC` | `Barenco.OneQubit.Decomposition` | `propext`, `Classical.choice`, `Quot.sound` | inactive-branch A/B/C identity; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.paperA_mul_X_mul_paperB_mul_X_mul_paperC` | `Barenco.OneQubit.Decomposition` | `propext`, `Classical.choice`, `Quot.sound` | active-branch parameterized A/X/B/X/C identity; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.specialUnitary_canonical` | `Barenco.OneQubit.Euler` | `propext`, `Classical.choice`, `Quot.sound` | canonical SU(2) entry form; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.specialUnitary_eq_paperEuler_arg` | `Barenco.OneQubit.Euler` | `propext`, `Classical.choice`, `Quot.sound` | exact total-argument Euler formula, including zero entries; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.specialUnitary_exists_rz_mul_ry_mul_rz` | `Barenco.OneQubit.Euler` | `propext`, `Classical.choice`, `Quot.sound` | standard-column SU(2) Euler existence; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.removeGlobalPhase_det` | `Barenco.OneQubit.GlobalPhase` | `propext`, `Classical.choice`, `Quot.sound` | determinant-one certificate after principal phase removal; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.phaseShift_mul_specialUnitaryPart` | `Barenco.OneQubit.GlobalPhase` | `propext`, `Classical.choice`, `Quot.sound` | exact reconstruction after determinant-phase split; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.unitary_exists_phaseShift_mul_rz_mul_ry_mul_rz` | `Barenco.OneQubit.U2Euler` | `propext`, `Classical.choice`, `Quot.sound` | full standard-column U(2) Euler existence; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.specialUnitary_exists_paperABC` | `Barenco.OneQubit.Lemma43` | `propext`, `Classical.choice`, `Quot.sound` | existential paper-row Lemma 4.3 matrix identities; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.specialUnitary_exists_columnChronologicalABC` | `Barenco.OneQubit.Lemma43` | `propext`, `Classical.choice`, `Quot.sound` | standard-column chronological Lemma 4.3 matrix identities; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.unitaryRoot_pow` | `Barenco.OneQubit.Roots` | `propext`, `Classical.choice`, `Quot.sound` | exact positive finite-dimensional unitary root; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.unitaryRoot_pow_two_pow` | `Barenco.OneQubit.Roots` | `propext`, `Classical.choice`, `Quot.sound` | exact selected power-of-two root equation; no project axiom | 2026-07-09 |
+| `Barenco.OneQubit.sigmaXUnitary_eq_pauliX` | `Barenco.OneQubit.CircuitBridge` | `propext`, `Classical.choice`, `Quot.sound` | Section 4 Pauli-X agrees with the certified circuit primitive; no project axiom | 2026-07-09 |
 | controlled-U decomposition headline | planned | pending | Stage 5 | — |
 | multi-control construction headline | planned | pending | Stages 7–9 | — |
 | exact universality headline | planned | pending | Stage 11 | — |
@@ -76,6 +93,8 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 2 adjacent build | `lake build Barenco.SemanticsExamples Barenco` | successful as part of combined 2,364-job build, 2026-07-09 |
 | Stage 3 warning-as-error builds | direct `lake env lean -DwarningAsError=true` compilation of `Phase`, `Measurement`, `OperatorNorm`, `Cost`, the diagnostic example, the audit, and the root | all successful, 2026-07-09 |
 | Stage 3 focused/adjacent build | `lake build Barenco.Equivalence.Phase Barenco.Equivalence.Measurement Barenco.Equivalence.OperatorNorm Barenco.Cost Barenco.EquivalenceExamples Barenco Barenco.AxiomAudit` | successful, 2,372 jobs, 2026-07-09 |
-| axiom audit | `lake env lean -DwarningAsError=true Barenco/AxiomAudit.lean` | twenty-nine declarations printed; every result is exactly the standard trio shown above, 2026-07-09 |
+| Stage 4 warning-as-error audit | `lake env lean -DwarningAsError=true Barenco/AxiomAudit.lean` | successful; forty-six declarations printed, including all seventeen new Stage 4 checks; every result is exactly the standard trio shown above, 2026-07-09 |
+| Stage 4 focused/adjacent build | all Section 4 one-qubit leaves, diagnostics, root, and axiom audit | successful; exact final integration job count pending Stage 4 closeout |
+| Stage 4 full build | `lake build` | final closeout run pending; job count pending |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

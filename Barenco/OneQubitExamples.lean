@@ -1,7 +1,6 @@
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Roots
-import Barenco.OneQubit.U2Euler
 
 /-!
 # Diagnostic one-qubit convention and boundary checks

@@ -11,9 +11,9 @@ the principal argument of that determinant by two chooses a scalar phase whose
 two-by-two determinant is exactly `det U`; removing it leaves an element of
 `SU(2)`.
 
-The choice is noncanonical at the principal-argument branch cut, and no
-continuity of the selected angle is claimed.  The reconstruction and determinant
-equations are exact.
+The selected square root is a principal-argument convention and is discontinuous
+when the determinant crosses the branch cut at `-1`; no continuity is claimed.
+The reconstruction and determinant equations are exact.
 -/
 
 namespace Barenco.OneQubit
@@ -32,7 +32,7 @@ theorem determinantPhaseAngle_mem_Ioc (U : QubitUnitary) :
   rw [determinantPhaseAngle]
   constructor <;> linarith
 
-/-- The chosen scalar phase has exactly the determinant of `U`. -/
+/-- The chosen two-by-two scalar-phase matrix has exactly the determinant of `U`. -/
 theorem cis_two_determinantPhaseAngle (U : QubitUnitary) :
     cis (2 * determinantPhaseAngle U) = Matrix.det (U : QubitMatrix) := by
   have hdetUnitary : Matrix.det (U : QubitMatrix) ∈ unitary ℂ :=

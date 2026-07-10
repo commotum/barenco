@@ -41,9 +41,17 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Formal evidence:** `Barenco.fromPaper_apply`, `Barenco.fromPaper_mul`,
   `Barenco.fromPaper_mem_unitaryGroup_iff`, `Barenco.evalGates_pair`,
   `Barenco.evalGates_append`, and `Barenco.fromPaper_paperProduct` compile in
-  `Barenco.Basic`.
-- **Status:** corrected and proved at the convention/translation layer; every
-  downstream paper diagram must still use the bridge explicitly.
+  `Barenco.Basic`. Section 4 now keeps the source matrices (`paperRy`, `paperRz`,
+  `paperPhase`, `paperX`) separate from the standard-column matrices (`ry`, `rz`,
+  `phaseShift`, `sigmaX`). `columnEuler_eq`,
+  `columnC_mul_X_mul_columnB_mul_X_mul_columnA`, and
+  `specialUnitary_exists_columnChronologicalABC` machine-check the transposed and
+  reversed products used by Lemma 4.3. `sigmaXUnitary_eq_pauliX` connects the
+  Section 4 matrix to the existing circuit primitive.
+- **Status:** corrected and proved for the convention bridge, Section 4 identities,
+  and Lemma 4.3's matrix algebra. Every later paper diagram must still use the
+  bridge explicitly; no circuit theorem is inferred merely from these matrix
+  equalities.
 
 ## C-003 — Corollary 7.4 partition violates Lemma 7.2 at n = 7
 
@@ -103,11 +111,21 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Issue:** writing unitary eigenvalues as `exp(i dⱼ)` does not determine `dⱼ`.
   The estimate `‖Dₖ-I‖≤π/2^k` needs representatives with `|dⱼ|≤π` (or an equivalent
   principal-argument choice).
-- **Repair:** choose eigenangles in a principal interval and construct a coherent
-  root sequence from those choices. Prove unitarity, squaring, and the norm bound.
+- **Repair:** choose eigenangles in a principal interval. The exact root layer may
+  construct each positive root independently, but Lemma 7.8 additionally needs a
+  coherent power-of-two sequence, its adjacent squaring equations, and the
+  operator-distance bound to the identity.
 - **Dependent impact:** Lemma 7.8 error and depth bounds; general root API.
-- **Formal evidence:** planned root/approximation theorems.
-- **Status:** open.
+- **Formal evidence:** for every finite complex unitary matrix and `0 < k`,
+  `Barenco.OneQubit.unitaryRoot` chooses the principal-argument spectral root and
+  `unitaryRoot_pow` proves its exact `k`th power is the input.
+  `unitarySquareRoot_pow_two` and `unitaryRoot_pow_two_pow` supply exact square and
+  power-of-two root equations. The finite-spectrum continuous-functional-calculus
+  implementation does not assume a globally continuous principal-root function.
+- **Status:** partial. Exact positive root existence, including all power-of-two
+  roots, is proved. No exported theorem yet relates the selected roots at adjacent
+  depths, proves `‖Dₖ-I‖≤π/2^k`, synthesizes the roots as circuits, or derives the
+  approximation/resource bounds of Lemma 7.8.
 
 ## C-008 — Lemma 7.8 does not handle all epsilon regimes
 
@@ -244,3 +262,34 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Status:** corrected and proved as an algebraic separation, with the single-basis
   probability consequence proved. Physical density/effect structures and general
   event/POVM error bounds remain open.
+
+## C-016 — Lemma 4.1 suppresses degenerate phase choices and determinant normalization
+
+- **Source:** Lemma 4.1 proof, manuscript p. 8; Markdown lines 210–221.
+- **Issue:** orthonormality is said to imply the displayed four-angle form
+  “immediately,” but the proof does not construct angles when a phase-carrying
+  entry is zero. It also leaves the U(2) determinant square-root choice implicit.
+  In the special-unitary paragraph, `det (Ph(δ)) = exp(2 i δ)`, so determinant
+  one allows scalar phase `-1` as well as `1`; the manuscript mentions this but
+  does not show the claimed absorption into a Z rotation.
+- **Repair:** first prove the canonical SU(2) entry form
+  `[[a,b],[-conj b,conj a]]`, then choose
+  `theta = 2 arccos ‖a‖` and use mathlib's total `Complex.arg` for `a` and `b`.
+  The polar identity remains valid at zero, giving the endpoint cases
+  `theta = pi` and `theta = 0` without division by an entry. For U(2), choose half
+  the principal argument of the determinant, prove that the corresponding scalar
+  phase has determinant exactly `det U`, remove it, and reconstruct `U` exactly.
+  Keep the possible special-unitary scalar `-1` explicit and absorb it by a
+  `2*pi` shift of a Z angle when that presentation is needed.
+- **Dependent impact:** the exact SU(2)/U(2) Euler theorem, Lemma 4.3, and the
+  controlled-gate constructions beginning in Section 5.
+- **Formal evidence:** `specialUnitary_canonical`,
+  `specialUnitary_eq_paperEuler_arg`, `specialUnitary_eulerTheta_mem_Icc`,
+  `specialUnitary_exists_rz_mul_ry_mul_rz`, `determinantPhaseAngle_mem_Ioc`,
+  `removeGlobalPhase_det`, `phaseShift_mul_specialUnitaryPart`,
+  `paperPhase_pi_mul_paperRz`, and
+  `unitary_exists_phaseShift_mul_rz_mul_ry_mul_rz` compile in the Section 4
+  one-qubit modules.
+- **Status:** corrected and proved, including both zero-entry endpoints, exact
+  determinant normalization, the row/column order distinction, and the middle
+  angle bound `theta ∈ [0, pi]`.
