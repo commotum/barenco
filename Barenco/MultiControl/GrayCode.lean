@@ -1,5 +1,6 @@
 import Mathlib.Data.Finset.SymmDiff
 import Mathlib.Data.Fintype.Fin
+import Mathlib.Data.List.Chain
 import Mathlib.Tactic
 
 /-!
@@ -142,6 +143,18 @@ def fullGrayToggles : (width : ℕ) → List (Fin width)
 def grayToggles (width : ℕ) : List (Fin width) :=
   (fullGrayToggles width).tail
 
+/--
+Accumulator position for each nonempty Gray mask.
+
+The first recursive block retains its previous pivot.  Every mask in the reflected
+block contains the new final position, which is therefore its maximum and pivot.
+-/
+def grayPivots : (width : ℕ) → List (Fin width)
+  | 0 => []
+  | width + 1 =>
+      (grayPivots width).map Fin.castSucc ++
+        List.replicate (2 ^ width) (Fin.last width)
+
 @[simp]
 theorem fullGrayCode_zero : fullGrayCode 0 = [∅] := rfl
 
@@ -159,6 +172,15 @@ theorem fullGrayToggles_succ (width : ℕ) :
     fullGrayToggles (width + 1) =
       (fullGrayToggles width).map Fin.castSucc ++ [Fin.last width] ++
         (fullGrayToggles width).reverse.map Fin.castSucc := rfl
+
+@[simp]
+theorem grayPivots_zero : grayPivots 0 = [] := rfl
+
+@[simp]
+theorem grayPivots_succ (width : ℕ) :
+    grayPivots (width + 1) =
+      (grayPivots width).map Fin.castSucc ++
+        List.replicate (2 ^ width) (Fin.last width) := rfl
 
 @[simp]
 theorem length_fullGrayCode : ∀ width, (fullGrayCode width).length = 2 ^ width := by
@@ -279,6 +301,20 @@ theorem length_grayToggles (width : ℕ) :
   omega
 
 @[simp]
+theorem length_grayPivots : ∀ width, (grayPivots width).length = 2 ^ width - 1 := by
+  intro width
+  induction width with
+  | zero => simp
+  | succ width ih =>
+      have hpow : 0 < 2 ^ width := pow_pos (by omega) width
+      simp [grayPivots, ih, pow_succ]
+      omega
+
+theorem length_grayPivots_eq_grayCode (width : ℕ) :
+    (grayPivots width).length = (grayCode width).length := by
+  rw [length_grayPivots, length_grayCode]
+
+@[simp]
 theorem grayCode_zero : grayCode 0 = [] := rfl
 
 /-- The one-control schedule contains its unique nonempty mask. -/
@@ -298,6 +334,10 @@ theorem grayCode_three :
 theorem grayToggles_three : grayToggles 3 = [1, 0, 2, 0, 1, 0] := by
   decide
 
+/-- Maximum-mask pivots for the paper's seven controlled-root gates. -/
+theorem grayPivots_three : grayPivots 3 = [0, 1, 1, 2, 2, 2, 2] := by
+  decide
+
 /-- Two masks are Gray-adjacent when they differ at exactly one position. -/
 def GrayAdjacent {width : ℕ} (first second : GrayMask width) : Prop :=
   (first ∆ second).card = 1
@@ -305,5 +345,85 @@ def GrayAdjacent {width : ℕ} (first second : GrayMask width) : Prop :=
 theorem GrayAdjacent.symmetric {width : ℕ} {first second : GrayMask width}
     (h : GrayAdjacent first second) : GrayAdjacent second first := by
   simpa [GrayAdjacent, symmDiff_comm] using h
+
+theorem symmDiff_liftGrayMask {width : ℕ} (first second : GrayMask width) :
+    liftGrayMask first ∆ liftGrayMask second = liftGrayMask (first ∆ second) := by
+  ext wire
+  rcases Fin.eq_castSucc_or_eq_last wire with ⟨wire, rfl⟩ | rfl
+  · simp [Finset.mem_symmDiff]
+  · simp [Finset.mem_symmDiff]
+
+theorem symmDiff_liftGrayMaskWithLast {width : ℕ} (first second : GrayMask width) :
+    liftGrayMaskWithLast first ∆ liftGrayMaskWithLast second =
+      liftGrayMask (first ∆ second) := by
+  ext wire
+  rcases Fin.eq_castSucc_or_eq_last wire with ⟨wire, rfl⟩ | rfl
+  · simp [Finset.mem_symmDiff]
+  · simp [Finset.mem_symmDiff]
+
+theorem GrayAdjacent.lift {width : ℕ} {first second : GrayMask width}
+    (h : GrayAdjacent first second) :
+    GrayAdjacent (liftGrayMask first) (liftGrayMask second) := by
+  rw [GrayAdjacent, symmDiff_liftGrayMask, card_liftGrayMask]
+  exact h
+
+theorem GrayAdjacent.withLast {width : ℕ} {first second : GrayMask width}
+    (h : GrayAdjacent first second) :
+    GrayAdjacent (liftGrayMaskWithLast first) (liftGrayMaskWithLast second) := by
+  rw [GrayAdjacent, symmDiff_liftGrayMaskWithLast, card_liftGrayMask]
+  exact h
+
+/-- The reflection boundary differs only at the newly introduced final position. -/
+theorem GrayAdjacent.lift_withLast {width : ℕ} (mask : GrayMask width) :
+    GrayAdjacent (liftGrayMask mask) (liftGrayMaskWithLast mask) := by
+  rw [GrayAdjacent]
+  have hdiff :
+      liftGrayMask mask ∆ liftGrayMaskWithLast mask = {Fin.last width} := by
+    ext wire
+    rcases Fin.eq_castSucc_or_eq_last wire with ⟨wire, rfl⟩ | rfl
+    · simp [Finset.mem_symmDiff]
+    · simp [Finset.mem_symmDiff]
+  rw [hdiff]
+  simp
+
+/-- Every consecutive pair in the full reflected traversal differs at one position. -/
+theorem fullGrayCode_isChain : ∀ width,
+    (fullGrayCode width).IsChain GrayAdjacent := by
+  intro width
+  induction width with
+  | zero => simp
+  | succ width ih =>
+      rw [fullGrayCode_succ]
+      apply List.IsChain.append
+      · exact List.isChain_map_of_isChain liftGrayMask
+          (fun _ _ h => h.lift) ih
+      · have hreverse :
+            (fullGrayCode width).reverse.IsChain GrayAdjacent := by
+          apply List.isChain_reverse.mpr
+          exact ih.imp fun _ _ h => h.symmetric
+        exact List.isChain_map_of_isChain liftGrayMaskWithLast
+          (fun _ _ h => h.withLast) hreverse
+      · intro first hfirst second hsecond
+        rw [List.getLast?_map] at hfirst
+        rw [List.head?_map, List.head?_reverse] at hsecond
+        rw [Option.mem_def] at hfirst hsecond
+        cases hlast : (fullGrayCode width).getLast? with
+        | none => simp [hlast] at hfirst
+        | some mask =>
+            simp [hlast] at hfirst hsecond
+            subst first
+            subst second
+            exact GrayAdjacent.lift_withLast mask
+
+/-- Every consecutive pair in the paper's nonempty schedule is Gray-adjacent. -/
+theorem grayCode_isChain (width : ℕ) :
+    (grayCode width).IsChain GrayAdjacent := by
+  exact (fullGrayCode_isChain width).tail
+
+/-- Adjacency exposes the unique position changed by a Gray step. -/
+theorem GrayAdjacent.exists_unique_changed {width : ℕ} {first second : GrayMask width}
+    (h : GrayAdjacent first second) :
+    ∃ changed : Fin width, first ∆ second = {changed} := by
+  exact Finset.card_eq_one.mp h
 
 end Barenco.MultiControl

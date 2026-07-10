@@ -156,6 +156,17 @@ theorem signedParityContribution_empty (bits : ι → Bool) :
     signedParityContribution (∅ : Finset ι) bits = 0 := by
   simp [signedParityContribution]
 
+@[simp]
+theorem signedParityContribution_of_parity_false {mask : Finset ι} {bits : ι → Bool}
+    (hparity : xorParity mask bits = false) :
+    signedParityContribution mask bits = 0 := by
+  simp [signedParityContribution, xorParityInt, hparity]
+
+theorem signedParityContribution_of_parity_true {mask : Finset ι} {bits : ι → Bool}
+    (hparity : xorParity mask bits = true) :
+    signedParityContribution mask bits = (-1 : ℤ) ^ (mask.card - 1) := by
+  simp [signedParityContribution, xorParityInt, hparity]
+
 /-- Raising `-1` to a positive cardinality flips the predecessor sign. -/
 theorem neg_one_pow_card_eq_neg_pred {mask : Finset ι} (hmask : mask.Nonempty) :
     (-1 : ℤ) ^ mask.card = -((-1 : ℤ) ^ (mask.card - 1)) := by
@@ -261,6 +272,17 @@ theorem allSubsetParitySum_insert_true {controls : Finset ι} {control : ι}
 /-- All nonempty subsets of a finite control set. -/
 def nonemptySubsets [DecidableEq ι] (controls : Finset ι) : Finset (Finset ι) :=
   controls.powerset.erase ∅
+
+@[simp]
+theorem mem_nonemptySubsets [DecidableEq ι]
+    {controls mask : Finset ι} :
+    mask ∈ nonemptySubsets controls ↔ mask ⊆ controls ∧ mask.Nonempty := by
+  simp [nonemptySubsets, Finset.nonempty_iff_ne_empty, and_comm]
+
+@[simp]
+theorem card_nonemptySubsets [DecidableEq ι] (controls : Finset ι) :
+    (nonemptySubsets controls).card = 2 ^ controls.card - 1 := by
+  rw [nonemptySubsets, Finset.card_erase_of_mem (by simp), Finset.card_powerset]
 
 /-- The paper's alternating XOR sum over all nonempty control subsets. -/
 def parityInclusionExclusionSum [DecidableEq ι]
