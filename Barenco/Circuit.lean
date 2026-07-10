@@ -1,4 +1,4 @@
-import Barenco.Basic
+import Barenco.Controlled
 
 /-!
 # Chronological circuit syntax
@@ -11,10 +11,9 @@ Primitive kinds and supports are structural metadata. They are deliberately kept
 independent of the certified unitary denotation so later cost models can inspect
 syntax without attempting to recover a circuit from its matrix. The raw primitive
 constructor is private: otherwise an arbitrary global unitary could be mislabeled
-as one CNOT and make a later resource theorem meaningless. This module exposes
-only a conservative unclassified constructor; standard-gate smart constructors
-must be added together with proofs that their denotations and supports match their
-structural labels.
+as one CNOT and make a later resource theorem meaningless. This module exposes a
+conservative unclassified constructor and trusted smart constructors built from
+the certified local and controlled semantics.
 -/
 
 namespace Barenco
@@ -76,6 +75,128 @@ theorem unclassified_support {n : ℕ} (tag : String) (denotation : UnitaryGate 
 @[simp]
 theorem unclassified_denotation {n : ℕ} (tag : String) (denotation : UnitaryGate n) :
     (unclassified tag denotation).denotation = denotation := rfl
+
+/-! ## Correctness-by-construction standard primitives -/
+
+/-- Package a certified one-qubit unitary acting at exactly `target`. -/
+def oneQubit {n : ℕ} (target : Fin n) (U : QubitUnitary) : Primitive n where
+  kind := .oneQubit
+  support := {target}
+  denotation := localUnitary target U
+
+@[simp]
+theorem oneQubit_kind {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    (oneQubit target U).kind = .oneQubit := rfl
+
+@[simp]
+theorem oneQubit_support {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    (oneQubit target U).support = {target} := rfl
+
+@[simp]
+theorem oneQubit_support_card {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    (oneQubit target U).support.card = 1 := by
+  simp
+
+@[simp]
+theorem oneQubit_denotation {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    (oneQubit target U).denotation = localUnitary target U := rfl
+
+@[simp]
+theorem oneQubit_denotation_val {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    ((oneQubit target U).denotation : Gate n) = localRaw target U := rfl
+
+/-- The target together with the underlying register values of all controls. -/
+def positiveControlledSupport {n : ℕ} (target : Fin n) (controls : ControlSet target) :
+    Finset (Fin n) :=
+  insert target
+    (controls.image fun control : TargetComplement target => (control : Fin n))
+
+@[simp]
+theorem mem_positiveControlledSupport {n : ℕ} (target wire : Fin n)
+    (controls : ControlSet target) :
+    wire ∈ positiveControlledSupport target controls ↔
+      wire = target ∨ ∃ control ∈ controls, (control : Fin n) = wire := by
+  simp [positiveControlledSupport]
+
+@[simp]
+theorem positiveControlledSupport_card {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) :
+    (positiveControlledSupport target controls).card = controls.card + 1 := by
+  have htarget : target ∉
+      controls.image (fun control : TargetComplement target => (control : Fin n)) := by
+    simp only [Finset.mem_image]
+    rintro ⟨control, _, hcontrol⟩
+    exact control.property hcontrol
+  rw [positiveControlledSupport, Finset.card_insert_of_notMem htarget]
+  rw [Finset.card_image_of_injective controls Subtype.val_injective]
+
+/--
+Package a certified positive multi-controlled one-qubit unitary. The support
+contains exactly the target and the register values represented by `controls`.
+-/
+def positiveControlled {n : ℕ} (target : Fin n) (controls : ControlSet target)
+    (U : QubitUnitary) : Primitive n where
+  kind := .controlledOneQubit controls.card
+  support := positiveControlledSupport target controls
+  denotation := positiveControlledUnitary target controls U
+
+@[simp]
+theorem positiveControlled_kind {n : ℕ} (target : Fin n) (controls : ControlSet target)
+    (U : QubitUnitary) :
+    (positiveControlled target controls U).kind = .controlledOneQubit controls.card := rfl
+
+@[simp]
+theorem positiveControlled_support {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    (positiveControlled target controls U).support =
+      positiveControlledSupport target controls := rfl
+
+@[simp]
+theorem positiveControlled_support_card {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    (positiveControlled target controls U).support.card = controls.card + 1 := by
+  simp
+
+@[simp]
+theorem positiveControlled_denotation {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    (positiveControlled target controls U).denotation =
+      positiveControlledUnitary target controls U := rfl
+
+@[simp]
+theorem positiveControlled_denotation_val {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    ((positiveControlled target controls U).denotation : Gate n) =
+      positiveControlledRaw target controls U := by
+  exact coe_positiveControlledUnitary target controls U
+
+/-- Package the certified CNOT with its ordered control and target wires. -/
+def cnot {n : ℕ} (control target : Fin n) (h : control ≠ target) : Primitive n where
+  kind := .cnot
+  support := {control, target}
+  denotation := cnotUnitary control target h
+
+@[simp]
+theorem cnot_kind {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    (cnot control target h).kind = .cnot := rfl
+
+@[simp]
+theorem cnot_support {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    (cnot control target h).support = {control, target} := rfl
+
+@[simp]
+theorem cnot_support_card {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    (cnot control target h).support.card = 2 := by
+  simp [h]
+
+@[simp]
+theorem cnot_denotation {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    (cnot control target h).denotation = cnotUnitary control target h := rfl
+
+@[simp]
+theorem cnot_denotation_val {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    ((cnot control target h).denotation : Gate n) = cnotRaw control target h := by
+  exact coe_cnotUnitary control target h
 
 /-- The adjoint primitive preserves its structural class and wire support. -/
 def adjoint {n : ℕ} (p : Primitive n) : Primitive n where

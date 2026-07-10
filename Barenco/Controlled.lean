@@ -67,6 +67,12 @@ theorem setTarget_self {n : ℕ} (target : Fin n) (x : Basis n) :
   apply (splitTarget target).injective
   ext <;> simp
 
+@[simp]
+theorem setTarget_setTarget {n : ℕ} (target : Fin n) (x : Basis n) (first second : Bool) :
+    setTarget target (setTarget target x first) second = setTarget target x second := by
+  apply (splitTarget target).injective
+  ext <;> simp
+
 /--
 Embed a raw one-qubit matrix at `target`, acting as the identity on every other
 wire.
@@ -256,6 +262,18 @@ theorem controlledRaw_mulVec_basisKet_of_disabled {n : ℕ} (target : Fin n)
   · have hne : row ≠ x := fun hrow => hagree (hrow ▸ fun _ _ => rfl)
     rw [if_neg hagree, basisKet_apply, if_neg hne]
 
+/-- Controlled gates have zero basis-column amplitude after changing a non-target wire. -/
+theorem controlledRaw_mulVec_basisKet_eq_zero_of_changed {n : ℕ} (target : Fin n)
+    (enabled : ComplementBasis target → Bool) (U : QubitMatrix)
+    {x row : Basis n} (i : Fin n) (hi : i ≠ target) (hchanged : row i ≠ x i) :
+    (controlledRaw target enabled U *ᵥ basisKet x) row = 0 := by
+  rw [controlledRaw_mulVec_basisKet]
+  have hagree : ¬AgreeOff target row x := by
+    intro h
+    exact hchanged (h i hi)
+  change (if AgreeOff target row x then _ else 0) = 0
+  rw [if_neg hagree]
+
 /--
 General controlled-gate truth table: active control assignments receive `U`, and
 inactive assignments are fixed.
@@ -302,6 +320,23 @@ def positiveControlledUnitary {n : ℕ} (target : Fin n) (controls : ControlSet 
     (U : QubitUnitary) : UnitaryGate n :=
   controlledUnitary target (positiveControlsEnabled controls) U
 
+/-- With no controls, positive control reduces definitionally to the local gate. -/
+@[simp]
+theorem positiveControlledRaw_empty {n : ℕ} (target : Fin n) (U : QubitMatrix) :
+    positiveControlledRaw target (∅ : ControlSet target) U = localRaw target U := by
+  ext row col
+  simp [positiveControlledRaw, controlledRaw_apply, localRaw_apply,
+    positiveControlsEnabled]
+
+/-- The certified empty-control gate is exactly the certified local gate. -/
+@[simp]
+theorem positiveControlledUnitary_empty {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    positiveControlledUnitary target (∅ : ControlSet target) U = localUnitary target U := by
+  apply Subtype.ext
+  unfold positiveControlledUnitary
+  rw [coe_controlledUnitary, coe_localUnitary]
+  exact positiveControlledRaw_empty target U
+
 @[simp]
 theorem coe_positiveControlledUnitary {n : ℕ} (target : Fin n)
     (controls : ControlSet target) (U : QubitUnitary) :
@@ -340,12 +375,8 @@ theorem positiveControlledRaw_mulVec_basisKet_eq_zero_of_changed {n : ℕ}
     (target : Fin n) (controls : ControlSet target) (U : QubitMatrix)
     {x row : Basis n} (i : Fin n) (hi : i ≠ target) (hchanged : row i ≠ x i) :
     (positiveControlledRaw target controls U *ᵥ basisKet x) row = 0 := by
-  rw [positiveControlledRaw, controlledRaw_mulVec_basisKet]
-  have hagree : ¬AgreeOff target row x := by
-    intro h
-    exact hchanged (h i hi)
-  change (if AgreeOff target row x then _ else 0) = 0
-  rw [if_neg hagree]
+  exact controlledRaw_mulVec_basisKet_eq_zero_of_changed target
+    (positiveControlsEnabled controls) U i hi hchanged
 
 /-- The one-qubit Pauli-X permutation matrix, with its unitarity certificate. -/
 def pauliX : QubitUnitary :=
@@ -423,6 +454,20 @@ theorem xRaw_mulVec_basisKet {n : ℕ} (target : Fin n) (x : Basis n) :
   · rw [if_neg hagree, if_neg]
     exact fun hrow => hagree ((eq_setTarget_iff target x row _).1 hrow).1
 
+/-- Pauli-X at any target is an involution. -/
+@[simp]
+theorem xRaw_mul_self {n : ℕ} (target : Fin n) : xRaw target * xRaw target = 1 := by
+  apply (matrix_eq_iff_mulVec_basisKet_eq _ _).2
+  intro x
+  rw [← Matrix.mulVec_mulVec]
+  simp
+
+@[simp]
+theorem xUnitary_mul_self {n : ℕ} (target : Fin n) :
+    xUnitary target * xUnitary target = 1 := by
+  apply Subtype.ext
+  simpa using xRaw_mul_self target
+
 /--
 Raw CNOT with a positive `control` and distinct `target`.  The proof argument
 prevents accidentally identifying the two wires.
@@ -455,5 +500,20 @@ theorem cnotRaw_mulVec_basisKet {n : ℕ} (control target : Fin n)
   cases hcontrol : x control
   · simp [hcontrol]
   · simpa [hcontrol, xRaw] using xRaw_mulVec_basisKet target x
+
+/-- CNOT with distinct control and target is an involution. -/
+@[simp]
+theorem cnotRaw_mul_self {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    cnotRaw control target h * cnotRaw control target h = 1 := by
+  apply (matrix_eq_iff_mulVec_basisKet_eq _ _).2
+  intro x
+  rw [← Matrix.mulVec_mulVec]
+  cases hcontrol : x control <;> simp [hcontrol, h]
+
+@[simp]
+theorem cnotUnitary_mul_self {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    cnotUnitary control target h * cnotUnitary control target h = 1 := by
+  apply Subtype.ext
+  simpa using cnotRaw_mul_self control target h
 
 end Barenco
