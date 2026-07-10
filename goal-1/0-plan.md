@@ -182,7 +182,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
 - [x] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
 - [x] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
-- [ ] `12-RESOURCES` — recurrences, asymptotics, and cost-model separation.
+- [x] `12-RESOURCES` — recurrences, asymptotics, and cost-model separation.
 - [ ] `13-AUDIT` — coverage closure, examples, build/axiom audit, final report.
 
 ## 1-GUARDRAILS
