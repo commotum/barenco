@@ -1,5 +1,7 @@
 import Barenco.Basic
-import Barenco.ApiSmoke
+import Barenco.Semantics
+import Barenco.Controlled
+import Barenco.Circuit
 
 /-!
 # Barenco

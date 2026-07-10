@@ -67,12 +67,6 @@ theorem setTarget_self {n : ℕ} (target : Fin n) (x : Basis n) :
   apply (splitTarget target).injective
   ext <;> simp
 
-@[simp]
-theorem setTarget_setTarget {n : ℕ} (target : Fin n) (x : Basis n) (first second : Bool) :
-    setTarget target (setTarget target x first) second = setTarget target x second := by
-  apply (splitTarget target).injective
-  ext <;> simp
-
 /--
 Embed a raw one-qubit matrix at `target`, acting as the identity on every other
 wire.
@@ -454,20 +448,6 @@ theorem xRaw_mulVec_basisKet {n : ℕ} (target : Fin n) (x : Basis n) :
   · rw [if_neg hagree, if_neg]
     exact fun hrow => hagree ((eq_setTarget_iff target x row _).1 hrow).1
 
-/-- Pauli-X at any target is an involution. -/
-@[simp]
-theorem xRaw_mul_self {n : ℕ} (target : Fin n) : xRaw target * xRaw target = 1 := by
-  apply (matrix_eq_iff_mulVec_basisKet_eq _ _).2
-  intro x
-  rw [← Matrix.mulVec_mulVec]
-  simp
-
-@[simp]
-theorem xUnitary_mul_self {n : ℕ} (target : Fin n) :
-    xUnitary target * xUnitary target = 1 := by
-  apply Subtype.ext
-  simpa using xRaw_mul_self target
-
 /--
 Raw CNOT with a positive `control` and distinct `target`.  The proof argument
 prevents accidentally identifying the two wires.
@@ -500,20 +480,5 @@ theorem cnotRaw_mulVec_basisKet {n : ℕ} (control target : Fin n)
   cases hcontrol : x control
   · simp [hcontrol]
   · simpa [hcontrol, xRaw] using xRaw_mulVec_basisKet target x
-
-/-- CNOT with distinct control and target is an involution. -/
-@[simp]
-theorem cnotRaw_mul_self {n : ℕ} (control target : Fin n) (h : control ≠ target) :
-    cnotRaw control target h * cnotRaw control target h = 1 := by
-  apply (matrix_eq_iff_mulVec_basisKet_eq _ _).2
-  intro x
-  rw [← Matrix.mulVec_mulVec]
-  cases hcontrol : x control <;> simp [hcontrol, h]
-
-@[simp]
-theorem cnotUnitary_mul_self {n : ℕ} (control target : Fin n) (h : control ≠ target) :
-    cnotUnitary control target h * cnotUnitary control target h = 1 := by
-  apply Subtype.ext
-  simpa using cnotRaw_mul_self control target h
 
 end Barenco
