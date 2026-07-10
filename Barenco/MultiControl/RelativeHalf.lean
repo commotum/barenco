@@ -21,6 +21,8 @@ open scoped BigOperators BooleanRing Matrix
 
 namespace InwardLadderLayout
 
+noncomputable section
+
 /-! ## Boolean exponents and signs -/
 
 /-- Convert a Boolean exponent to the complex sign `(-1)^exponent`. -/
@@ -37,7 +39,7 @@ theorem relativePhaseSign_true : relativePhaseSign true = -1 := rfl
 theorem relativePhaseSign_add (first second : Bool) :
     relativePhaseSign (first + second) =
       relativePhaseSign first * relativePhaseSign second := by
-  cases first <;> cases second <;> norm_num [relativePhaseSign]
+  cases first <;> cases second <;> simp [relativePhaseSign]
 
 /-- The `101` exponent of one relative-phase Toffoli occurrence. -/
 def relativeToffoliExponent {n : ℕ} (first second target : Fin n)
@@ -55,8 +57,8 @@ theorem relativeToffoliPhase_eq_sign {n : ℕ}
   cases hfirst : input first <;>
     cases hsecond : input second <;>
       cases htarget : input target <;>
-        simp [relativeToffoliExponent, relativePhaseSign,
-          hfirst, hsecond, htarget]
+        simp_all [relativeToffoliExponent, relativePhaseSign,
+          Bool.add_eq_xor, Bool.mul_eq_and]
 
 /-! ## Exact Boolean permutation bridge -/
 
@@ -107,7 +109,10 @@ theorem eval_relativeBaseCircuit_mulVec_basisKet {n : ℕ}
       relativePhaseSign (layout.relativeBaseExponent input) •
         basisKet (baseUpdate layout input) := by
   rw [relativeBaseCircuit,
-    relativePhaseToffoliACircuit_mulVec_basisKet]
+    relativePhaseToffoliACircuit_mulVec_basisKet _ _ _
+      (layout.controlWire_ne (by decide))
+      (layout.controlWire_ne_targetWire 0)
+      (layout.controlWire_ne_targetWire 1)]
   rw [relativeToffoliPhase_eq_sign]
   rw [toffoliOutput_eq_toffoliXorUpdate]
   rfl
@@ -119,7 +124,10 @@ theorem eval_relativeOuterCircuit_mulVec_basisKet {b n : ℕ}
       relativePhaseSign (layout.relativeOuterExponent input) •
         basisKet (outerUpdate layout input) := by
   rw [relativeOuterCircuit,
-    relativePhaseToffoliACircuit_mulVec_basisKet]
+    relativePhaseToffoliACircuit_mulVec_basisKet _ _ _
+      (layout.controlWire_ne_borrowedWire _ _)
+      (layout.controlWire_ne_targetWire _)
+      (layout.borrowedWire_ne_targetWire _)]
   rw [relativeToffoliPhase_eq_sign]
   rw [toffoliOutput_eq_toffoliXorUpdate]
   rfl
@@ -252,6 +260,201 @@ theorem relativeInwardLadderCircuit_oneQubitCNOTCost {b n : ℕ}
       some (28 * (b + 1)) := by
   simp [relativeInwardLadderCircuit, Circuit.cost_append, Circuit.addCost]
   omega
+
+/-! ## Closed half-phase invariant -/
+
+/--
+Closed phase exponent of a relative half.  The successor term is the product of
+all controls times the XOR of the newly linked work pair.
+-/
+def relativeHalfPhaseExponent {n : ℕ} :
+    (b : ℕ) → InwardLadderLayout b n → Basis n → Bool
+  | 0, layout, input => layout.relativeBaseExponent input
+  | b + 1, layout, input =>
+      relativeHalfPhaseExponent b layout.smaller input +
+        controlProduct layout input *
+          (input (layout.borrowedWire (Fin.last b)) + input layout.targetWire)
+
+@[simp]
+theorem relativeHalfPhaseExponent_zero {n : ℕ}
+    (layout : InwardLadderLayout 0 n) (input : Basis n) :
+    relativeHalfPhaseExponent 0 layout input = layout.relativeBaseExponent input :=
+  rfl
+
+/-- The audit recurrence for a positive relative half. -/
+@[simp]
+theorem relativeHalfPhaseExponent_succ {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    relativeHalfPhaseExponent (b + 1) layout input =
+      relativeHalfPhaseExponent b layout.smaller input +
+        controlProduct layout input *
+          (input (layout.borrowedWire (Fin.last b)) + input layout.targetWire) :=
+  rfl
+
+private theorem controlProduct_update_of_not_control {b n : ℕ}
+    (layout : InwardLadderLayout b n) (outside : Fin n)
+    (hcontrol : ∀ control, outside ≠ layout.controlWire control)
+    (input : Basis n) (bit : Bool) :
+    controlProduct layout (Function.update input outside bit) =
+      controlProduct layout input := by
+  apply Finset.prod_congr rfl
+  intro control _
+  exact Function.update_of_ne (Ne.symm (hcontrol control)) _ _
+
+/-- The closed exponent ignores replacement of any wire outside its logical layout. -/
+theorem relativeHalfPhaseExponent_update_of_outside {b n : ℕ}
+    (layout : InwardLadderLayout b n) (outside : Fin n)
+    (hcontrol : ∀ control, outside ≠ layout.controlWire control)
+    (hwork : ∀ work, outside ≠ layout.workWire work)
+    (input : Basis n) (bit : Bool) :
+    relativeHalfPhaseExponent b layout (Function.update input outside bit) =
+      relativeHalfPhaseExponent b layout input := by
+  revert layout
+  induction b with
+  | zero =>
+      intro layout
+      rw [relativeHalfPhaseExponent_zero, relativeHalfPhaseExponent_zero]
+      simp [relativeBaseExponent,
+        Function.update_of_ne (Ne.symm (hcontrol 0)),
+        Function.update_of_ne (Ne.symm (hcontrol 1)),
+        Function.update_of_ne (Ne.symm (hwork (Fin.last 0)))]
+  | succ b ih =>
+      intro layout
+      have hsmallControl : ∀ control,
+          outside ≠ layout.smaller.controlWire control := by
+        intro control
+        simpa using hcontrol control.castSucc
+      have hsmallWork : ∀ work,
+          outside ≠ layout.smaller.workWire work := by
+        intro work
+        simpa using hwork work.castSucc
+      have hborrowed : outside ≠ layout.borrowedWire (Fin.last b) :=
+        hwork (Fin.last b).castSucc
+      have htarget : outside ≠ layout.targetWire :=
+        hwork (Fin.last (b + 1))
+      rw [relativeHalfPhaseExponent_succ, relativeHalfPhaseExponent_succ]
+      rw [ih layout.smaller hsmallControl hsmallWork]
+      rw [controlProduct_update_of_not_control layout outside hcontrol]
+      rw [Function.update_of_ne (Ne.symm hborrowed)]
+      rw [Function.update_of_ne (Ne.symm htarget)]
+
+/-- An outer update changes only a wire outside the smaller half's phase support. -/
+@[simp]
+theorem smaller_relativeHalfPhaseExponent_outerUpdate {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    relativeHalfPhaseExponent b layout.smaller (outerUpdate layout input) =
+      relativeHalfPhaseExponent b layout.smaller input := by
+  rw [outerUpdate_eq_update]
+  exact relativeHalfPhaseExponent_update_of_outside layout.smaller
+    layout.targetWire (targetWire_ne_smaller_controlWire layout)
+    (targetWire_ne_smaller_workWire layout) input _
+
+/--
+The two relative outer occurrences contribute exactly the new term in the
+closed successor recurrence.
+-/
+theorem relativeOuterExponent_pair {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    relativeOuterExponent layout input +
+        relativeOuterExponent layout
+          (halfLadderUpdate b layout.smaller (outerUpdate layout input)) =
+      controlProduct layout input *
+        (input (layout.borrowedWire (Fin.last b)) + input layout.targetWire) := by
+  let afterOuter := outerUpdate layout input
+  let afterSmaller := halfLadderUpdate b layout.smaller afterOuter
+  have hlastControl :
+      afterSmaller (layout.controlWire (Fin.last (b + 2))) =
+        input (layout.controlWire (Fin.last (b + 2))) := by
+    calc
+      afterSmaller (layout.controlWire (Fin.last (b + 2))) =
+          afterOuter (layout.controlWire (Fin.last (b + 2))) := by
+            apply halfLadderUpdate_apply_of_not_work
+            intro work
+            exact layout.controlWire_ne_workWire _ work.castSucc
+      _ = input (layout.controlWire (Fin.last (b + 2))) := by
+            apply outerUpdate_apply_of_ne
+            exact layout.controlWire_ne_targetWire _
+  have hlastBorrow :
+      afterSmaller (layout.borrowedWire (Fin.last b)) =
+        input (layout.borrowedWire (Fin.last b)) +
+          controlProduct layout.smaller input := by
+    change halfLadderUpdate b layout.smaller afterOuter
+        layout.smaller.targetWire = _
+    rw [halfLadderUpdate_apply_target]
+    rw [smaller_controlProduct_outerUpdate]
+    dsimp [afterOuter]
+    rw [outerUpdate_apply_of_ne]
+    exact layout.borrowedWire_ne_targetWire _
+  have htarget : afterSmaller layout.targetWire =
+      input layout.targetWire +
+        input (layout.controlWire (Fin.last (b + 2))) *
+          input (layout.borrowedWire (Fin.last b)) := by
+    calc
+      afterSmaller layout.targetWire = afterOuter layout.targetWire := by
+        apply halfLadderUpdate_apply_of_not_work
+        exact targetWire_ne_smaller_workWire layout
+      _ = _ := by
+        dsimp [afterOuter]
+        rw [outerUpdate_apply_target]
+  dsimp [afterSmaller]
+  rw [relativeOuterExponent, relativeOuterExponent,
+    hlastControl, hlastBorrow, htarget, controlProduct_succ]
+  generalize controlProduct layout.smaller input = q
+  generalize input (layout.controlWire (Fin.last (b + 2))) = lastControl
+  generalize input (layout.borrowedWire (Fin.last b)) = lastBorrow
+  generalize input layout.targetWire = target
+  cases q <;> cases lastControl <;> cases lastBorrow <;> cases target <;>
+    decide
+
+/-- The closed half exponent is invariant under the exact half permutation. -/
+@[simp]
+theorem relativeHalfPhaseExponent_halfLadderUpdate {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    relativeHalfPhaseExponent b layout (halfLadderUpdate b layout input) =
+      relativeHalfPhaseExponent b layout input := by
+  revert layout input
+  induction b with
+  | zero =>
+      intro layout input
+      cases hfirst : input (layout.controlWire 0) <;>
+        cases hsecond : input (layout.controlWire 1) <;>
+          cases htarget : input layout.targetWire <;>
+            simp [relativeHalfPhaseExponent, relativeBaseExponent,
+              halfLadderUpdate, baseUpdate, toffoliXorUpdate,
+              layout.controlWire_ne_targetWire 0,
+              layout.controlWire_ne_targetWire 1,
+              hfirst, hsecond, htarget, Bool.add_eq_xor, Bool.mul_eq_and]
+  | succ b ih =>
+      intro layout input
+      have hsmallPhase :
+          relativeHalfPhaseExponent b layout.smaller
+              (halfLadderUpdate (b + 1) layout input) =
+            relativeHalfPhaseExponent b layout.smaller input := by
+        rw [halfLadderUpdate_succ_eq_update]
+        rw [relativeHalfPhaseExponent_update_of_outside layout.smaller
+          layout.targetWire (targetWire_ne_smaller_controlWire layout)
+          (targetWire_ne_smaller_workWire layout)]
+        exact ih layout.smaller input
+      have hborrowed :
+          halfLadderUpdate (b + 1) layout input
+              (layout.borrowedWire (Fin.last b)) =
+            input (layout.borrowedWire (Fin.last b)) +
+              controlProduct layout.smaller input := by
+        rw [halfLadderUpdate_succ_eq_update]
+        rw [Function.update_of_ne (layout.borrowedWire_ne_targetWire _)]
+        change halfLadderUpdate b layout.smaller input layout.smaller.targetWire = _
+        rw [halfLadderUpdate_apply_target]
+      rw [relativeHalfPhaseExponent_succ, relativeHalfPhaseExponent_succ]
+      rw [hsmallPhase, controlProduct_halfLadderUpdate, hborrowed,
+        halfLadderUpdate_apply_target, controlProduct_succ]
+      generalize controlProduct layout.smaller input = q
+      generalize input (layout.controlWire (Fin.last (b + 2))) = lastControl
+      generalize input (layout.borrowedWire (Fin.last b)) = lastBorrow
+      generalize input layout.targetWire = target
+      cases q <;> cases lastControl <;> cases lastBorrow <;> cases target <;>
+        decide
+
+end
 
 end InwardLadderLayout
 
