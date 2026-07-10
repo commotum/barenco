@@ -48,9 +48,9 @@ wrappers, diagnostics, public integration, and final audits remain).
   implementation. Thus the strongest current literal Lemma 7.9 audit target is
   `(64p−151,48p−98,112p−249)`, equivalently
   `(64n−279,48n−194,112n−473)` for logical width `n=p+2`. Lemma 7.11 is
-  `(64p−156,48p−102,112p−258)`, equivalently total `112n−482`. These
-  formulas are audit targets, not accepted theorems until linked to explicit
-  syntax.
+  `(64p−156,48p−102,112p−258)`, equivalently total `112n−482`. The explicit
+  expansion leaves and `LinearResources.lean` now link all of these formulas to
+  named syntax and package the two totals as construction-specific `O(n)` bounds.
 - Both linear primitive expansions require `p+2≥7`, hence logical width
   `n≥7`, because they invoke corrected Corollary 7.4. The semantic macro
   identities themselves are valid at smaller boundaries and should be stated
@@ -263,3 +263,20 @@ language only.
   `(64n−284,48n−198,112n−482)`, including `(164,138,302)` at `n=7`.
   Strict/trust-zero checks, a 3,485-job focused build, scans, standard-only axiom
   checks, and an independent chronology/restoration/count review pass.
+- `LinearResources.lean` packages exact width-indexed one-qubit, CNOT, total,
+  and accepted-cost functions for both primitive constructions, proves every
+  component is exactly the corresponding syntax count for `n≥7`, and exports
+  separate `IsBigOWith 112`/`O(n)` bounds. These are explicitly counts of the
+  named algorithms, not optimal-synthesis or matching-lower-bound theorems.
+  Strict/trust-zero checks, a 3,491-job focused build, forbidden/diff scans, and
+  representative standard-only axiom checks pass; independent review confirms
+  that every natural-subtraction rewrite is protected by the stated `n≥7`
+  threshold.
+- Root-excluded `AncillaExamples.lean` fixes canonical width-seven and width-eight
+  wire roles, confirms profiles `(169,142,311)`/`(164,138,302)` and
+  `(233,190,423)`/`(228,186,414)`, and specializes arbitrary-state fixed-wire
+  factorization. Its dirty-one Pauli-X example proves at the vector level that
+  the expanded circuit flips the target while the intended data-controlled gate
+  is inactive, so the clean-zero premise is demonstrably necessary. Strict and
+  trust-zero compilation, a 3,491-job focused build, scans, and standard-only
+  representative axiom checks pass.

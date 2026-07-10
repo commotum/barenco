@@ -564,6 +564,40 @@ two macro arities are `l+2` and `r+2` and the final gate has `l+r+3` controls in
 logical width `l+r+5`. Lemma 7.11 instead uses one clean zero ancilla and must be
 stated as a subspace/input-contract theorem.
 
+For the Stage 8 linear constructions, an
+`OrderedControlLayout (p+1) ambientWidth` has logical width `n=p+2`, independent
+of any additional ambient spectators. Lemma 7.9 singles out the final control
+and uses the chronology
+`C(last,A,target); MCX(prefix,target); C(last,B,target); MCX(prefix,target);`
+`C(last,C,target)`. Its macro theorem is exact for every `p`, including an empty
+prefix. Only the chosen primitive expansion has the stronger `n≥7` threshold,
+because each prefix MCX is implemented through corrected Corollary 7.4. During
+that MCX the final logical control is borrowed as dirty workspace and is restored
+by exact full-register evaluator equality; it is not an additional ancilla.
+
+For the source's special matrix `W`, the fully controlled circuit has input-column
+phase `-1` exactly when every control and the input target are true. This is
+`BasisPhaseEq` with controlled Pauli-X, and implies the proved computational-basis
+behavior and basis-measurement relation. It is neither one global phase nor an
+all-input channel equality.
+
+Lemma 7.11 instead interprets the first `p` controls as data, the final ordered
+control as the clean auxiliary, and the ordinary target as the U target. The
+intermediate controlled-U condition is exactly
+`aux xor prefixEnabled`; initial auxiliary one therefore gives the complementary
+condition, not the desired operation. `cleanZeroSubspace aux` consists of all
+amplitude functions supported on assignments with `aux=false`, with no
+normalization assumption. `cleanZeroLinearEquiv` identifies it exactly with the
+complementary-wire state space, and the output-closure and factorization theorems
+show that the primitive circuit returns a literal `|0⟩` factor with no residual
+entanglement.
+
+At logical width `n≥7`, the selected Lemma 7.9 syntax has exact
+one-qubit/CNOT/total profile `(64n−279,48n−194,112n−473)`. The selected
+one-clean-ancilla syntax has `(64n−284,48n−198,112n−482)`. Their
+`IsBigOWith 112`/`O(n)` theorems count these fixed constructions. The paper's
+`Θ(n)` wording is not interpreted as an optimal-synthesis theorem.
+
 ## Circuit Syntax and Cost Models
 
 Resource claims are computed from syntax before semantic evaluation erases the

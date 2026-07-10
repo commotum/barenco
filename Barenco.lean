@@ -9,11 +9,14 @@ import Barenco.Cost
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.ControlledCircuit.Selected
+import Barenco.ControlledCircuit.SelectedSpecial
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.U2Euler
 import Barenco.OneQubit.Roots
 import Barenco.OneQubit.CircuitBridge
+import Barenco.OneQubit.SelectedABC
+import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.MultiControl.Lemma71
@@ -27,6 +30,13 @@ import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.Recursive
 import Barenco.MultiControl.RecursiveExpansion
 import Barenco.MultiControl.Resources
+import Barenco.MultiControl.LastTargetSwap
+import Barenco.MultiControl.LinearSpecialUnitary
+import Barenco.MultiControl.LinearSpecialUnitaryExpansion
+import Barenco.MultiControl.LinearSpecialUnitaryPhase
+import Barenco.MultiControl.CleanAncilla
+import Barenco.MultiControl.CleanAncillaExpansion
+import Barenco.MultiControl.LinearResources
 
 /-!
 # Barenco

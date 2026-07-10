@@ -243,10 +243,12 @@ theorem linearSU2TotalCount_isBigOWith_width :
   rw [isBigOWith_iff]
   filter_upwards [eventually_ge_atTop 7] with sourceWidth hwidth
   have hle := linearSU2TotalCountAtWidth_le sourceWidth hwidth
+  have hcountNonneg :
+      (0 : ℝ) ≤ (linearSU2TotalCountAtWidth sourceWidth : ℝ) :=
+    Nat.cast_nonneg _
+  have hwidthNonneg : (0 : ℝ) ≤ (sourceWidth : ℝ) := Nat.cast_nonneg _
   simp only [Real.norm_eq_abs]
-  rw [abs_of_nonneg (by positivity :
-      (0 : ℝ) ≤ (linearSU2TotalCountAtWidth sourceWidth : ℝ)),
-    abs_of_nonneg (by positivity : (0 : ℝ) ≤ sourceWidth)]
+  rw [abs_of_nonneg hcountNonneg, abs_of_nonneg hwidthNonneg]
   exact_mod_cast hle
 
 /-- The exact count of the named Lemma 7.9 algorithm is `O(sourceWidth)`. -/
@@ -272,10 +274,12 @@ theorem cleanAncillaTotalCount_isBigOWith_width :
   rw [isBigOWith_iff]
   filter_upwards [eventually_ge_atTop 7] with sourceWidth hwidth
   have hle := cleanAncillaTotalCountAtWidth_le sourceWidth hwidth
+  have hcountNonneg :
+      (0 : ℝ) ≤ (cleanAncillaTotalCountAtWidth sourceWidth : ℝ) :=
+    Nat.cast_nonneg _
+  have hwidthNonneg : (0 : ℝ) ≤ (sourceWidth : ℝ) := Nat.cast_nonneg _
   simp only [Real.norm_eq_abs]
-  rw [abs_of_nonneg (by positivity :
-      (0 : ℝ) ≤ (cleanAncillaTotalCountAtWidth sourceWidth : ℝ)),
-    abs_of_nonneg (by positivity : (0 : ℝ) ≤ sourceWidth)]
+  rw [abs_of_nonneg hcountNonneg, abs_of_nonneg hwidthNonneg]
   exact_mod_cast hle
 
 /-- The exact count of the named clean-ancilla algorithm is `O(sourceWidth)`. -/

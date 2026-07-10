@@ -3,6 +3,7 @@ import Barenco.Cost
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.ControlledCircuit.Selected
+import Barenco.ControlledCircuit.SelectedSpecial
 import Barenco.Equivalence.Measurement
 import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.Phase
@@ -11,6 +12,8 @@ import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.Roots
 import Barenco.OneQubit.U2Euler
+import Barenco.OneQubit.SelectedABC
+import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.MultiControl.Lemma71
@@ -24,6 +27,9 @@ import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.Recursive
 import Barenco.MultiControl.RecursiveExpansion
 import Barenco.MultiControl.Resources
+import Barenco.MultiControl.LinearSpecialUnitaryPhase
+import Barenco.MultiControl.CleanAncillaExpansion
+import Barenco.MultiControl.LinearResources
 
 /-!
 # Kernel axiom audit
@@ -207,3 +213,34 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_le_sq
 #print axioms Barenco.MultiControl.recursivePrimitiveTotalCount_isBigOWith_depth
 #print axioms Barenco.MultiControl.recursivePrimitiveTotalCount_isBigOWith_width
+#print axioms Barenco.OneQubit.selectedColumnABCFactors_active
+#print axioms Barenco.ControlledCircuit.eval_selectedControlledSU2Circuit
+#print axioms Barenco.ControlledCircuit.selectedControlledSU2Circuit_oneQubitCNOTCost
+#print axioms Barenco.fixedWireEmbed_restrict
+#print axioms Barenco.fixedWireSubspace_factorization
+#print axioms Barenco.positiveControlledUnitary_mulVec_mem_cleanZeroSubspace
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedPrefixTargetXCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedPrefixTargetXCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_linearABCCircuit_of_products
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_linearSU2Circuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.linearABCCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedLinearSU2Circuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedLinearSU2Circuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedLinearSU2Circuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.fullyControlledWPhase_input
+#print axioms Barenco.MultiControl.OrderedControlLayout.fullyControlledW_basisPhaseEq_pauliX
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedLinearWSU2Circuit_basisMeasurementEq
+#print axioms Barenco.MultiControl.OrderedControlLayout.cleanAncillaTargetProduct_eq_of_aux_true
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_cleanAncillaCircuit_mulVec_basisKet
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_cleanAncillaCircuit_mulVec_of_mem_cleanZero
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_cleanAncillaCircuit_factorization
+#print axioms Barenco.MultiControl.OrderedControlLayout.cleanAncillaCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedCleanAncillaCircuit_eq_cleanAncilla
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedCleanAncillaCircuit_mulVec_of_mem_cleanZero
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedCleanAncillaCircuit_factorization
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedCleanAncillaCircuit_oneCleanAncillaContract
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedCleanAncillaCircuit_oneQubitCNOTCost_eq_resource
+#print axioms Barenco.MultiControl.linearSU2TotalCountAtWidth_eq
+#print axioms Barenco.MultiControl.linearSU2TotalCount_isBigOWith_width
+#print axioms Barenco.MultiControl.cleanAncillaTotalCountAtWidth_eq
+#print axioms Barenco.MultiControl.cleanAncillaTotalCount_isBigOWith_width
