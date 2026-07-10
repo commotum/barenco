@@ -14,6 +14,9 @@ import Barenco.Cost
 import Barenco.TwoWire.Circuit
 import Barenco.Optimization.FusionIR
 import Barenco.Optimization.FusionResources
+import Barenco.Optimization.Normalize
+import Barenco.Optimization.SymbolicCancellation
+import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.ControlledCircuit.Selected

@@ -13,6 +13,9 @@ import Barenco.TwoWire.ControlledBridges
 import Barenco.TwoWire.Circuit
 import Barenco.Optimization.FusionIR
 import Barenco.Optimization.FusionResources
+import Barenco.Optimization.Normalize
+import Barenco.Optimization.SymbolicCancellation
+import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.CanonicalSelected
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
@@ -146,6 +149,49 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_cnotCount
 #print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_gateCount
 #print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_oneQubitCNOTCost
+
+/-! ## Goal 2 Stage 5: exact normalization and syntax-derived resources -/
+
+#print axioms Barenco.Optimization.NormalizeCore.evalChronological_normalize
+#print axioms Barenco.Optimization.NormalizeCore.normalize_stable
+#print axioms Barenco.Optimization.NormalizeCore.normalize_idempotent
+#print axioms Barenco.Optimization.oneQubit_chronological
+#print axioms Barenco.Optimization.twoQubit_chronological
+#print axioms Barenco.Optimization.oneQubit_first_then_twoQubit
+#print axioms Barenco.Optimization.twoQubit_then_oneQubit_second
+#print axioms Barenco.Optimization.eval_lower_fuse_context
+#print axioms Barenco.Optimization.oneQubit_denotationsCommute_of_ne
+#print axioms Barenco.Optimization.oneQubit_cnot_denotationsCommute_of_disjoint
+#print axioms Barenco.Optimization.eval_lower_swap_context
+#print axioms Barenco.Optimization.eval_normalizeEarly
+#print axioms Barenco.Optimization.eval_lower_normalizeEarly
+#print axioms Barenco.Optimization.earlyCNOTSequence_normalizeEarly
+#print axioms Barenco.Optimization.eval_normalizeEarlyProgram
+#print axioms Barenco.Optimization.earlyBarrierSequence_normalizeEarlyProgram
+#print axioms Barenco.Optimization.earlyProgramCNOTSequence_normalizeEarlyProgram
+#print axioms Barenco.Optimization.normalizeEarlyProgram_barriers
+#print axioms Barenco.Optimization.section8Combine_sound
+#print axioms Barenco.Optimization.eval_section8Normalize
+#print axioms Barenco.Optimization.eval_lower_section8Normalize
+#print axioms Barenco.Optimization.section8Normalize_cnotCount
+#print axioms Barenco.Optimization.section8Normalize_idempotent
+#print axioms Barenco.Optimization.eval_section8NormalizeProgram
+#print axioms Barenco.Optimization.section8NormalizeProgram_visible
+#print axioms Barenco.Optimization.barrierSequence_section8NormalizeProgram
+#print axioms Barenco.Optimization.section8NormalizeProgram_barriers
+#print axioms Barenco.Optimization.SymbolicPrimitive.isIdentity_sound
+#print axioms Barenco.Optimization.SymbolicPrimitive.combine_sound
+#print axioms Barenco.Optimization.SymbolicCircuit.eval_erase_normalize
+#print axioms Barenco.Optimization.SymbolicCircuit.cnotTrace_normalize
+#print axioms Barenco.Optimization.SymbolicCircuit.gateCount_normalize_le
+#print axioms Barenco.Optimization.SymbolicCircuit.normalize_idempotent
+#print axioms Barenco.Optimization.cnotCount_normalizeEarly
+#print axioms Barenco.Optimization.oneQubitCount_normalizeEarly_le
+#print axioms Barenco.Optimization.normalizeEarly_oneQubitCNOT_acceptedCostNonincrease
+#print axioms Barenco.Optimization.normalizeEarlyProgram_oneQubitCNOT_acceptedCostNonincrease
+#print axioms Barenco.Optimization.section8Normalize_arbitraryTwoQubit_acceptedCostNonincrease
+#print axioms Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease
+#print axioms Barenco.Optimization.SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose

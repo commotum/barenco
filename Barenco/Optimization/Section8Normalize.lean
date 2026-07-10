@@ -405,6 +405,65 @@ def section8NormalizeProgram {n : ℕ} : FusionProgram n → FusionProgram n
       section8ProgramInsert (promoteCNOT gate)
         (section8NormalizeProgram program)
 
+private theorem section8ProgramInsert_visible {n : ℕ}
+    (gate : FusionPrimitive n) (circuit : FusionCircuit n) :
+    section8ProgramInsert gate (FusionProgram.visible circuit) =
+      FusionProgram.visible
+        (NormalizeCore.insert section8IsIdentity section8Combine gate circuit) := by
+  induction circuit generalizing gate with
+  | nil => rfl
+  | cons next circuit ih =>
+      change section8ProgramInsert gate
+          (.gate next :: FusionProgram.visible circuit) =
+        FusionProgram.visible
+          (NormalizeCore.insert section8IsIdentity section8Combine gate
+            (next :: circuit))
+      rw [section8ProgramInsert, NormalizeCore.insert]
+      generalize hresult : section8Combine gate next = result
+      cases result with
+      | blocked => rfl
+      | deleted => rfl
+      | fused fused => exact ih fused
+
+/--
+On a fully visible program, the mixed-program policy is exactly the visible
+Section 8 normalizer followed by the visible embedding.
+-/
+@[simp]
+theorem section8NormalizeProgram_visible {n : ℕ}
+    (circuit : FusionCircuit n) :
+    section8NormalizeProgram (FusionProgram.visible circuit) =
+      FusionProgram.visible (section8Normalize circuit) := by
+  induction circuit with
+  | nil => rfl
+  | cons gate circuit ih =>
+      change section8NormalizeProgram
+          (.gate gate :: FusionProgram.visible circuit) =
+        FusionProgram.visible (section8Normalize (gate :: circuit))
+      rw [section8NormalizeProgram, ih, section8ProgramInsert_visible]
+      rfl
+
+/-- A leading barrier is copied verbatim and blocks every Section 8 rewrite. -/
+@[simp]
+theorem section8NormalizeProgram_barrier {n : ℕ}
+    (primitive : Primitive n) (program : FusionProgram n) :
+    section8NormalizeProgram (.barrier primitive :: program) =
+      .barrier primitive :: section8NormalizeProgram program := by
+  rfl
+
+/-- An all-barrier program is copied exactly, not merely semantically. -/
+@[simp]
+theorem section8NormalizeProgram_barriers {n : ℕ} (circuit : Circuit n) :
+    section8NormalizeProgram (FusionProgram.barriers circuit) =
+      FusionProgram.barriers circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      change section8NormalizeProgram
+          (.barrier primitive :: FusionProgram.barriers circuit) =
+        .barrier primitive :: FusionProgram.barriers circuit
+      rw [section8NormalizeProgram, ih]
+
 @[simp]
 private theorem gateStep_denotation {n : ℕ} (gate : FusionPrimitive n) :
     (FusionStep.gate gate).denotation = gate.denotation := by
