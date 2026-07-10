@@ -6,11 +6,14 @@ import Barenco.ControlledCircuit.Selected
 import Barenco.ControlledCircuit.SelectedSpecial
 import Barenco.Equivalence.Measurement
 import Barenco.Equivalence.OperatorNorm
+import Barenco.Equivalence.ControlledDistance
+import Barenco.Equivalence.EventProbability
 import Barenco.Equivalence.Phase
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.Roots
+import Barenco.OneQubit.CoherentRoots
 import Barenco.OneQubit.U2Euler
 import Barenco.OneQubit.SelectedABC
 import Barenco.State.CleanWire
@@ -27,6 +30,9 @@ import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.Recursive
 import Barenco.MultiControl.RecursiveExpansion
 import Barenco.MultiControl.Resources
+import Barenco.MultiControl.Approximate
+import Barenco.MultiControl.ApproximateExpansion
+import Barenco.MultiControl.ApproximationResources
 import Barenco.MultiControl.LinearSpecialUnitaryPhase
 import Barenco.MultiControl.CleanAncillaExpansion
 import Barenco.MultiControl.LinearResources
@@ -244,3 +250,35 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.linearSU2TotalCount_isBigOWith_width
 #print axioms Barenco.MultiControl.cleanAncillaTotalCountAtWidth_eq
 #print axioms Barenco.MultiControl.cleanAncillaTotalCount_isBigOWith_width
+
+/-! ## Stage 9: approximation and resource selection -/
+
+#print axioms Barenco.OneQubit.unitaryRootScalar_pow_two_succ_sq
+#print axioms Barenco.OneQubit.powerTwoRoot_succ_sq
+#print axioms Barenco.OneQubit.powerTwoRoot_operatorDistance_one_le
+#print axioms Barenco.ControlledCircuit.norm_targetBlockRaw
+#print axioms Barenco.ControlledCircuit.operatorDistance_positiveControlledUnitary_one_eq
+#print axioms Barenco.eventProjection_norm_le
+#print axioms Barenco.eventReflection_inner_self_re
+#print axioms Barenco.abs_eventProbability_sub_eventProbability_le_of_norm_eq
+#print axioms Barenco.operatorDistance_eventProbability_le
+#print axioms Barenco.operatorDistance_eventProbability_le_two_mul
+#print axioms Barenco.MultiControl.OrderedControlLayout.positiveControlledUnitary_eq_residual_mul_eval_truncatedFrom
+#print axioms Barenco.MultiControl.OrderedControlLayout.operatorDistance_truncatedRecursiveCircuitFrom_eq_residual
+#print axioms Barenco.MultiControl.OrderedControlLayout.operatorDistance_truncatedRecursiveCircuit_le
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_completedTruncatedRecursiveCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedTruncatedRecursiveCircuitFrom
+#print axioms Barenco.MultiControl.OrderedControlLayout.operatorDistance_expandedTruncatedRecursiveCircuit_le
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedTruncatedRecursiveCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedTruncatedRecursiveCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_completedExpandedTruncatedRecursiveCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.completedExpandedTruncatedRecursiveCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.principalRootBoundDepth_le_iff
+#print axioms Barenco.MultiControl.capacity_lt_principalRootBoundDepth_iff
+#print axioms Barenco.MultiControl.truncatedRecursiveTotalCount_isBigOWith_width_mul_depth
+#print axioms Barenco.MultiControl.OrderedControlLayout.operatorDistance_epsilonSynthesisPrimitiveCircuit_le
+#print axioms Barenco.MultiControl.OrderedControlLayout.epsilonSynthesisPrimitiveCircuit_eventProbability_le
+#print axioms Barenco.MultiControl.OrderedControlLayout.epsilonSynthesisPrimitiveCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.epsilonSynthesisPrimitiveCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.epsilonSynthesisTotalCountAtWidth_le
+#print axioms Barenco.MultiControl.epsilonSynthesisTotalCountAtWidth_lt_logarithmic

@@ -61,13 +61,12 @@ theorem principalRootBoundDepth_pi_div_two :
 @[simp]
 theorem widthSeven_pi_circuit (U : QubitUnitary) :
     epsilonSynthesisPrimitiveCircuit 0 widthSevenLayout U Real.pi = [] := by
-  have hdepth : principalRootBoundDepth Real.pi ≤ 0 := by
-    rw [principalRootBoundDepth_pi]
-  rw [epsilonSynthesisPrimitiveCircuit_eq_truncated widthSevenLayout U Real.pi
-    hdepth]
-  simp only [principalRootBoundDepth_pi, Nat.zero_sub,
-    expandedTruncatedRecursiveCircuit]
-  exact expandedTruncatedRecursiveCircuitFrom_zero 0 0 _ U
+  apply List.eq_nil_of_length_eq_zero
+  change Circuit.gateCount
+    (epsilonSynthesisPrimitiveCircuit 0 widthSevenLayout U Real.pi) = 0
+  rw [epsilonSynthesisPrimitiveCircuit_gateCount]
+  norm_num [epsilonSynthesisTotalCount, principalRootBoundDepth_pi,
+    truncatedRecursiveTotalCount]
 
 /-- The selected empty width-seven truncation has zero syntax resources. -/
 theorem widthSeven_pi_resources (U : QubitUnitary) :
@@ -143,13 +142,18 @@ theorem widthEight_pi_div_two_depth_fits :
 
 /-- The selected width-eight circuit is a residual-depth-zero, one-shell truncation. -/
 theorem widthEight_pi_div_two_is_oneShellTruncation (U : QubitUnitary) :
-    ∃ truncatedLayout : OrderedControlLayout 7 8,
-      epsilonSynthesisPrimitiveCircuit 1 widthEightLayout U (Real.pi / 2) =
-        expandedTruncatedRecursiveCircuit 0 1 truncatedLayout U := by
+    ∃ (residualDepth depth : ℕ)
+      (truncatedLayout : OrderedControlLayout ((residualDepth + 6) + depth) 8),
+      residualDepth = 0 ∧ depth = 1 ∧
+        epsilonSynthesisPrimitiveCircuit 1 widthEightLayout U (Real.pi / 2) =
+          expandedTruncatedRecursiveCircuit residualDepth depth
+            truncatedLayout U := by
   have h := epsilonSynthesisPrimitiveCircuit_eq_truncated widthEightLayout U
     (Real.pi / 2) widthEight_pi_div_two_depth_fits
-  simp only [principalRootBoundDepth_pi_div_two, Nat.sub_self] at h
-  exact ⟨_, by simpa using h⟩
+  refine ⟨1 - principalRootBoundDepth (Real.pi / 2),
+    principalRootBoundDepth (Real.pi / 2), _, ?_, ?_, h⟩
+  · rw [principalRootBoundDepth_pi_div_two]
+  · exact principalRootBoundDepth_pi_div_two
 
 /-- The selected one-shell truncation has profile `(232,188,420)`. -/
 theorem widthEight_pi_div_two_resources (U : QubitUnitary) :

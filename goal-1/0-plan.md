@@ -120,9 +120,12 @@ extra assumption, omission, or unresolved obstruction.
 - Lemma 4.1's existential Euler decomposition is now proved by a canonical
   `SU(2)` entry form plus explicit determinant-phase normalization. General exact
   finite-dimensional unitary roots are now proved by finite-spectrum functional
-  calculus. Later approximation work still needs a coherent root sequence and
-  quantitative operator-norm estimates; exact existence alone does not supply
-  those claims.
+  calculus. Stage 9 now names one coherent principal power-of-two sequence, proves
+  exact adjacent squaring and `pi/2^m` L² operator-distance decay, and connects
+  those analytic facts to literal truncated one-qubit/CNOT circuits. The selected
+  epsilon construction uses truncation only when its certified natural depth fits
+  and otherwise uses an exact fallback; no continuity of root choice or optimal
+  approximation-cost theorem is claimed.
 - Some Section 8 “lower bounds” are heuristic parameter counts rather than proved
   topological lower bounds and may need to remain explicitly non-theorem claims.
 
@@ -523,6 +526,37 @@ contracts without ambiguity.
 Repair and formalize Lemma 7.8 with an unambiguous metric and rigorous error/cost
 dependence.
 
+### Current Results
+
+- `powerTwoRoot` is one coherent principal-spectrum sequence for every finite
+  unitary. Its zeroth member, adjacent square equation, and
+  `operatorDistance≤pi/2^m` decay are proved without claiming continuous
+  dependence on the input matrix.
+- Target-block/reindex semantics are isometric in the scoped L² induced operator
+  norm. Positive-controlled distance to identity therefore reduces exactly to
+  the corresponding one-qubit distance.
+- `truncatedRecursiveCircuitFrom` is literal macro syntax retaining the first
+  four Lemma 7.5 nodes per level. It has an exact arbitrary-register residual
+  factorization and exact residual-root distance. The primitive expansion uses
+  only one-qubit and CNOT syntax and preserves that evaluator and error.
+- For residual exact depth `r` and retained depth `k`, exact syntax-derived counts
+  are `32k²+(64r+200)k` one-qubit, `24k²+(48r+164)k` CNOT, and
+  `56k²+(112r+364)k` total/accepted cost. Exact completion recovers the established
+  full-recursion profile at combined depth `r+k`.
+- `principalRootBoundDepth` is the natural ceiling of `logb 2 (pi/epsilon)` and
+  exactly characterizes the certified root bound for `epsilon>0`.
+  `epsilonSynthesisPrimitiveCircuit` uses the truncation when this depth fits and
+  otherwise selects the exact recursive circuit. It meets every positive
+  tolerance, links exactly to selected structural counts/cost, has the uniform
+  bound `440+112n*min(principalRootBoundDepth epsilon,n−7)` for `n≥7`, and has an
+  explicit construction-specific logarithmic upper under `0<epsilon≤1`.
+- Finite computational-basis event probabilities on unitary images of a common
+  norm-at-most-one pure input obey a stronger cardinality-free constant-one bound;
+  the paper's constant-two statement is an immediate corollary. No arbitrary-POVM
+  claim is made.
+- Boundary examples, public integration, maintained axiom-audit entries, final
+  scans, and full builds remain before Stage 9 is marked complete.
+
 ### Detailed Implementation Plan
 
 - Match the paper's “induced Euclidean” distance to the operator norm and prove the
@@ -531,13 +565,15 @@ dependence.
   choices; verify all logarithmic regimes and `ε` boundary cases.
 - Prove the truncated recursive circuit error and a precise upper bound in
   `n` and `log (1/ε)`; distinguish fixed-ε from two-parameter asymptotics.
-- Derive state-vector and arbitrary-event measurement probability bounds, checking
-  whether the paper's `2ε` constant is valid and sharp enough.
+- Derive state-vector and finite computational-basis-event probability bounds,
+  checking the paper's `2ε` constant and keeping arbitrary POVMs outside the
+  theorem unless separately formalized.
 
 ### Completion Requirements
 
 - Lemma 7.8 has a corrected, quantified theorem with explicit norm and integer
-  depth; hidden restrictions such as `0 < ε < 1` are stated.
+  depth; the all-positive-epsilon selector and the separate `0<ε≤1` logarithmic
+  regime are stated explicitly.
 - Error accumulation and resource count are separate proved lemmas.
 - The probability claim is proved with its hypotheses or corrected in the log.
 

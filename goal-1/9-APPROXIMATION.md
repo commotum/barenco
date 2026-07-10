@@ -1,7 +1,7 @@
 # 9-APPROXIMATION
 
-Status: in progress (analytic foundations implemented; truncated circuit and
-resource layers remain).
+Status: in progress (mathematical, circuit, expansion, and resource layers are
+implemented; examples, public integration, and final audits remain).
 
 ## Current Facts
 
@@ -9,43 +9,46 @@ resource layers remain).
   and Lemma 7.8 on manuscript pp. 22–24, Markdown lines 770–850. There is no
   circuit diagram. The proof recursively applies Lemma 7.5, stops after an
   integer depth, and replaces the remaining controlled root by identity.
-- `operatorDistance A B = ‖A-B‖` already fixes mathlib's scoped L2 induced
-  operator norm. Metric laws, exact left/right unitary invariance, state-action
-  error, and a `2*distance` bound for one computational-basis outcome are proved
-  in `Barenco.Equivalence.OperatorNorm`.
-- `OneQubit.unitaryRoot k U` uses principal arguments on the finite spectrum and
-  proves exact positive-power equations. `unitaryRoot (2^m) U` is therefore the
-  right candidate for a coherent sequence, but the current public API proves only
-  each power equation independently. Adjacent squaring and distance-to-identity
-  remain obligations.
+- `operatorDistance A B = ‖A-B‖` fixes mathlib's scoped L2 induced operator norm.
+  Metric laws, exact left/right unitary invariance, state-action error, and
+  single-outcome bounds are proved in `Barenco.Equivalence.OperatorNorm`.
+  `ControlledDistance` proves exact target-block norm preservation and exact
+  positive-controlled-versus-target identity distance.
+- `powerTwoRoot m U = unitaryRoot (2^m) U` is one coherent principal-spectrum
+  sequence. `powerTwoRoot_zero`, `powerTwoRoot_succ_sq`, and
+  `powerTwoRoot_operatorDistance_one_le` prove its exact base, adjacent squaring,
+  and the stronger arbitrary-finite-dimensional bound
+  `operatorDistance (powerTwoRoot m U) I ≤ pi/2^m`.
 - Stage 7's exact `recursiveViaSquareCircuit` is the correct recursion dependency;
-  the paper's reference to Lemma 7.3 is wrong (C-006). Its parameterized evaluator
-  accepts any explicit square equation, so a coherent direct-root sequence can be
-  used without redefining exact multi-control semantics.
+  the original PDF's reference to Lemma 7.3 is wrong (C-006), while the Markdown
+  transcription already says Lemma 7.5. `truncatedRecursiveCircuitFrom` retains
+  the first four Lemma 7.5 macros and recursively replaces the fifth, and its
+  factorization theorem uses `powerTwoRoot_succ_sq`.
 - The principal eigenangle condition is essential. The paper writes eigenvalues
   as `exp(i*d_j)` but does not require `|d_j|≤pi`; without this choice its
   `pi/2^k` estimate is false. This is correction C-007.
 - The statement quantifies every `epsilon>0` while writing
-  `Theta(n*log(1/epsilon))`. For `epsilon≥1`, that expression is nonpositive or
-  degenerate; the displayed ceiling can also exceed the number of recursive
-  levels. A corrected theorem must expose integer depth, cap it by available
-  controls, and use exact synthesis as fallback when the requested error is below
-  what the truncated depth can certify. This is correction C-008.
-- For source width `n≥7`, an approximate truncation can recurse only while the
-  corrected Corollary 7.4 prefix-X expansion is legal. If `k` levels are executed
-  and the residual controlled root is omitted, a natural safe domain is
-  `k≤n-7`; exact synthesis of the residual width-seven base is the fallback.
-- One primitive recursion level at current logical width `w≥8` consists of two
-  selected controlled-root circuits and two prefix-MCX expansions, with exact
-  profile `(64w-280,48w-196,112w-476)`. Summing `k` descending levels should give
-  total `k*(112*n-476)-56*k*(k-1)`; this is an audit target until derived from
-  literal syntax.
-- The paper's “any event” probability claim is stronger than the existing
-  per-coordinate theorem. It is mathematically recoverable for a normalized pure
-  input and a computational-basis event by treating event restriction as an
-  orthogonal projection/contraction; summing the coordinate theorem would give a
-  spurious event-cardinality factor and is not acceptable.
-- The controlled-distance layer need not expand Euclidean sums manually.
+  `Theta(n*log(1/epsilon))`. At `epsilon=1` the printed logarithm is zero although
+  the displayed depth is `ceil(logb 2 pi)=2`, and the requested depth may exceed
+  the controls. `principalRootBoundDepth` is the natural ceiling of
+  `logb 2 (pi/epsilon)`. `epsilonSynthesisPrimitiveCircuit` uses literal
+  truncation only when that depth fits and otherwise selects the exact recursive
+  circuit; it never presents a capped truncation as meeting an uncertified error.
+- For source width `n≥7`, the available exact recursion depth is `n-7`. The
+  selected circuit meets every positive tolerance, is proved to use the empty
+  circuit when `pi≤epsilon`, and falls back to exact synthesis when the requested
+  depth is larger than `n-7`.
+- `expandedTruncatedRecursiveCircuitFrom` is literal one-qubit/CNOT syntax and
+  has exact retained-shell profile
+  `(32k²+(64r+200)k, 24k²+(48r+164)k,
+  56k²+(112r+364)k)` for residual exact depth `r` and retained depth `k`.
+  The cost model accepts exactly the displayed total. Exact completion recovers
+  the established full-recursion count at combined depth `r+k`.
+- `EventProbability` proves a cardinality-free constant-one probability bound for
+  every finite computational-basis event on unitary images of a common
+  norm-at-most-one pure input. The paper's `2*epsilon` statement is retained as a
+  weaker corollary. Neither theorem is generalized to arbitrary POVMs.
+- The controlled-distance proof does not expand Euclidean sums manually.
   `Matrix.blockDiagonalRingHom`, `Matrix.blockDiagonal_conjTranspose`, and
   `Matrix.blockDiagonal_injective` package as an injective complex star-algebra
   hom, hence are isometric by `NonUnitalStarAlgHom.norm_map`. The simultaneous
@@ -53,100 +56,74 @@ resource layers remain).
   equivalence and preserves the L2 operator norm. Their composition gives
   `‖targetBlockRaw target F‖=‖F‖`, from which exact controlled-target distance is
   a finite Pi-norm calculation once one active complementary assignment is named.
-- `OneQubit.CoherentRoots` now proves exact adjacent coherence for the selected
-  principal sequence and the stronger arbitrary-finite-dimensional bound
-  `operatorDistance (powerTwoRoot m U) I ≤ pi / 2^m`. The ordinary `Matrix` L2
-  norm and `CStarMatrix` functional-calculus wrappers are bridged by a file-local
-  C-star instance and the existing identity star-algebra equivalence; no global
-  norm instance or axiom is added.
-- `Equivalence.ControlledDistance` now proves exact target-block norm preservation
-  and exact controlled-versus-target identity distance. A general enabled
-  predicate requires an explicit active-block witness; positive controls discharge
-  it with the all-true complementary assignment.
-- The event-probability audit found a stronger cardinality-free result than the
-  paper states. Computational-basis event restriction is an orthogonal projection,
-  while the associated sign reflection proves a sharp constant-one probability
-  bound for equal-norm states. The paper's `2*epsilon` claim will be retained as
-  an immediate weaker corollary, with neither theorem generalized silently to
-  arbitrary POVMs.
+- The ordinary `Matrix` L2 norm and `CStarMatrix` functional-calculus wrappers are
+  bridged by a file-local C-star instance and the existing identity star-algebra
+  equivalence; no global norm instance or project axiom is added.
+- A general controlled predicate needs an explicit active-block witness for exact
+  distance equality; positive controls discharge it with the all-true
+  complementary assignment.
 - For residual exact depth `r` and retained depth `k`, use a layout with
   `(r+6)+k` controls, hence logical source width `r+k+7`. The Nat-safe exact
   retained-shell profile is
   `(32*k^2+(64*r+200)*k, 24*k^2+(48*r+164)*k,
   56*k^2+(112*r+364)*k)`. Adding the established residual exact circuit recovers
-  the full depth-`r+k` count componentwise. The public safe boundary remains
-  `k≤n-7`; one extra bare omission level is semantically possible but lacks the
-  existing exact residual fallback and is intentionally outside the main API.
-- The source-aligned total depth selector can be defined directly as
-  `Nat.ceil (Real.logb 2 (pi / epsilon))`. For `0 < epsilon`, pinned mathlib
-  proves the exact equivalence `depth epsilon ≤ k ↔ pi / 2^k ≤ epsilon`, so it
-  is the least depth certified by this principal-root bound. It is not claimed
-  to be the minimum possible circuit depth. At logical width `n≥7`, use the
-  truncated primitive circuit only when this depth is at most `n-7`; otherwise
-  use the established exact recursive circuit. Capping the depth while retaining
-  an epsilon claim would be false.
-- The corrected logarithmic statement will be a finite construction-specific
-  upper bound in the explicit regime `0 < epsilon ≤ 1`, plus a bivariate
-  `IsBigOWith 112` theorem for the exact truncated count versus logical width
-  times retained depth. No `Theta` or synthesis-optimality theorem is justified.
+  the full depth-`r+k` count componentwise. The selected source-width total is at
+  most `440+112*n*min(principalRootBoundDepth epsilon,n-7)`, and
+  `epsilonSynthesisTotalCountAtWidth_lt_logarithmic` proves the explicit
+  construction-specific logarithmic upper bound under `0<epsilon≤1`.
 
 ## Source Claim Audit
 
 | Claim | Source content | Audited status and routing |
 |---|---|---|
-| Approximation definition | Distance induced by Euclidean vector norm between unitaries. | Already corrected/proved as the L2 induced operator norm `operatorDistance`; retain exact metric scope and never substitute Frobenius norm. |
-| Probability observation | Any measured event changes probability by at most `2*epsilon`. | Prove for normalized pure inputs and computational-basis events using a contraction/projection argument. Keep it distinct from arbitrary POVMs and from `AllMeasurementEq`. |
-| Lemma 7.8 algebra | Coherent roots satisfy `V_(k+1)^2=V_k` and `‖V_k-I‖≤pi/2^k`. | Prove for the selected principal power-of-two roots, with the eigenphase branch explicit in the construction. |
-| Lemma 7.8 circuit | Stop the Lemma 7.5 recursion after `k` levels and omit the remaining controlled root. | Define literal truncated syntax, prove exact evaluator factorization, controlled-block distance equality, and final error at most the residual root distance. |
-| Lemma 7.8 resources | Claimed `Theta(n log(1/epsilon))` for all `epsilon>0`. | Replace by exact depth-indexed component/total counts and a construction-specific upper theorem. State the logarithmic regime and depth cap; use the already checked exact circuit as fallback. Do not claim an optimal lower bound. |
+| Approximation definition | Distance induced by Euclidean vector norm between unitaries. | Corrected and proved as the L2 induced operator norm `operatorDistance`, including exact controlled-target distance; no Frobenius norm is substituted. |
+| Probability observation | Any measured event changes probability by at most `2*epsilon`. | Corrected and proved for norm-at-most-one pure inputs and finite computational-basis events. A stronger constant-one theorem and the source-facing constant-two corollary are exported; arbitrary POVMs remain outside scope. |
+| Lemma 7.8 algebra | Coherent roots satisfy `V_(k+1)^2=V_k` and `‖V_k-I‖≤pi/2^k`. | Corrected and proved for the selected principal power-of-two sequence in arbitrary finite dimension. |
+| Lemma 7.8 circuit | Stop the Lemma 7.5 recursion after `k` levels and omit the remaining controlled root. | Corrected and proved with literal macro and one-qubit/CNOT syntax, exact residual factorization, exact controlled-distance reduction, and `pi/2^k` error. |
+| Lemma 7.8 resources | Claimed `Theta(n log(1/epsilon))` for all `epsilon>0`. | Corrected and proved as exact depth-indexed syntax counts plus a piecewise selector with exact fallback. A capacity-aware uniform upper and an explicit `0<epsilon≤1` logarithmic upper are exported; no optimal `Theta` claim is made. |
 
-## Proposed Lean Architecture
+## Implemented Lean Architecture
 
 - `Barenco/OneQubit/CoherentRoots.lean`: principal power-of-two root sequence,
   adjacent squaring, scalar/eigenphase bounds, and exact
-  `operatorDistance(root m U, I)≤pi/2^m` for finite one-qubit unitaries. Keep CFC
-  implementation details below a small public API.
+  `operatorDistance(root m U, I)≤pi/2^m` for arbitrary finite-dimensional
+  unitaries, with CFC implementation details below a small public API.
 - `Barenco/Equivalence/ControlledDistance.lean`: exact operator-distance equality
-  between controlled blocks and their target matrices, including identity, plus
-  any block-diagonal/reindex norm lemmas needed by the truncation proof.
+  between controlled blocks and their target matrices, including the
+  block-diagonal/reindex norm lemmas used by truncation.
 - `Barenco/Equivalence/EventProbability.lean`: computational-basis event
-  probability for normalized pure states and the cardinality-free
-  `2*operatorDistance` bound via a proved contraction.
+  probability for pure states, the cardinality-free constant-one bound, and the
+  paper-facing constant-two corollary.
 - `Barenco/MultiControl/Approximate.lean`: depth-indexed truncated Lemma 7.5 macro
   syntax, exact evaluator factorization against the omitted residual controlled
   root, and the semantic operator-error theorem.
-- `Barenco/MultiControl/ApproximateExpansion.lean`: replace every retained macro
-  by selected one-qubit/CNOT syntax under explicit depth/width inequalities and
-  prove evaluator preservation plus exact component/total/cost sums.
+- `Barenco/MultiControl/ApproximateExpansion.lean`: every retained macro is
+  replaced by selected one-qubit/CNOT syntax under explicit depth/width
+  inequalities, with evaluator preservation and exact component/total/cost sums.
 - `Barenco/MultiControl/ApproximationResources.lean`: epsilon/depth selection,
   legal cap, exact-fallback statement, and construction-specific asymptotic upper
-  language. Avoid a total natural-number logarithm that hides large-epsilon or
-  insufficient-width cases.
-- `Barenco/MultiControl/ApproximationExamples.lean`: root-excluded zero-depth,
-  maximum-depth, large-epsilon, and width-seven fallback diagnostics.
-
-The audit may split or rename leaves after checking mathlib's CFC, spectral norm,
-projection, ceiling, and logarithm APIs. Any architecture change must be recorded
-here before implementation.
+  language, including explicit large-epsilon and insufficient-width branches.
+- `Barenco/MultiControl/ApproximationExamples.lean`: planned root-excluded
+  zero-depth, maximum-depth, large-epsilon, and width-seven fallback diagnostics.
 
 ## Detailed Implementation Plan
 
-1. Complete independent source, CFC/root, controlled-block norm, event-probability,
-   truncated-circuit, and exact-count audits.
-2. Prove coherent principal roots and their operator-distance decay independently
-   of circuit syntax.
-3. Prove controlled-unitary versus identity distance is exactly the target
-   distance on arbitrary ambient layouts.
-4. Define the truncated macro recursion with explicit current root index, retained
-   depth, residual control count, and full-register evaluator factorization.
-5. Combine the preceding layers into an exact depth-indexed approximation theorem.
-6. Expand retained macros into one-qubit/CNOT syntax and derive exact component,
-   total, and accepted-cost formulas from the circuit representation.
-7. Select a legal depth from epsilon in a clearly stated regime, cap it by the
-   available recursion, and package exact fallback for smaller epsilon.
-8. Prove the arbitrary computational-basis event probability consequence, add
-   boundary diagnostics, then integrate root/docs/traceability/corrections/audit
-   and run the full verification protocol.
+1. Source, CFC/root, controlled-block norm, event-probability, truncated-circuit,
+   and exact-count audits are complete.
+2. Coherent principal roots and their operator-distance decay are proved
+   independently of circuit syntax.
+3. Controlled-unitary versus identity distance is proved exactly on arbitrary
+   ambient layouts.
+4. The truncated macro recursion carries explicit current-root, retained-depth,
+   and residual-control indices and has an exact full-register factorization.
+5. Literal one-qubit/CNOT expansion preserves the macro evaluator and has exact
+   syntax-derived component, total, completion, and accepted-cost formulas.
+6. The natural-ceiling epsilon selector, capacity test, exact fallback, selected
+   count linkage, uniform bound, and small-error logarithmic upper are proved.
+7. Constant-one and paper-facing constant-two finite computational-basis-event
+   consequences are proved for the selected circuit.
+8. Boundary diagnostics, public integration, documentation/audit synchronization,
+   and the final verification protocol remain.
 
 ## Boundary and No-Cheating Checks
 
@@ -176,7 +153,7 @@ here before implementation.
   `pi/2^k` operator-distance bound.
 - [ ] Controlled-block distance is linked exactly to target distance.
 - [ ] Truncated recursive syntax has an exact arbitrary-register evaluator and a
-  proved epsilon-error theorem with explicit integer depth and cap.
+  proved epsilon-error theorem with explicit integer depth and capacity branch.
 - [ ] Primitive expansion has exact component/total/cost counts and a corrected
   construction-specific `n`/epsilon upper bound with exact fallback.
 - [ ] Any-event probability error is proved for its precise pure-state and
@@ -191,3 +168,25 @@ here before implementation.
 - Stage file created before Stage 9 implementation. Initial audit separates the
   coherent-root, controlled-distance, truncated-syntax, resource, epsilon-domain,
   and event-probability obligations and fixes the safe raw count target above.
+- `CoherentRoots` proves one named principal power-of-two root sequence, exact
+  adjacent squaring, and `pi/2^m` L² operator-distance decay in arbitrary finite
+  dimension.
+- `ControlledDistance` proves exact target-block norm preservation and reduces
+  positive-controlled identity distance exactly to the one-qubit target.
+- `EventProbability` proves a cardinality-free constant-one bound for finite
+  computational-basis events and the source-facing constant-two corollary under
+  explicit pure-input hypotheses.
+- `Approximate` defines literal retained-shell truncation and proves exact
+  arbitrary-register residual factorization, exact residual-root error, and the
+  `pi/2^k` bound. Appending the residual controlled macro is exactly correct.
+- `ApproximateExpansion` replaces every retained macro by literal one-qubit/CNOT
+  syntax, preserves the evaluator and residual error, derives exact retained and
+  completed counts/costs, and provides an exact primitive completion.
+- `ApproximationResources` proves the natural-ceiling depth characterization,
+  large-epsilon zero-depth case, exact-fallback selector for insufficient width,
+  every-positive-epsilon operator bound, selected finite-event bounds, exact
+  syntax/count/cost linkage, the uniform
+  `440+112*n*min(principalRootBoundDepth epsilon,n-7)` upper bound, and the
+  explicit `0<epsilon≤1` logarithmic-regime upper theorem.
+- Boundary examples, public-root/audit integration, final scans, and full builds
+  remain before this stage can be marked complete.
