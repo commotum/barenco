@@ -512,11 +512,8 @@ theorem grayPivots_isChain : ∀ width,
           (fun _ _ h => by simpa using h) ih
       · exact List.isChain_replicate_of_rel _ le_rfl
       · intro first _ second hsecond
-        have hpow : 0 < 2 ^ width := pow_pos (by omega) width
         have hsecondEq : second = Fin.last width := by
-          rw [Option.mem_def] at hsecond
-          simp [hpow.ne'] at hsecond
-          exact hsecond.symm
+          exact (List.mem_replicate.mp (List.mem_of_mem_head? hsecond)).2
         subst second
         exact Fin.le_last first
 
