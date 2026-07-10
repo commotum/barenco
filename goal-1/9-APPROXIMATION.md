@@ -1,7 +1,7 @@
 # 9-APPROXIMATION
 
-Status: in progress (source/API/architecture audit; no Stage 9 Lean module has
-been added yet).
+Status: in progress (analytic foundations implemented; truncated circuit and
+resource layers remain).
 
 ## Current Facts
 
@@ -53,6 +53,30 @@ been added yet).
   equivalence and preserves the L2 operator norm. Their composition gives
   `‖targetBlockRaw target F‖=‖F‖`, from which exact controlled-target distance is
   a finite Pi-norm calculation once one active complementary assignment is named.
+- `OneQubit.CoherentRoots` now proves exact adjacent coherence for the selected
+  principal sequence and the stronger arbitrary-finite-dimensional bound
+  `operatorDistance (powerTwoRoot m U) I ≤ pi / 2^m`. The ordinary `Matrix` L2
+  norm and `CStarMatrix` functional-calculus wrappers are bridged by a file-local
+  C-star instance and the existing identity star-algebra equivalence; no global
+  norm instance or axiom is added.
+- `Equivalence.ControlledDistance` now proves exact target-block norm preservation
+  and exact controlled-versus-target identity distance. A general enabled
+  predicate requires an explicit active-block witness; positive controls discharge
+  it with the all-true complementary assignment.
+- The event-probability audit found a stronger cardinality-free result than the
+  paper states. Computational-basis event restriction is an orthogonal projection,
+  while the associated sign reflection proves a sharp constant-one probability
+  bound for equal-norm states. The paper's `2*epsilon` claim will be retained as
+  an immediate weaker corollary, with neither theorem generalized silently to
+  arbitrary POVMs.
+- For residual exact depth `r` and retained depth `k`, use a layout with
+  `(r+6)+k` controls, hence logical source width `r+k+7`. The Nat-safe exact
+  retained-shell profile is
+  `(32*k^2+(64*r+200)*k, 24*k^2+(48*r+164)*k,
+  56*k^2+(112*r+364)*k)`. Adding the established residual exact circuit recovers
+  the full depth-`r+k` count componentwise. The public safe boundary remains
+  `k≤n-7`; one extra bare omission level is semantically possible but lacks the
+  existing exact residual fallback and is intentionally outside the main API.
 
 ## Source Claim Audit
 
