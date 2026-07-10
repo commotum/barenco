@@ -563,3 +563,26 @@ statement. “Open” means the repair is identified but not yet machine checked
   `grayControlledCircuit`, and `eval_grayControlledCircuit` compile. At
   `tail = 0` the counts specialize to one controlled-root macro and zero CNOTs.
 - **Status:** boundary clarified and stronger positive-control theorem proved.
+
+## C-025 — Relative-phase cancellation needs an adjoint A implementation
+
+- **Source:** Corollary 7.4, manuscript p. 20; Markdown lines 688–712.
+- **Issue:** the source says a later “similar gate” cancels the phase of an
+  earlier relative-phase Toffoli implementation but does not specify the required
+  reversed circuit. With the Section 6 diagram's actual `101` input phase,
+  replacing both A blocks by the same chronological all-relative ladder is false:
+  already at the `n=7` boundary it leaves a minus sign whenever all A controls are
+  one. `BasisPhaseEq` is not a precomposition congruence and cannot justify the
+  replacement.
+- **Repair:** use an all-relative A ladder in the first A position and its circuit
+  adjoint in the second. The balanced A support excludes the final target, so the
+  intervening B block leaves A's phase-bearing subsystem unchanged and the inverse
+  phases cancel. For B, retain the two outer/final-target Toffolis exactly and use
+  identical all-relative smaller halves; each half is a palindrome of involutions,
+  so its paired phase cancels. This yields exactly four exact Toffolis.
+- **Dependent impact:** contextual correctness and every early-basic count in
+  Corollary 7.4, plus Lemma 7.5/Corollary 7.6 costs that depend on it.
+- **Formal evidence:** the exact balanced target-exclusion theorem already compiles;
+  the signed-half, hybrid-B, adjoint-A, full evaluator, and occurrence-count
+  theorems are the next `MultiControl.RelativePhase` implementation slice.
+- **Status:** corrected architecture identified; formal phase-cancellation proof open.

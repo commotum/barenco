@@ -92,6 +92,21 @@ Toffoli-macro layer complete; contextual phase/basic expansion next).
   A-workspace prefix stays inside the right data-control group and avoids the
   final target. This phase-ready strengthening must be proved before the later
   “four exact occurrences” accounting is attempted.
+- The Section 6 relative-Toffoli phase is asymmetric (`first=1, second=0,
+  target=1`). For an all-relative inward ladder with positive borrowed count `k`,
+  the exact MCX permutation acquires exponent
+  `(product of all controls) * (lastBorrow xor target)`. Consequently, placing
+  the *same* relative A ladder in both A positions is false even at `n=7`:
+  the residual exponent is the product of A's controls. The corrected phase-ready
+  chronology must use `Arel; Bhybrid; adjoint(Arel); Bhybrid`. In `Bhybrid`, the
+  two outer Toffolis that touch the final target are exact; the repeated smaller
+  all-relative half is a palindromic involution and cancels its phase. This leaves
+  exactly four exact and `8n−44` relative Toffoli occurrences.
+- Literal expansion therefore has raw cost
+  `4·16 + 7·(8n−44) = 56n−244` before any one-qubit mergers. The source's informal
+  six-per-relative count gives `48n−200`, not `48n−204`; four further merges are
+  required. No optimized count is accepted until a named expanded syntax and
+  evaluator-preserving normalization prove every merger.
 
 ## Source Claim Audit
 
@@ -251,10 +266,15 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
    instantiate Lemma 7.2 expansions and the repaired floor partition to obtain
    Corollary 7.4's `8(n−5)` Toffoli count.
 6. Construct separate exact and relative-phase expanded Corollary 7.4 circuits.
-   Prove exact evaluator equality by multiplying the Stage 6
-   `relativeToffoliPhase` witnesses along every ordered basis path. Only after
-   that proof, formalize local-gate mergers and decide whether `48n−204` is true;
-   otherwise state and prove the strongest corrected explicit count.
+   First define the all-relative palindromic half and prove its signed basis action,
+   involution, and closed phase exponent. Build `Bhybrid` with two exact outer
+   Toffolis and two identical relative halves; build the four-block circuit as
+   `Arel;Bhybrid;adjoint(Arel);Bhybrid`. Prove exact evaluator equality and exact
+   counts of four exact versus `8n−44` relative occurrences. Then substitute the
+   7-node relative and 16-node exact implementations to prove the raw
+   `56n−244` upper bound. Only after that proof, formalize legal local-gate mergers
+   and decide whether `48n−204` is true; otherwise state the strongest corrected
+   explicit count.
 7. Define Lemma 7.5 as a five-macro chronological circuit and prove its evaluator
    equality by the same parity/conjugation structure as Lemma 6.1, with exact
    boundary/base cases. Expand recursive calls only in a separate syntax layer.
@@ -310,9 +330,13 @@ pivot invariant, not merely Hamming adjacency.
   of Lemma 7.2 ladders into both four-block macro types, generic exact evaluator
   and `8(ℓ+r+2)` count, balanced repaired partition, canonical exact-width layout,
   exact `8(n−5)` Toffoli count, target-free A support, and `n=7` boundary theorem.
-- `Barenco/MultiControl/RelativePhase.lean`: heavy proof-side/public contextual
-  phase cancellation and explicit early-basic expansion/count. Keep it out of
-  the Boolean/runtime leaves.
+- `Barenco/MultiControl/RelativeHalf.lean`: relative-Toffoli base/outer expansion,
+  Boolean phase exponent, palindromic-half signed action/involution, closed half
+  and full-ladder phase formulas, and syntax counts.
+- `Barenco/MultiControl/RelativePhase.lean`: hybrid-B exactness, adjoint-A
+  contextual cancellation, four-exact/`8n−44`-relative occurrence counts, and
+  explicit early-basic expansion/count. Keep both heavy leaves out of the core
+  Boolean/runtime modules.
 - `Barenco/MultiControl/Recursive.lean`: runtime/public Lemma 7.5 constructor and
   proof-side/public exact evaluator and root-selected theorem.
 - `Barenco/MultiControl/Resources.lean`: construction-specific recurrences and
