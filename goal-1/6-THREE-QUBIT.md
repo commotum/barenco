@@ -199,10 +199,10 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
 - [x] Corollary 6.2 has a named explicit expansion, evaluator equality, exactly
   eight one-qubit and eight CNOT nodes, and `some 16` cost under
   `CostModel.oneQubitCNOT`.
-- [ ] Paper `W` versus Toffoli and both Section 6.2 diagrams have complete exact
+- [x] Paper `W` versus Toffoli and both Section 6.2 diagrams have complete exact
   eight-input sign tables generalized to arbitrary ambient width, followed by
   the strongest justified phase/basis/measurement theorems.
-- [ ] Any Section 7 dependency on paired relative-phase cancellation is either
+- [x] Any Section 7 dependency on paired relative-phase cancellation is either
   proved exactly here or recorded with a precise pending theorem statement and
   no premature downstream use.
 - [ ] Focused builds, adjacent diagnostic builds, warning-as-error checks, two
@@ -245,5 +245,41 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
   `propext`, `Classical.choice`, and `Quot.sound`.
 - Correction entries C-019 and C-020 record the source's unproved root choice,
   omitted `V†*V` branch, implicit commutation, and coordinated-witness requirement.
-  Relative-phase circuits, diagnostics, public-root integration, documentation,
-  and final Stage 6 verification remain in progress.
+  Their exact Lean evidence is now part of the maintained public modules.
+- `Barenco/ThreeQubit/RelativePhase.lean` translates paper
+  `W=[[0,1],[-1,0]]` to standard-column `Ry(pi)`, defines the exact common
+  `I,I,Z,X` block unitary, and reconstructs both seven-node diagrams. Theorems
+  `eval_relativePhaseToffoliACircuit` and
+  `eval_relativePhaseToffoliBCircuit` prove each evaluator exactly, while
+  `eval_relativePhaseToffoliACircuit_eq_BCircuit` proves the diagrams are the
+  same unitary, not merely measurement-equivalent.
+- `relativePhaseToffoliACircuit_mulVec_basisKet` and its B analogue prove the
+  exact Toffoli permutation with a Circle-valued minus sign precisely on input
+  `101`. `controlledWUnitary_mulVec_basisKet` proves the distinct minus sign on
+  `111`. Separate `BasisPhaseEq`, `SameBasisBehavior`, and
+  `BasisMeasurementEq` consequences are exported; no global-phase or
+  all-measurement statement is made.
+- The A circuit is seven early-basic primitives, exactly four one-qubit plus
+  three CNOT, with cost `some 7`. The B source syntax is four one-qubit plus
+  three controlled-Z macros; its gate count is seven but `oneQubitCNOT` cost is
+  correctly `none`. Its exact equality with the A circuit supplies a separate
+  seven-basic implementation semantically without miscounting the macro syntax.
+- `relativeToffoliUnitary_sq` and the two
+  `eval_append_relativePhaseToffoli*Circuit_self` theorems prove exact adjacent
+  identical-pair cancellation. The stronger contextual claim used by Corollary
+  7.4 remains a Stage 7 obligation: after defining the exact and relative
+  Corollary 7.4 circuits, prove their full evaluators equal by showing that the
+  product of `relativeToffoliPhase` witnesses along every ordered computational-
+  basis path is one. No generic “occurs in pairs” shortcut is permitted.
+- `Barenco/ThreeQubitExamples.lean` now exhausts all eight concrete three-bit
+  inputs in quantified A, B, and controlled-W truth-table theorems, checks a
+  non-adjacent five-wire embedding with two spectators, and validates macro and
+  basic costs. Direct warning-as-error compilation succeeds.
+- The public root imports `Expansion` and `RelativePhase`. The combined focused,
+  diagnostic, root, and audit build succeeded with 2,947 jobs. The maintained
+  audit now prints 80 headline declarations; all sixteen new Stage 6 checks use
+  only `propext`, `Classical.choice`, and `Quot.sound`. Direct warning-as-error
+  compilation of the root and audit succeeds.
+- Correction C-021 records the original PDF's erroneous “latter” attribution and
+  the distinct `101`/`111` witnesses. Documentation synchronization, two full
+  builds, and final scans remain before Stage 6 closes.

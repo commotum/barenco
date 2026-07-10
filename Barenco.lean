@@ -12,6 +12,8 @@ import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.U2Euler
 import Barenco.OneQubit.Roots
 import Barenco.OneQubit.CircuitBridge
+import Barenco.ThreeQubit.Expansion
+import Barenco.ThreeQubit.RelativePhase
 
 /-!
 # Barenco

@@ -9,6 +9,8 @@ import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Roots
 import Barenco.OneQubit.U2Euler
+import Barenco.ThreeQubit.Expansion
+import Barenco.ThreeQubit.RelativePhase
 
 /-!
 # Kernel axiom audit
@@ -81,3 +83,19 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.ControlledCircuit.eval_expandedVMacroU2Circuit_eq_controlledU2Circuit
 #print axioms Barenco.ControlledCircuit.expanded_and_mergedVMacroU2Circuit_oneQubitCNOTCosts
 #print axioms Barenco.ControlledCircuit.controlledZUnitary_swap
+#print axioms Barenco.ThreeQubit.cnotRaw_commute_localRaw
+#print axioms Barenco.ThreeQubit.eval_doubleControlledViaSquareCircuit_pow_two
+#print axioms Barenco.ThreeQubit.eval_doubleControlledRootCircuit
+#print axioms Barenco.ThreeQubit.eval_doubleControlledExpansion20Circuit_eq_16
+#print axioms Barenco.ThreeQubit.doubleControlledUnitary_has_sixteenPrimitiveCircuit
+#print axioms Barenco.ThreeQubit.wMatrix_eq_ry_pi
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliACircuit
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliBCircuit
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliACircuit_eq_BCircuit
+#print axioms Barenco.ThreeQubit.relativeToffoliUnitary_sq
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliACircuit_mulVec_basisKet
+#print axioms Barenco.ThreeQubit.controlledWUnitary_mulVec_basisKet
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliACircuit_basisPhaseEq_toffoli
+#print axioms Barenco.ThreeQubit.controlledWUnitary_basisPhaseEq_toffoli
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliACircuit_oneQubitCNOTCost
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliBCircuit_oneQubitCNOTCost
