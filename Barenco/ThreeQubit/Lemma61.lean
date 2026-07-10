@@ -134,6 +134,17 @@ theorem cnotRaw_commute_localRaw {n : ℕ}
       simp
     · simp [hw, hlocal]
 
+/-- Certified-unitary form of `cnotRaw_commute_localRaw`. -/
+theorem cnotUnitary_commute_localUnitary {n : ℕ}
+    (control cnotTarget localTarget : Fin n)
+    (hct : control ≠ cnotTarget) (hcl : control ≠ localTarget)
+    (htl : cnotTarget ≠ localTarget) (U : QubitUnitary) :
+    cnotUnitary control cnotTarget hct * localUnitary localTarget U =
+      localUnitary localTarget U * cnotUnitary control cnotTarget hct := by
+  apply Subtype.ext
+  simpa using cnotRaw_commute_localRaw control cnotTarget localTarget
+    hct hcl htl (U : QubitMatrix)
+
 /-- Target-local one-qubit matrices on distinct wires commute exactly. -/
 theorem localRaw_commute_of_ne {n : ℕ} (first second : Fin n)
     (h : first ≠ second) (U V : QubitMatrix) :
@@ -165,6 +176,15 @@ theorem localRaw_commute_of_ne {n : ℕ} (first second : Fin n)
       rw [setTarget_apply_of_ne first _ _ second h.symm]
       simp
     · simp [hfirst, hsecond]
+
+/-- Certified-unitary form of `localRaw_commute_of_ne`. -/
+theorem localUnitary_commute_of_ne {n : ℕ} (first second : Fin n)
+    (h : first ≠ second) (U V : QubitUnitary) :
+    localUnitary first U * localUnitary second V =
+      localUnitary second V * localUnitary first U := by
+  apply Subtype.ext
+  simpa using localRaw_commute_of_ne first second h
+    (U : QubitMatrix) (V : QubitMatrix)
 
 private theorem cnotRaw_mulVec_localRaw_basisKet {n : ℕ}
     (control cnotTarget localTarget : Fin n)
