@@ -328,6 +328,28 @@ theorem grayCode_succ (width : ℕ) :
   rw [← List.map_tail]
   rfl
 
+/-- The full traversal on a positive width ends at the singleton final position. -/
+@[simp]
+theorem getLast?_fullGrayCode_succ (width : ℕ) :
+    (fullGrayCode (width + 1)).getLast? = some {Fin.last width} := by
+  rw [fullGrayCode_succ]
+  have hsecond :
+      (fullGrayCode width).reverse.map liftGrayMaskWithLast ≠ [] := by
+    simp [fullGrayCode_ne_nil width]
+  rw [List.getLast?_append_of_ne_nil _ hsecond, List.getLast?_map]
+  simp [head?_fullGrayCode, liftGrayMaskWithLast, liftGrayMask]
+
+/-- The nonempty runtime schedule has the same singleton final endpoint. -/
+@[simp]
+theorem getLast?_grayCode_succ (width : ℕ) :
+    (grayCode (width + 1)).getLast? = some {Fin.last width} := by
+  rw [grayCode_succ]
+  have hsecond :
+      (fullGrayCode width).reverse.map liftGrayMaskWithLast ≠ [] := by
+    simp [fullGrayCode_ne_nil width]
+  rw [List.getLast?_append_of_ne_nil _ hsecond, List.getLast?_map]
+  simp [head?_fullGrayCode, liftGrayMaskWithLast, liftGrayMask]
+
 /-- The one-control schedule contains its unique nonempty mask. -/
 theorem grayCode_one : grayCode 1 = [{0}] := by
   decide
@@ -438,6 +460,172 @@ theorem GrayAdjacent.exists_unique_changed {width : ℕ} {first second : GrayMas
   exact Finset.card_eq_one.mp h
 
 /-! ## Maximum-mask pivots -/
+
+/--
+One plus the largest selected position, with rank zero assigned to the empty mask.
+
+Unlike a `Fin`-valued maximum, `pivotRank` is total.  Its codomain also records
+the empty/nonempty distinction: every selected position has positive rank, while
+the rank is always bounded by the register width.
+-/
+def pivotRank {width : ℕ} (mask : GrayMask width) : ℕ :=
+  mask.sup fun wire => wire.val + 1
+
+@[simp]
+theorem pivotRank_empty (width : ℕ) : pivotRank (∅ : GrayMask width) = 0 := by
+  simp [pivotRank]
+
+/-- A mask's total pivot rank cannot exceed its register width. -/
+theorem pivotRank_le_width {width : ℕ} (mask : GrayMask width) :
+    pivotRank mask ≤ width := by
+  rw [pivotRank]
+  exact Finset.sup_le fun wire _ => wire.isLt
+
+/-- Embedding a mask without the new final position preserves its pivot rank. -/
+@[simp]
+theorem pivotRank_liftGrayMask {width : ℕ} (mask : GrayMask width) :
+    pivotRank (liftGrayMask mask) = pivotRank mask := by
+  rw [pivotRank, pivotRank, liftGrayMask, Finset.sup_map]
+  rfl
+
+/-- Adding the new final position gives the maximum possible pivot rank. -/
+@[simp]
+theorem pivotRank_liftGrayMaskWithLast {width : ℕ} (mask : GrayMask width) :
+    pivotRank (liftGrayMaskWithLast mask) = width + 1 := by
+  rw [pivotRank, liftGrayMaskWithLast, Finset.sup_insert]
+  change max (width + 1) (pivotRank (liftGrayMask mask)) = width + 1
+  rw [pivotRank_liftGrayMask]
+  exact max_eq_left (pivotRank_le_width mask |>.trans (Nat.le_succ width))
+
+/--
+The schedule-specific progress relation between consecutive masks.
+
+It records both monotonicity of the total pivot rank and the structural fact
+needed to move an XOR accumulator: when the rank rises, the previous mask has
+at most one selected position.
+-/
+def GrayPivotStep {width : ℕ} (first second : GrayMask width) : Prop :=
+  pivotRank first ≤ pivotRank second ∧
+    (pivotRank first < pivotRank second → first.card ≤ 1)
+
+theorem GrayPivotStep.rank_le {width : ℕ} {first second : GrayMask width}
+    (h : GrayPivotStep first second) : pivotRank first ≤ pivotRank second :=
+  h.1
+
+theorem GrayPivotStep.card_le_one_of_lt {width : ℕ}
+    {first second : GrayMask width} (h : GrayPivotStep first second)
+    (hlt : pivotRank first < pivotRank second) : first.card ≤ 1 :=
+  h.2 hlt
+
+theorem GrayPivotStep.lift {width : ℕ} {first second : GrayMask width}
+    (h : GrayPivotStep first second) :
+    GrayPivotStep (liftGrayMask first) (liftGrayMask second) := by
+  constructor
+  · simpa using h.rank_le
+  · intro hlt
+    rw [pivotRank_liftGrayMask, pivotRank_liftGrayMask] at hlt
+    simpa using h.card_le_one_of_lt hlt
+
+private theorem grayPivotStep_liftWithLast {width : ℕ}
+    (first second : GrayMask width) :
+    GrayPivotStep (liftGrayMaskWithLast first) (liftGrayMaskWithLast second) := by
+  simp [GrayPivotStep]
+
+private theorem grayPivotStep_reflectionBoundary {width : ℕ}
+    (mask : GrayMask width) (hcard : mask.card ≤ 1) :
+    GrayPivotStep (liftGrayMask mask) (liftGrayMaskWithLast mask) := by
+  constructor
+  · rw [pivotRank_liftGrayMask, pivotRank_liftGrayMaskWithLast]
+    exact (pivotRank_le_width mask).trans (Nat.le_succ width)
+  · intro _
+    simpa using hcard
+
+private theorem card_le_one_of_mem_getLast?_fullGrayCode {width : ℕ}
+    {mask : GrayMask width} (hmask : mask ∈ (fullGrayCode width).getLast?) :
+    mask.card ≤ 1 := by
+  cases width with
+  | zero =>
+      simp at hmask
+      subst mask
+      simp
+  | succ width =>
+      rw [getLast?_fullGrayCode_succ] at hmask
+      simp at hmask
+      subst mask
+      simp
+
+private theorem isChain_liftGrayMaskWithLast {width : ℕ}
+    (masks : List (GrayMask width)) :
+    (masks.map liftGrayMaskWithLast).IsChain GrayPivotStep := by
+  induction masks with
+  | nil => simp
+  | cons first rest ih =>
+      cases rest with
+      | nil => simp
+      | cons second tail =>
+          rw [List.map_cons, List.map_cons, List.isChain_cons_cons]
+          exact ⟨grayPivotStep_liftWithLast first second, ih⟩
+
+/--
+Pivot ranks are nondecreasing along the full traversal, and a strict increase
+can occur only after a mask of cardinality at most one.
+-/
+theorem fullGrayCode_pivotRank_isChain : ∀ width,
+    (fullGrayCode width).IsChain GrayPivotStep := by
+  intro width
+  induction width with
+  | zero => simp
+  | succ width ih =>
+      rw [fullGrayCode_succ]
+      apply List.IsChain.append
+      · exact List.isChain_map_of_isChain liftGrayMask
+          (fun _ _ h => h.lift) ih
+      · exact isChain_liftGrayMaskWithLast (fullGrayCode width).reverse
+      · intro first hfirst second hsecond
+        rw [List.getLast?_map] at hfirst
+        rw [List.head?_map, List.head?_reverse] at hsecond
+        rw [Option.mem_def] at hfirst hsecond
+        cases hlast : (fullGrayCode width).getLast? with
+        | none => simp [hlast] at hfirst
+        | some mask =>
+            simp [hlast] at hfirst hsecond
+            subst first
+            subst second
+            exact grayPivotStep_reflectionBoundary mask
+              (card_le_one_of_mem_getLast?_fullGrayCode (by simp [hlast]))
+
+/-- The paper's nonempty schedule inherits the full traversal's pivot progress. -/
+theorem grayCode_pivotRank_isChain (width : ℕ) :
+    (grayCode width).IsChain GrayPivotStep := by
+  exact (fullGrayCode_pivotRank_isChain width).tail
+
+/-- A nonempty previous mask is a singleton whenever its pivot rank rises. -/
+theorem GrayPivotStep.first_eq_singleton_of_lt {width : ℕ}
+    {first second : GrayMask width} (h : GrayPivotStep first second)
+    (hfirst : first.Nonempty) (hlt : pivotRank first < pivotRank second) :
+    ∃ wire : Fin width, first = {wire} := by
+  have hcardLe : first.card ≤ 1 := h.card_le_one_of_lt hlt
+  have hcardPos : 0 < first.card := Finset.card_pos.mpr hfirst
+  have hcard : first.card = 1 := by omega
+  exact Finset.card_eq_one.mp hcard
+
+/--
+For an actual consecutive pair in `grayCode`, strict pivot-rank increase exposes
+the previous mask as a singleton.  This indexed form is convenient for compiling
+the schedule into one CNOT per transition.
+-/
+theorem grayCode_previous_singleton_of_pivotRank_lt {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length)
+    (hlt : pivotRank (grayCode width)[index] <
+      pivotRank (grayCode width)[index + 1]) :
+    ∃ wire : Fin width, (grayCode width)[index] = {wire} := by
+  have hstep : GrayPivotStep (grayCode width)[index]
+      (grayCode width)[index + 1] :=
+    (grayCode_pivotRank_isChain width).getElem index hindex
+  have hmem : (grayCode width)[index] ∈ grayCode width :=
+    List.getElem_mem _
+  exact hstep.first_eq_singleton_of_lt
+    ((mem_grayCode_iff (grayCode width)[index]).mp hmem) hlt
 
 /-- `pivot` is a member of `mask` no smaller than any other selected position. -/
 def IsGrayPivot {width : ℕ} (mask : GrayMask width) (pivot : Fin width) : Prop :=

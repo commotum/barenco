@@ -18,6 +18,44 @@ namespace Barenco.MultiControl
 
 open scoped symmDiff
 
+/-- Consecutive accumulator pivots, before choosing each CNOT's control wire. -/
+def grayPivotPairs (width : ℕ) : List (Fin width × Fin width) :=
+  (grayPivots width).zip (grayPivots width).tail
+
+/--
+Choose the CNOT edge for one Gray transition.
+
+With an unchanged pivot, the changed mask position is XORed into that pivot.
+When the pivot changes, the old pivot is XORed into the new pivot.
+-/
+private def grayCNOTEdge {width : ℕ} (changed : Fin width)
+    (pivots : Fin width × Fin width) : Fin width × Fin width :=
+  if pivots.1 = pivots.2 then (changed, pivots.2) else pivots
+
+/-- The ordered CNOT edges interleaved between the paper's controlled-root gates. -/
+def grayCNOTEdges (width : ℕ) : List (Fin width × Fin width) :=
+  List.zipWith grayCNOTEdge (grayToggles width) (grayPivotPairs width)
+
+@[simp]
+theorem length_grayPivotPairs (width : ℕ) :
+    (grayPivotPairs width).length = 2 ^ width - 2 := by
+  rw [grayPivotPairs, List.length_zip, length_grayPivots,
+    List.length_tail, length_grayPivots]
+  have hpow : 0 < 2 ^ width := pow_pos (by omega) width
+  omega
+
+@[simp]
+theorem length_grayCNOTEdges (width : ℕ) :
+    (grayCNOTEdges width).length = 2 ^ width - 2 := by
+  rw [grayCNOTEdges, List.length_zipWith, length_grayToggles,
+    length_grayPivotPairs]
+  simp
+
+/-- The six CNOTs in the paper's displayed four-bit Gray construction. -/
+theorem grayCNOTEdges_three :
+    grayCNOTEdges 3 = [(0, 1), (0, 1), (1, 2), (0, 2), (1, 2), (0, 2)] := by
+  decide
+
 /-- Boolean register update performed by a CNOT from `control` to `target`. -/
 def xorWireUpdate {width : ℕ} (control target : Fin width)
     (state : Fin width → Bool) : Fin width → Bool :=
@@ -53,6 +91,22 @@ theorem xorWireUpdate_involutive {width : ℕ} (control target : Fin width)
     rw [Bool.xor_assoc, Bool.xor_self, Bool.xor_false]
   · rw [xorWireUpdate_apply_of_ne _ _ _ _ hwire,
       xorWireUpdate_apply_of_ne _ _ _ _ hwire]
+
+/-- Execute an ordered list of classical CNOT edges on a Boolean register state. -/
+def runXorEdges {width : ℕ} (edges : List (Fin width × Fin width))
+    (state : Fin width → Bool) : Fin width → Bool :=
+  edges.foldl (fun current edge => xorWireUpdate edge.1 edge.2 current) state
+
+@[simp]
+theorem runXorEdges_nil {width : ℕ} (state : Fin width → Bool) :
+    runXorEdges [] state = state := rfl
+
+@[simp]
+theorem runXorEdges_cons {width : ℕ} (edge : Fin width × Fin width)
+    (edges : List (Fin width × Fin width)) (state : Fin width → Bool) :
+    runXorEdges (edge :: edges) state =
+      runXorEdges edges (xorWireUpdate edge.1 edge.2 state) := by
+  simp [runXorEdges, List.foldl_cons]
 
 /--
 Register state in which `pivot` stores the XOR parity of `mask` and every other
