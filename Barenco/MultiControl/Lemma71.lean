@@ -478,6 +478,13 @@ private theorem grayFinalMask_index_lt (tail : ℕ) :
   have hpow : 0 < 2 ^ (tail + 1) := pow_pos (by omega) _
   omega
 
+private theorem grayFinalMask_index_succ (tail : ℕ) :
+    (grayCNOTEdges (tail + 1)).length + 1 =
+      (grayCode (tail + 1)).length := by
+  rw [length_grayCNOTEdges, length_grayCode]
+  have hpow : 0 < 2 ^ (tail + 1) := pow_pos (by omega) _
+  omega
+
 /--
 The complete chronological Gray construction for `tail + 1` controls: every
 nonfinal root is followed by its generated CNOT, and the last root stands alone.
@@ -494,6 +501,100 @@ def grayControlledViaRootCircuit {tail ambientWidth : ℕ}
       (grayCNOTEdges (tail + 1)).length le_rfl)
     [grayRootPrimitiveAt layout V (grayCNOTEdges (tail + 1)).length
       (grayFinalMask_index_lt tail)]
+
+@[simp]
+theorem grayRootPrimitiveAt_kind {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    (grayRootPrimitiveAt layout V index hindex).kind = .controlledOneQubit 1 := by
+  simp [grayRootPrimitiveAt]
+
+@[simp]
+theorem length_grayTransitionPair {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    (grayTransitionPair layout V index hindex).length = 2 := by
+  simp [grayTransitionPair]
+
+@[simp]
+theorem length_grayTransitionPrefixCircuit {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      (grayTransitionPrefixCircuit layout V count hcount).length = 2 * count := by
+  intro count hcount
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      simp [grayTransitionPrefixCircuit, Circuit.append, ih (by omega)]
+      omega
+
+@[simp]
+theorem grayTransitionPair_kindCounts {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    Circuit.kindCount (.controlledOneQubit 1)
+          (grayTransitionPair layout V index hindex) = 1 ∧
+      Circuit.kindCount .cnot (grayTransitionPair layout V index hindex) = 1 := by
+  simp [grayTransitionPair, Circuit.kindCount]
+
+theorem grayTransitionPrefixCircuit_kindCounts
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      Circuit.kindCount (.controlledOneQubit 1)
+          (grayTransitionPrefixCircuit layout V count hcount) = count ∧
+        Circuit.kindCount .cnot
+          (grayTransitionPrefixCircuit layout V count hcount) = count := by
+  intro count hcount
+  induction count with
+  | zero => simp [grayTransitionPrefixCircuit, Circuit.kindCount]
+  | succ count ih =>
+      rw [grayTransitionPrefixCircuit, Circuit.kindCount_append]
+      rw [Circuit.kindCount_append]
+      rcases ih (by omega) with ⟨hroot, hcnot⟩
+      rw [hroot, hcnot]
+      simp [grayTransitionPair, Circuit.kindCount]
+
+/-- Exact number of chronological macro nodes in the Gray construction. -/
+@[simp]
+theorem grayControlledViaRootCircuit_gateCount {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary) :
+    Circuit.gateCount (grayControlledViaRootCircuit layout V) =
+      2 ^ (tail + 2) - 3 := by
+  rw [Circuit.gateCount, grayControlledViaRootCircuit]
+  simp only [Circuit.append, List.length_append,
+    length_grayTransitionPrefixCircuit, List.length_singleton]
+  rw [length_grayCNOTEdges]
+  simp only [pow_succ]
+  have hpow : 0 < 2 ^ tail := pow_pos (by omega) tail
+  omega
+
+/-- Exact controlled-root and Gray-CNOT macro counts. -/
+theorem grayControlledViaRootCircuit_kindCounts {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary) :
+    Circuit.kindCount (.controlledOneQubit 1)
+          (grayControlledViaRootCircuit layout V) = 2 ^ (tail + 1) - 1 ∧
+      Circuit.kindCount .cnot
+          (grayControlledViaRootCircuit layout V) = 2 ^ (tail + 1) - 2 := by
+  rw [grayControlledViaRootCircuit, Circuit.kindCount_append,
+    Circuit.kindCount_append]
+  rcases grayTransitionPrefixCircuit_kindCounts layout V
+      (grayCNOTEdges (tail + 1)).length le_rfl with ⟨hroot, hcnot⟩
+  rw [hroot, hcnot, length_grayCNOTEdges]
+  simp [grayRootPrimitiveAt, Circuit.kindCount]
+
+/--
+The macro circuit is intentionally not assigned an early-basic cost: its
+singly controlled root nodes have not yet been expanded into one-qubit gates
+and CNOTs.
+-/
+@[simp]
+theorem grayControlledViaRootCircuit_oneQubitCNOTCost {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT
+      (grayControlledViaRootCircuit layout V) = none := by
+  rw [grayControlledViaRootCircuit, Circuit.cost_append]
+  simp [grayRootPrimitiveAt, Circuit.cost, Circuit.addCost]
 
 /-- Ambient basis assignment after the first `count` generated Gray CNOTs. -/
 def embeddedGrayPrefixState {controlCount ambientWidth : ℕ}
@@ -583,5 +684,183 @@ theorem embeddedGrayPrefixState_succ {controlCount ambientWidth index : ℕ}
     List.take_succ_eq_append_getElem hindex,
     runEmbeddedCNOTUpdates_append]
   rfl
+
+/--
+One complete root/CNOT pair updates both halves of the invariant: it adds the
+current signed root exponent on the target and advances the ambient control
+assignment to the next Gray prefix state.
+-/
+theorem eval_grayTransitionPair_mulVec_zpow_basisKet
+    {tail ambientWidth index : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary)
+    (hindex : index < (grayCNOTEdges (tail + 1)).length)
+    (exponent : ℤ) (input : Basis ambientWidth) :
+    (Circuit.eval (grayTransitionPair layout V index hindex) : Gate ambientWidth) *ᵥ
+        (localRaw layout.targetWire
+            ((V ^ exponent : QubitUnitary) : QubitMatrix) *ᵥ
+          basisKet (embeddedGrayPrefixState layout index input)) =
+      localRaw layout.targetWire
+          (((V ^
+              (signedParityContribution
+                  ((grayCode (tail + 1))[index]'
+                    (grayMask_index_lt_of_edge hindex))
+                  (layout.restrictControls input) + exponent) :
+              QubitUnitary) : QubitMatrix)) *ᵥ
+        basisKet (embeddedGrayPrefixState layout (index + 1) input) := by
+  have hmask := grayMask_index_lt_of_edge hindex
+  have hcontrol := embeddedGrayPrefixState_apply_pivot layout input hmask
+  simp only [grayTransitionPair]
+  rw [Circuit.eval_pair_mulVec]
+  rw [grayRootPrimitiveAt_mulVec_zpow_basisKet layout V hmask
+      (layout.restrictControls input) exponent
+      (embeddedGrayPrefixState layout index input) hcontrol]
+  rw [cnotPrimitive_mulVec_localRaw_basisKet]
+  rw [← embeddedGrayPrefixState_succ layout input hindex]
+
+/--
+After any valid number of root/CNOT pairs, the target carries the power whose
+exponent is the signed contribution of exactly that Gray prefix, while the
+controls are in the corresponding certified accumulator state.
+-/
+theorem eval_grayTransitionPrefixCircuit_mulVec_basisKet
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary)
+    (count : ℕ) (hcount : count ≤ (grayCNOTEdges (tail + 1)).length)
+    (input : Basis ambientWidth) :
+    (Circuit.eval (grayTransitionPrefixCircuit layout V count hcount) :
+        Gate ambientWidth) *ᵥ basisKet input =
+      localRaw layout.targetWire
+          (((V ^
+              grayExponentPrefix (tail + 1) count
+                (layout.restrictControls input) : QubitUnitary) : QubitMatrix)) *ᵥ
+        basisKet (embeddedGrayPrefixState layout count input) := by
+  induction count with
+  | zero =>
+      simp only [grayTransitionPrefixCircuit, Circuit.eval_nil,
+        Submonoid.coe_one, Matrix.one_mulVec, grayExponentPrefix_zero,
+        zpow_zero, embeddedGrayPrefixState, List.take_zero,
+        runEmbeddedCNOTUpdates_nil]
+      rw [localRaw_eq_targetBlockRaw, targetBlockRaw_one, Matrix.one_mulVec]
+  | succ count ih =>
+      have hprevious : count ≤ (grayCNOTEdges (tail + 1)).length := by omega
+      have hedge : count < (grayCNOTEdges (tail + 1)).length := by omega
+      have hmask := grayMask_index_lt_of_edge hedge
+      rw [grayTransitionPrefixCircuit, Circuit.eval_append]
+      change
+        ((Circuit.eval (grayTransitionPair layout V count hedge) : Gate ambientWidth) *
+            (Circuit.eval
+              (grayTransitionPrefixCircuit layout V count hprevious) :
+                Gate ambientWidth)) *ᵥ basisKet input = _
+      rw [← Matrix.mulVec_mulVec, ih hprevious]
+      simpa [grayExponentPrefix_succ hmask, add_comm] using
+        (eval_grayTransitionPair_mulVec_zpow_basisKet layout V hedge
+          (grayExponentPrefix (tail + 1) count
+            (layout.restrictControls input)) input)
+
+/--
+The complete interleaved circuit restores every control and spectator wire. Its
+only remaining action on a basis column is the exact signed Gray power on the
+named target qubit.
+-/
+theorem eval_grayControlledViaRootCircuit_mulVec_basisKet
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary)
+    (input : Basis ambientWidth) :
+    (Circuit.eval (grayControlledViaRootCircuit layout V) : Gate ambientWidth) *ᵥ
+        basisKet input =
+      localRaw layout.targetWire
+          (((V ^ grayExponentSum (tail + 1)
+              (layout.restrictControls input) : QubitUnitary) : QubitMatrix)) *ᵥ
+        basisKet input := by
+  let edgeCount := (grayCNOTEdges (tail + 1)).length
+  have hfinal : edgeCount < (grayCode (tail + 1)).length := by
+    simpa [edgeCount] using grayFinalMask_index_lt tail
+  have hfinalSucc : edgeCount + 1 = (grayCode (tail + 1)).length := by
+    simpa [edgeCount] using grayFinalMask_index_succ tail
+  have hrestore : embeddedGrayPrefixState layout edgeCount input = input := by
+    rw [embeddedGrayPrefixState, List.take_length,
+      runEmbedded_grayCNOTEdges_eq_self]
+  have hcontrol := embeddedGrayPrefixState_apply_pivot layout input hfinal
+  rw [hrestore] at hcontrol
+  rw [grayControlledViaRootCircuit, Circuit.eval_append]
+  change
+    ((Circuit.eval [grayRootPrimitiveAt layout V edgeCount hfinal] :
+          Gate ambientWidth) *
+        (Circuit.eval
+          (grayTransitionPrefixCircuit layout V edgeCount le_rfl) :
+            Gate ambientWidth)) *ᵥ basisKet input = _
+  rw [← Matrix.mulVec_mulVec,
+    eval_grayTransitionPrefixCircuit_mulVec_basisKet,
+    hrestore, Circuit.eval_singleton]
+  rw [grayRootPrimitiveAt_mulVec_zpow_basisKet layout V hfinal
+      (layout.restrictControls input)
+      (grayExponentPrefix (tail + 1) edgeCount
+        (layout.restrictControls input)) input hcontrol]
+  have hexponent :
+      signedParityContribution
+            ((grayCode (tail + 1))[edgeCount]'hfinal)
+            (layout.restrictControls input) +
+          grayExponentPrefix (tail + 1) edgeCount
+            (layout.restrictControls input) =
+        grayExponentSum (tail + 1) (layout.restrictControls input) := by
+    rw [add_comm, ← grayExponentPrefix_succ hfinal,
+      hfinalSucc, grayExponentPrefix_length]
+  rw [hexponent]
+
+/--
+The complete Gray circuit implements a positive control of
+`V ^ (2 ^ tail)` on `tail + 1` named controls in any ambient register.
+
+This strengthens the paper's stated range by including the valid one-control
+boundary `tail = 0`; the zero-control local-gate case remains separate.
+-/
+theorem eval_grayControlledViaRootCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary) :
+    Circuit.eval (grayControlledViaRootCircuit layout V) =
+      positiveControlledUnitary layout.targetWire layout.controlSet (V ^ (2 ^ tail)) := by
+  apply Subtype.ext
+  rw [matrix_eq_iff_mulVec_basisKet_eq]
+  intro input
+  rw [eval_grayControlledViaRootCircuit_mulVec_basisKet,
+    coe_positiveControlledUnitary, positiveControlledRaw_truthTable]
+  have hall := layout.all_controls_iff input
+  by_cases hcontrols :
+      ∀ control, layout.restrictControls input control = true
+  · rw [grayExponentSum_succ_formula, if_pos hcontrols,
+      if_pos (hall.mpr hcontrols)]
+    have hcast : (2 : ℤ) ^ tail = ((2 ^ tail : ℕ) : ℤ) := by
+      norm_cast
+    rw [hcast, zpow_natCast]
+  · rw [grayExponentSum_succ_formula, if_neg hcontrols,
+      if_neg (fun h => hcontrols (hall.mp h)), zpow_zero,
+      localRaw_eq_targetBlockRaw]
+    change targetBlockRaw layout.targetWire (fun _ => (1 : QubitMatrix)) *ᵥ
+        basisKet input = basisKet input
+    rw [targetBlockRaw_one, Matrix.one_mulVec]
+
+/-- Any explicitly supplied power witness yields an exact controlled-`U` circuit. -/
+theorem eval_grayControlledViaRootCircuit_of_pow_eq
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U V : QubitUnitary) (hV : V ^ (2 ^ tail) = U) :
+    Circuit.eval (grayControlledViaRootCircuit layout V) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [eval_grayControlledViaRootCircuit, hV]
+
+/-- Selected-root wrapper for the exact controlled-`U` Gray construction. -/
+noncomputable def grayControlledCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (U : QubitUnitary) :
+    Circuit ambientWidth :=
+  grayControlledViaRootCircuit layout (graySelectedRoot tail U)
+
+/-- Barenco Lemma 7.1, strengthened to every positive number of controls. -/
+@[simp]
+theorem eval_grayControlledCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (U : QubitUnitary) :
+    Circuit.eval (grayControlledCircuit layout U) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [grayControlledCircuit, eval_grayControlledViaRootCircuit]
+  congr 1
+  exact OneQubit.unitaryRoot_pow (2 ^ tail) (pow_pos (by omega) tail) U
 
 end Barenco.MultiControl

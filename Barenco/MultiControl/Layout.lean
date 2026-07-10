@@ -103,6 +103,23 @@ theorem restrictControls_apply {controlCount ambientWidth : ℕ}
     (input : Basis ambientWidth) (control : Fin controlCount) :
     layout.restrictControls input control = input (layout.controlWire control) := rfl
 
+/--
+All unordered positive controls are true exactly when every position in the
+ordered control register is true.
+-/
+theorem all_controls_iff {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (input : Basis ambientWidth) :
+    (∀ wire ∈ layout.controlSet, input wire = true) ↔
+      ∀ control, layout.restrictControls input control = true := by
+  constructor
+  · intro h control
+    exact h (layout.controlComplement control)
+      (layout.controlComplement_mem_controlSet control)
+  · intro h wire hwire
+    rcases (layout.mem_controlSet_iff wire).1 hwire with ⟨control, rfl⟩
+    exact h control
+
 /-- Distinct logical positions embed as distinct ambient control wires. -/
 theorem controlWire_ne {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth)
