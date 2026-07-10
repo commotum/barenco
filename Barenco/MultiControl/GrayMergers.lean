@@ -55,7 +55,7 @@ theorem GrayAdjacent.card_succ_or_succ_card {width : ℕ}
           rw [hchange]
           simpa using hwire
         rw [Finset.mem_symmDiff] at hnotdiff
-        simp only [Finset.mem_erase, hwire, not_false_eq_true, true_and]
+        simp only [Finset.mem_erase]
         tauto
     rw [hsecond]
     exact Finset.card_erase_add_one hremove.1
@@ -171,6 +171,93 @@ def coherentGrayRootSymbolicCircuit {width n : ℕ} (mask : GrayMask width)
     grayPositiveRootSymbolicCircuit control target h
   else
     grayNegativeRootSymbolicCircuit control target h
+
+/-- First target endpoint of one coherent signed block. -/
+def grayRootStartSymbolic {width n : ℕ} (mask : GrayMask width)
+    (target : Fin n) : SymbolicPrimitive GrayFactorAtom n :=
+  if Odd mask.card then
+    SymbolicPrimitive.atom target .A
+  else
+    SymbolicPrimitive.inverseAtom target .C
+
+/-- Four-node middle of a coherent signed block after removing both endpoints. -/
+def grayRootCoreSymbolicCircuit {width n : ℕ} (mask : GrayMask width)
+    (control target : Fin n) (h : control ≠ target) :
+    SymbolicCircuit GrayFactorAtom n :=
+  if Odd mask.card then
+    [SymbolicPrimitive.atom control .phase,
+      .cnot control target h,
+      SymbolicPrimitive.atom target .B,
+      .cnot control target h]
+  else
+    [.cnot control target h,
+      SymbolicPrimitive.inverseAtom target .B,
+      .cnot control target h,
+      SymbolicPrimitive.inverseAtom control .phase]
+
+/-- Final target endpoint of one coherent signed block. -/
+def grayRootEndSymbolic {width n : ℕ} (mask : GrayMask width)
+    (target : Fin n) : SymbolicPrimitive GrayFactorAtom n :=
+  if Odd mask.card then
+    SymbolicPrimitive.atom target .C
+  else
+    SymbolicPrimitive.inverseAtom target .A
+
+/-- Every coherent block is its start endpoint, four-node core, and end endpoint. -/
+theorem coherentGrayRootSymbolicCircuit_eq_start_core_end {width n : ℕ}
+    (mask : GrayMask width) (control target : Fin n)
+    (h : control ≠ target) :
+    coherentGrayRootSymbolicCircuit mask control target h =
+      [grayRootStartSymbolic mask target] ++
+        grayRootCoreSymbolicCircuit mask control target h ++
+          [grayRootEndSymbolic mask target] := by
+  rcases Nat.even_or_odd mask.card with heven | hodd
+  · have hnotOdd : ¬Odd mask.card := Nat.not_odd_iff_even.mpr heven
+    simp [coherentGrayRootSymbolicCircuit, grayRootStartSymbolic,
+      grayRootCoreSymbolicCircuit, grayRootEndSymbolic, hnotOdd,
+      grayNegativeRootSymbolicCircuit, SymbolicPrimitive.inverseAtom]
+  · simp [coherentGrayRootSymbolicCircuit, grayRootStartSymbolic,
+      grayRootCoreSymbolicCircuit, grayRootEndSymbolic, hodd,
+      grayPositiveRootSymbolicCircuit, SymbolicPrimitive.atom]
+
+/--
+At one Gray boundary, target exposure and free-group normalization commute the
+outgoing endpoint across the control-only CNOT and delete the inverse pair.
+-/
+theorem normalizeAtWire_grayBoundary {width n : ℕ}
+    {first second : GrayMask width} (hadjacent : GrayAdjacent first second)
+    (edgeControl edgeTarget target : Fin n)
+    (hedge : edgeControl ≠ edgeTarget)
+    (htargetControl : target ≠ edgeControl)
+    (htargetTarget : target ≠ edgeTarget) :
+    SymbolicCircuit.normalizeAtWire target
+        [grayRootEndSymbolic first target,
+          .cnot edgeControl edgeTarget hedge,
+          grayRootStartSymbolic second target] =
+      [.cnot edgeControl edgeTarget hedge] := by
+  rcases Nat.even_or_odd first.card with heven | hodd
+  · have hsecondOdd : Odd second.card :=
+      hadjacent.even_card_iff_odd_card.mp heven
+    have hfirstNotOdd : ¬Odd first.card :=
+      Nat.not_odd_iff_even.mpr heven
+    simp [SymbolicCircuit.normalizeAtWire, SymbolicCircuit.exposeWire,
+      SymbolicCircuit.exposeWireInsert, SymbolicCircuit.normalize,
+      NormalizeCore.normalize, NormalizeCore.insert,
+      SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+      grayRootEndSymbolic, grayRootStartSymbolic, hfirstNotOdd,
+      hsecondOdd, htargetControl, htargetTarget,
+      SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+  · have hsecondEven : Even second.card :=
+      hadjacent.odd_card_iff_even_card.mp hodd
+    have hsecondNotOdd : ¬Odd second.card :=
+      Nat.not_odd_iff_even.mpr hsecondEven
+    simp [SymbolicCircuit.normalizeAtWire, SymbolicCircuit.exposeWire,
+      SymbolicCircuit.exposeWireInsert, SymbolicCircuit.normalize,
+      NormalizeCore.normalize, NormalizeCore.insert,
+      SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+      grayRootEndSymbolic, grayRootStartSymbolic, hodd, hsecondNotOdd,
+      htargetControl, htargetTarget,
+      SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
 
 @[simp]
 theorem erase_grayPositiveRootSymbolicCircuit {n : ℕ}
@@ -304,7 +391,7 @@ private theorem coherentGrayFinalMask_index_lt (tail : ℕ) :
 /-- One indexed coherent signed-root block. -/
 def coherentGrayRootCircuitAt {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth)
-    (V : QubitUnitary) (index : ℕ)
+    (_V : QubitUnitary) (index : ℕ)
     (hindex : index < (grayCode controlCount).length) :
     SymbolicCircuit GrayFactorAtom ambientWidth :=
   let mask := (grayCode controlCount)[index]'hindex
@@ -382,8 +469,7 @@ theorem eval_erase_coherentGrayTransitionPair
       Circuit.eval (grayTransitionPair layout V index hindex) := by
   rw [coherentGrayTransitionPair, erase_append,
     FusionCircuit.eval_append, eval_erase_coherentGrayRootCircuitAt]
-  simp [grayTransitionPair, Circuit.eval_append,
-    FusionPrimitive.denotation, cnotPrimitive]
+  simp [grayTransitionPair, FusionPrimitive.denotation, cnotPrimitive]
 
 /-- Every coherent raw prefix exactly matches the established macro prefix. -/
 theorem eval_erase_coherentGrayTransitionPrefixCircuit
@@ -416,7 +502,7 @@ theorem eval_erase_coherentGrayControlledViaRootCircuit_eq_macro
   rw [erase_append, FusionCircuit.eval_append, Circuit.eval_append,
     eval_erase_coherentGrayTransitionPrefixCircuit,
     eval_erase_coherentGrayRootCircuitAt]
-  rfl
+  rw [Circuit.eval_singleton]
 
 /-- Exact arbitrary-register semantics of the selected-root coherent raw syntax. -/
 @[simp]
