@@ -122,8 +122,9 @@ statement. “Open” means the repair is identified but not yet machine checked
   cases stated separately.
 - **Dependent impact:** Lemma 7.8 and any universality-efficiency claim using it.
 - **Formal evidence:** `Barenco.operatorDistance` now fixes the L² induced operator
-  norm and its metric, multiplication, unitary-invariance, and state-action laws.
-  The recursion-depth/epsilon repair itself remains planned.
+  norm and its metric, multiplication, unitary-invariance, state-action, and
+  single-basis-outcome factor-two probability laws. The recursion-depth/epsilon
+  repair itself remains planned.
 - **Status:** open; exact best finite formula not yet selected.
 
 ## C-009 — Phase congruence is not one equivalence relation
@@ -236,6 +237,10 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Formal evidence:** `GlobalPhaseEq.toChannelEq`,
   `channelEq_iff_allMeasurementEq`, `ChannelEq.bornWeight_eq`, and
   `ChannelEq.toBasisMeasurementEq` compile in
-  `Barenco.Equivalence.Measurement`.
-- **Status:** corrected and proved as an algebraic separation. The physical-state,
-  effect, and `2ε` probability theorem remains open.
+  `Barenco.Equivalence.Measurement`. For pure states represented in
+  `EuclideanSpace`, `operatorDistance_basisOutcomeProbability_le` proves the
+  `2ε` bound for one named computational-basis outcome under the explicit
+  norm-at-most-one hypothesis.
+- **Status:** corrected and proved as an algebraic separation, with the single-basis
+  probability consequence proved. Physical density/effect structures and general
+  event/POVM error bounds remain open.

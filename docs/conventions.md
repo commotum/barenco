@@ -174,14 +174,16 @@ Section 6 diagram or phase-cancellation claim has yet been proved.
 - The compiled API proves nonnegativity, separation, symmetry, the triangle
   inequality, left/right multiplication bounds, invariance under certified unitary
   multiplication, additive error for a product of two unitary factors, the
-  Euclidean state-action bound, and distance at most two between certified
-  unitaries on a nonempty finite index type.
+  Euclidean state-action bound, a per-coordinate amplitude bound, and distance at
+  most two between certified unitaries on a nonempty finite index type.
 - `Matrix.l2_opNorm_mul`, `.l2_opNorm_mulVec`, `Matrix.toEuclideanCLM`, and C*-unitary
   norm facts are the exact mathlib bridge used by those proofs.
-- The paper's claim that operator error `≤ ε` gives event-probability error `≤ 2ε`
-  remains unproved. It will require normalized physical states and explicit
-  projections/effects; neither the arbitrary-matrix `BornWeight` API nor the
-  operator-distance action theorem silently supplies those hypotheses.
+- `operatorDistance_basisOutcomeProbability_le` proves the paper's `2ε` constant
+  for one computational-basis outcome: for certified unitaries and a state with
+  Euclidean norm at most one, the absolute difference of the two squared output
+  amplitudes is at most twice the operator distance. This is not silently promoted
+  to a bound for a multi-outcome event, coarse-graining, or arbitrary POVM effect;
+  those require a separately stated physical measurement theorem.
 
 Exact and approximate synthesis have different theorem names and result types.
 Bounds in two variables (`n` and `ε`) state their domains, integer recursion depth,
@@ -222,7 +224,9 @@ Named cost models:
   Toffoli, arbitrary two-qubit gates, swaps, or negative-control conjugations in
   separate coordinates.
 
-`Circuit.gateCount`, `kindCount`, and `touchedSupport` inspect syntax only.
+`Circuit.registerWidth`, `gateCount`, `kindCount`, and `touchedSupport` inspect
+typed syntax only; `touchedSupport_card_le_registerWidth` proves the named support
+fits inside the ambient width.
 `Circuit.cost` returns `Option ℕ`: one unsupported occurrence makes the complete
 cost `none`. Append and adjoint theorems prove the structural count/cost laws, and
 `Primitive.namedModels_reject_unclassified_of_mem` proves that both named models

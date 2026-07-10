@@ -34,6 +34,7 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.operatorDistance_unitary_mul_right
 #print axioms Barenco.operatorDistance_mul_unitary_le
 #print axioms Barenco.operatorDistance_action_le
+#print axioms Barenco.operatorDistance_basisOutcomeProbability_le
 #print axioms Barenco.operatorDistance_unitary_le_two
 #print axioms Barenco.Circuit.cost_append
 #print axioms Barenco.Circuit.cost_adjoint

@@ -126,7 +126,8 @@ theorem operatorDistance_mulVec_apply_le (A B : Matrix ι ι ℂ)
     ‖(A *ᵥ ψ) output - (B *ᵥ ψ) output‖ = ‖((A - B) *ᵥ ψ) output‖ := by
       simp only [Matrix.sub_mulVec, Pi.sub_apply]
     _ ≤ ‖(EuclideanSpace.equiv ι ℂ).symm ((A - B) *ᵥ ψ)‖ := by
-      exact PiLp.norm_apply_le _ output
+      exact PiLp.norm_apply_le
+        ((EuclideanSpace.equiv ι ℂ).symm ((A - B) *ᵥ ψ)) output
     _ ≤ operatorDistance A B * ‖ψ‖ := operatorDistance_action_le A B ψ
 
 /-- Every output amplitude of a unitary action is bounded by the input-state norm. -/
@@ -137,7 +138,8 @@ theorem unitary_mulVec_apply_norm_le (U : Matrix.unitaryGroup ι ℂ)
   calc
     ‖((U : Matrix ι ι ℂ) *ᵥ ψ) output‖ ≤
         ‖(EuclideanSpace.equiv ι ℂ).symm ((U : Matrix ι ι ℂ) *ᵥ ψ)‖ := by
-      exact PiLp.norm_apply_le _ output
+      exact PiLp.norm_apply_le
+        ((EuclideanSpace.equiv ι ℂ).symm ((U : Matrix ι ι ℂ) *ᵥ ψ)) output
     _ ≤ ‖(U : Matrix ι ι ℂ)‖ * ‖ψ‖ :=
       Matrix.l2_opNorm_mulVec (U : Matrix ι ι ℂ) ψ
     _ = ‖ψ‖ := by rw [CStarRing.norm_coe_unitary, one_mul]
