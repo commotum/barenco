@@ -526,8 +526,8 @@ seven-node relative-phase circuit has a literal three-two-qubit implementation.
 
 - Reconstruct the relative-phase A chronology in the optimizer IR under explicit
   pairwise-distinct wire assumptions.
-- Apply general fusion/absorption rules to the candidate three groups
-  `A; CNOT(second,target); A`, `CNOT(first,target)`, and
+- Apply the general fusion/absorption rules and record their actual tail-first
+  output groups: `A; CNOT(second,target)`, `A; CNOT(first,target)`, and
   `A†; CNOT(second,target); A†`, checking chronological multiplication exactly.
 - Emit a literal three-node lowered circuit using trusted two-wire syntax.
 - Prove exact evaluator equality to the existing seven-node A circuit on every
