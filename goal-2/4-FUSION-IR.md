@@ -195,3 +195,21 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 ## Stage Results
 
 - Stage file created before any Stage 4 Lean source change.
+- Added public runtime leaf `Barenco/Optimization/FusionIR.lean`. Its closed
+  `FusionPrimitive` grammar retains explicit one-qubit, ordered CNOT, and ordered
+  certified `U(4)` payloads and lowers only through the three trusted smart
+  constructors. `FusionCircuit` has independent exact evaluation, append,
+  structural support, and payload-preserving adjoint APIs with exact lowering
+  bridges.
+- The separate `FusionStep`/`FusionProgram` layer admits arbitrary existing
+  primitives only as exact barriers. Fully visible lifting and total all-barrier
+  lifting both have exact lowering/evaluator theorems; mixed append, support, and
+  adjoint preserve the established chronology and never recover local payloads
+  from metadata. The first focused build passed with 2,364 jobs.
+- Added proof/resource leaf `Barenco/Optimization/FusionResources.lean` with
+  executable literal gate/kind/component counts, structural support, and generic
+  Option-valued costs for visible circuits and mixed programs. Every quantity has
+  an exact lowering bridge. The visible Section 8 model costs precisely literal
+  length; the early model accepts exactly circuits with zero generic `U(4)` nodes;
+  unsupported visible nodes and stored barriers propagate `none`. Its first
+  focused build passed with 2,366 jobs.
