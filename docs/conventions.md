@@ -92,6 +92,30 @@ distinct pair and a certified local `U(4)`, while the constructor fixes the
 endpoint support and `twoWireUnitary pair U` denotation together. Callers cannot
 independently forge its kind, support, or ambient matrix.
 
+### Payload-preserving fusion syntax
+
+`Optimization.FusionPrimitive` is a separate closed compiler grammar with exactly
+three visible alternatives: an explicit one-qubit payload, an ordered CNOT, or an
+ordered certified `U(4)` payload. `FusionCircuit` is again a head-first
+chronological list. Its independent evaluator and trusted lowering prove exact
+full-register equality, including append and adjoint chronology; no scalar phase
+is discarded.
+
+An arbitrary existing `Primitive` cannot be decoded into this grammar from its
+kind or support. `FusionStep.barrier` therefore stores such a primitive verbatim
+in the separate mixed `FusionProgram` layer. An all-barrier lift lowers exactly
+back to the original circuit, while a barrier exposes no optimizer-local payload
+and blocks local rewrites. Fully transparent paper inputs are rebuilt from their
+actual selected factors instead of treating opaque whole-circuit choices as
+visible syntax.
+
+Fusion gate counts, kind counts, support, and partial costs are executable folds
+over literal compiler syntax and agree exactly with the corresponding quantities
+after lowering. The one-qubit/CNOT model rejects every generic `U(4)` node; the
+Section 8 model charges every visible one- or two-wire node one operation. A mixed
+barrier inherits the stored primitive's original partial price and never receives
+an optimistic optimizer tag.
+
 ## Wires, Controls, Targets, and Embeddings
 
 - Wire indices are `Fin n` and increase from top to bottom.

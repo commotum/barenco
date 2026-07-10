@@ -54,6 +54,7 @@ The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 | Finite semantics | `Basic`, `Semantics`, `Controlled` | qubit bases, certified unitaries, reindexing, local and controlled gates |
 | Ordered two-wire gates | `TwoWire/Layout`, `TwoWire/Semantics`, `TwoWire/ControlledBridges`, `TwoWire/Circuit` | certified arbitrary-`U(4)` embeddings, spectator/orientation laws, trusted syntax, adjoints, and model-specific costs |
 | Circuit syntax | `Circuit`, `Cost` | chronological primitive lists, exact evaluation, support, gate counts, named partial cost models |
+| Exact fusion input | `Optimization/FusionIR`, `Optimization/FusionResources` | closed payload-preserving one-/two-wire syntax, exact lowering, explicit opaque barriers, and syntax-derived model-specific resources |
 | Equivalence and error | `Equivalence/*` | exact global phase, basis-dependent phase, basis behavior, channel/all-measurement equality, L2 operator distance, event-probability bounds |
 | One-qubit algebra | `OneQubit/*` | row/column convention bridge, Euler forms, Pauli/rotation identities, ABC factors, exact and coherent roots |
 | Controlled gates | `ControlledCircuit/*` | target-block semantics, general and special controlled-U decompositions, controlled scalar phases, explicit expansions |
@@ -77,6 +78,8 @@ imported by the public root.
 | `OrderedWirePair`, `twoWireUnitary`, `Primitive.twoQubit` | exact ordered arbitrary-two-wire semantics and trusted literal syntax |
 | `Primitive`, `Circuit`, `Circuit.eval` | trusted primitive metadata and head-first chronological circuit syntax |
 | `Circuit.gateCount`, `Circuit.kindCount`, `Circuit.touchedSupport`, `Circuit.cost` | syntax-derived resources |
+| `Optimization.FusionPrimitive`, `FusionCircuit`, `FusionProgram` | optimizer-visible local payloads, exact compilation, and a lossless barrier path for unsupported existing syntax |
+| `FusionCircuit.eval_lower`, `FusionCircuit.cost_lower`, `FusionProgram.lower_barriers` | exact semantic/resource compiler contracts |
 | `CostModel.oneQubitCNOT`, `CostModel.arbitraryTwoQubit` | distinct Sections 3--7 and Section 8 cost conventions |
 | `GlobalPhaseEq`, `BasisPhaseEq`, `SameBasisBehavior`, `BasisMeasurementEq`, `ChannelEq` | deliberately distinct relaxed target relations |
 | `operatorDistance`, `eventProbability` | L2 induced operator distance and finite computational-basis event probabilities |
@@ -271,11 +274,12 @@ and trust-zero warning-as-error compilation of both the public root and maintain
 axiom audit passed again afterward.
 
 Goal 2 Stages 2–3 subsequently added certified ordered two-wire embeddings and
-trusted arbitrary-two-qubit syntax. The maintained audit now contains 348 checks;
-the integrated Stage 3 root/audit regression build passed with 3,593 jobs, and all
-new declarations remain within the same standard foundations. Direct strict and
-trust-zero compilation passed for the new public leaves, diagnostic, root, and
-audit; the post-integration full build passed with 3,589 jobs.
+trusted arbitrary-two-qubit syntax. Stage 4 adds a separate closed fusion IR,
+exact visible/mixed lowering, syntax-derived costs, and transparent selected
+controlled-U, relative-phase, and Gray inputs. It does not yet claim that any
+paper merger has occurred; executable normalization and the disputed output
+counts belong to later Goal 2 stages. Current maintained-audit and final build
+figures are updated when each stage closes.
 
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic
@@ -306,6 +310,10 @@ Exact commands and declaration-by-declaration results are recorded in
 8. For a different primitive library or optimizer, define new syntax and prove
    evaluator preservation before attaching a new cost. The current fixed-schedule
    bound is a reusable baseline, not a claim that the circuit is optimized.
+9. For exact local optimization, construct `FusionPrimitive` nodes directly or
+   use the transparent paper builders. Lift unsupported existing `Circuit` syntax
+   through `FusionProgram.barriers`; do not recover a local matrix from primitive
+   kind/support metadata.
 
 Low-dimensional checked examples are available in the root-excluded
 `*Examples.lean` files. Paper-to-code navigation is maintained in

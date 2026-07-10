@@ -11,10 +11,9 @@ factor in optimizer-visible syntax.  Its six chronological nodes are
 
 `phase(control); A(target); CNOT; B(target); CNOT; C(target)`.
 
-Unlike `selectedControlledU2Circuit`, this constructor does not choose an opaque
-whole circuit.  It exposes a literal `FusionCircuit`, lowers exactly to the
-parameterized `controlledU2Circuit`, and derives its resource profile from the
-visible syntax.
+Unlike the existing opaque whole-circuit selector, this constructor retains a
+literal `FusionCircuit`, lowers exactly to the parameterized
+`controlledU2Circuit`, and derives its resource profile from the visible syntax.
 -/
 
 namespace Barenco.ControlledCircuit

@@ -213,3 +213,15 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
   length; the early model accepts exactly circuits with zero generic `U(4)` nodes;
   unsupported visible nodes and stored barriers propagate `none`. Its first
   focused build passed with 2,366 jobs.
+- Added `Barenco/ControlledCircuit/CanonicalSelected.lean`: the transparent
+  chronological schedule `phase(control); A; CNOT; B; CNOT; C` uses the checked
+  selected factors of `specialUnitaryPart U`, lowers definitionally to the
+  parameterized `controlledU2Circuit`, and has exact singleton-controlled-`U`
+  semantics. Literal visible syntax proves profile `(4,2,0,6)` for
+  `(oneQubit,CNOT,generic-U(4),total)` and cost six in both pre-normalization
+  models; no opaque whole-circuit witness is an optimizer input.
+- Added `Barenco/ThreeQubit/RelativePhaseFusion.lean`: the paper's A diagram is a
+  transparent seven-node visible circuit, lowers exactly to the established
+  `relativePhaseToffoliACircuit`, transfers its exact arbitrary-width evaluator,
+  and proves literal profile `(4,3,0,7)` plus cost seven in both models. The
+  combined canonical/relative focused build passed with 2,942 jobs.
