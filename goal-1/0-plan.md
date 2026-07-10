@@ -128,7 +128,7 @@ extra assumption, omission, or unresolved obstruction.
 
 - [x] `1-GUARDRAILS` — pin the project, audit sources/APIs, and freeze conventions.
 - [x] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits.
-- [ ] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
+- [ ] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs (in progress).
 - [ ] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
 - [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
 - [ ] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
