@@ -364,6 +364,18 @@ theorem epsilonSynthesisPrimitiveCircuit_eq_exact
       recursivePrimitiveCircuit availableDepth layout U := by
   simp [epsilonSynthesisPrimitiveCircuit, Nat.not_le_of_lt hdepth]
 
+/-- An explicit residual-bound failure selects the exact fallback. -/
+theorem epsilonSynthesisPrimitiveCircuit_eq_exact_of_epsilon_lt_bound
+    {ambientWidth availableDepth : ℕ}
+    (layout : OrderedControlLayout (availableDepth + 6) ambientWidth)
+    (U : QubitUnitary) (epsilon : ℝ) (hepsilon : 0 < epsilon)
+    (hbound : epsilon < principalRootErrorBound availableDepth) :
+    epsilonSynthesisPrimitiveCircuit availableDepth layout U epsilon =
+      recursivePrimitiveCircuit availableDepth layout U := by
+  apply epsilonSynthesisPrimitiveCircuit_eq_exact
+  exact (capacity_lt_principalRootBoundDepth_iff
+    epsilon hepsilon availableDepth).2 hbound
+
 /-- The source-aligned selector meets every positive tolerance on an arbitrary register. -/
 theorem operatorDistance_epsilonSynthesisPrimitiveCircuit_le
     {ambientWidth availableDepth : ℕ}
@@ -380,8 +392,14 @@ theorem operatorDistance_epsilonSynthesisPrimitiveCircuit_le
     have herror :=
       operatorDistance_expandedTruncatedRecursiveCircuit_le
         (truncationLayout hdepth layout) U
-    rw [truncationLayout_controlSet hdepth layout,
-      truncationLayout_targetWire hdepth layout] at herror
+    have hcontrolled :
+        positiveControlledUnitary
+            (truncationLayout hdepth layout).targetWire
+            (truncationLayout hdepth layout).controlSet U =
+          positiveControlledUnitary layout.targetWire layout.controlSet U := by
+      change positiveControlledUnitary layout.targetWire _ U = _
+      rw [truncationLayout_controlSet hdepth layout]
+    rw [hcontrolled] at herror
     exact herror.trans (principalRootBoundDepth_spec epsilon hepsilon)
   · rw [epsilonSynthesisPrimitiveCircuit, dif_neg hdepth,
       eval_recursivePrimitiveCircuit]
@@ -479,6 +497,15 @@ def epsilonSynthesisTotalCount (availableDepth : ℕ) (epsilon : ℝ) : ℕ :=
     truncatedRecursiveTotalCount (availableDepth - depth) depth
   else
     recursivePrimitiveTotalCount availableDepth
+
+/-- Large source-aligned tolerances select the empty circuit's zero resource count. -/
+theorem epsilonSynthesisTotalCount_eq_zero_of_pi_le
+    (availableDepth : ℕ) (epsilon : ℝ) (hepsilon : 0 < epsilon)
+    (hlarge : Real.pi ≤ epsilon) :
+    epsilonSynthesisTotalCount availableDepth epsilon = 0 := by
+  have hzero : principalRootBoundDepth epsilon = 0 :=
+    (principalRootBoundDepth_eq_zero_iff epsilon hepsilon).2 hlarge
+  simp [epsilonSynthesisTotalCount, hzero, truncatedRecursiveTotalCount]
 
 @[simp]
 theorem epsilonSynthesisTotalCount_eq_add (availableDepth : ℕ)

@@ -148,13 +148,21 @@ statement. “Open” means the repair is identified but not yet machine checked
 
 ## C-006 — Lemma 7.8 cites the wrong recursive lemma
 
-- **Source:** Lemma 7.8 proof, manuscript p. 23; Markdown line 782.
-- **Issue:** it says the matrices are used in recursive applications of Lemma 7.3.
-  The relevant square-root recursion is Lemma 7.5.
+- **Source:** Lemma 7.8 proof, original PDF p. 23. The original PDF refers to
+  Lemma 7.3; the Markdown transcription at line 782 already carries the repaired
+  reference to Lemma 7.5.
+- **Issue:** Lemma 7.3 is the four-block dirty-wire construction and is not the
+  successive-square-root recursion used in Lemma 7.8. The relevant recursive
+  identity is Lemma 7.5.
 - **Repair:** replace the cross-reference with Lemma 7.5.
 - **Dependent impact:** traceability and proof narrative only.
-- **Formal evidence:** corrected dependency planned in approximation module.
-- **Status:** open.
+- **Formal evidence:** `truncatedRecursiveCircuitFrom` recursively replaces the
+  fifth macro of `recursiveViaSquareCircuit` by the next retained shell.
+  `positiveControlledUnitary_eq_residual_mul_eval_truncatedFrom` invokes
+  `eval_recursiveViaSquareCircuit_of_sq_eq` with the coherent equation
+  `powerTwoRoot_succ_sq`; no Lemma 7.3/FourBlock theorem is a dependency.
+- **Status:** corrected and proved. The log preserves the original-PDF discrepancy
+  rather than hiding it behind the already normalized Markdown wording.
 
 ## C-007 — Lemma 7.8 omits the eigenphase branch needed by its norm bound
 
@@ -168,33 +176,60 @@ statement. “Open” means the repair is identified but not yet machine checked
   operator-distance bound to the identity.
 - **Dependent impact:** Lemma 7.8 error and depth bounds; general root API.
 - **Formal evidence:** for every finite complex unitary matrix and `0 < k`,
-  `Barenco.OneQubit.unitaryRoot` chooses the principal-argument spectral root and
-  `unitaryRoot_pow` proves its exact `k`th power is the input.
-  `unitarySquareRoot_pow_two` and `unitaryRoot_pow_two_pow` supply exact square and
-  power-of-two root equations. The finite-spectrum continuous-functional-calculus
-  implementation does not assume a globally continuous principal-root function.
-- **Status:** partial. Exact positive root existence, including all power-of-two
-  roots, is proved. No exported theorem yet relates the selected roots at adjacent
-  depths, proves `‖Dₖ-I‖≤π/2^k`, synthesizes the roots as circuits, or derives the
-  approximation/resource bounds of Lemma 7.8.
+  `unitaryRoot` chooses the principal-argument spectral root and
+  `unitaryRoot_pow` proves its exact `k`th power is the input. The named sequence
+  `powerTwoRoot` satisfies `powerTwoRoot_zero` and the exact adjacent equation
+  `powerTwoRoot_succ_sq`. `unitaryRootScalar_pow_two_distance_one_le` proves the
+  scalar principal-angle estimate, and the stronger finite-dimensional theorem
+  `powerTwoRoot_operatorDistance_one_le` proves
+  `operatorDistance (powerTwoRoot m U) I ≤ pi / 2^m`. The finite-spectrum
+  continuous-functional-calculus implementation does not assume that the chosen
+  root varies continuously with `U`. As a concrete obstruction to the source's
+  missing branch choice, writing the eigenvalue `1` as `exp(i*2*pi)` would select
+  `-I` at the first root level, whose distance `2` from `I` is greater than
+  `pi/2`.
+- **Status:** corrected and proved at the exact algebraic and L² operator-norm
+  layers, in the stronger arbitrary-finite-dimensional form. Epsilon selection
+  and construction resources are separated into C-008.
 
 ## C-008 — Lemma 7.8 does not handle all epsilon regimes
 
 - **Source:** Lemma 7.8 statement/proof, manuscript pp. 23–24; lines 774–850.
 - **Issue:** the statement allows every `ε>0`, while an unqualified
   `log(1/ε)` becomes nonpositive for large `ε`. The proposed integer depth
-  `ceil(log₂(π/ε))` can also exceed the number of available recursive levels.
-- **Repair:** state an explicit integer-depth theorem. For the asymptotic corollary,
-  restrict the logarithmic regime (for example `0<ε<1`), cap approximate recursion
-  by the available controls, and use exact synthesis as fallback. A safe uniform
-  upper shape is `O(n · min(n, ceil(log₂(π/ε))))` plus fixed overhead, with boundary
-  cases stated separately.
+  `ceil(log₂(π/ε))` can also exceed the number of available recursive levels. At
+  `ε=1`, for example, the printed `log(1/ε)` is zero although the displayed depth
+  is `ceil(log₂ pi)=2`; for `1<ε<pi` the former is negative while a positive
+  retained depth may still be selected.
+- **Repair:** make the natural depth selector and capacity branch explicit.
+  `principalRootBoundDepth ε = ⌈log₂(pi/ε)⌉₊` is the natural ceiling, hence clamps
+  the negative-log regime to zero. If the requested depth fits the available
+  controls, use the literal truncated primitive circuit; otherwise use the
+  already verified exact recursive circuit, never a capped approximation that
+  fails its requested tolerance. State logarithmic resource language only in an
+  explicit positive small-error regime and as an upper bound for the named
+  construction, not as an optimal-synthesis `Theta` theorem.
 - **Dependent impact:** Lemma 7.8 and any universality-efficiency claim using it.
-- **Formal evidence:** `Barenco.operatorDistance` now fixes the L² induced operator
-  norm and its metric, multiplication, unitary-invariance, state-action, and
-  single-basis-outcome factor-two probability laws. The recursion-depth/epsilon
-  repair itself remains planned.
-- **Status:** open; exact best finite formula not yet selected.
+- **Formal evidence:** `principalRootBoundDepth_le_iff` characterizes the least
+  certified natural depth, `principalRootBoundDepth_spec` proves its error bound,
+  `principalRootBoundDepth_eq_zero_iff` handles `pi ≤ ε`, and
+  `capacity_lt_principalRootBoundDepth_iff` identifies the exact-fallback branch.
+  `epsilonSynthesisPrimitiveCircuit` selects literal one-qubit/CNOT truncation
+  only when the depth fits and otherwise selects `recursivePrimitiveCircuit`;
+  `operatorDistance_epsilonSynthesisPrimitiveCircuit_le` proves the requested
+  error for every `ε>0`. For residual exact depth `r` and retained depth `k`, the
+  syntax-linked exact counts are
+  `32k²+(64r+200)k` one-qubit gates,
+  `24k²+(48r+164)k` CNOTs, and
+  `56k²+(112r+364)k` total/cost. At logical source width `n≥7`,
+  `epsilonSynthesisTotalCountAtWidth_le` proves the uniform bound
+  `440 + 112*n*min(principalRootBoundDepth ε, n-7)`, including exact fallback,
+  while `epsilonSynthesisTotalCountAtWidth_lt_logarithmic` gives the explicit
+  logarithmic-regime upper bound under `0<ε≤1`.
+- **Status:** corrected and proved as an exact depth-indexed, piecewise
+  construction with syntax-derived resources and exact fallback. The source's
+  unrestricted or optimal-synthesis `Theta(n log(1/ε))` wording is intentionally
+  not exported.
 
 ## C-009 — Phase congruence is not one equivalence relation
 
@@ -354,10 +389,16 @@ statement. “Open” means the repair is identified but not yet machine checked
   `Barenco.Equivalence.Measurement`. For pure states represented in
   `EuclideanSpace`, `operatorDistance_basisOutcomeProbability_le` proves the
   `2ε` bound for one named computational-basis outcome under the explicit
-  norm-at-most-one hypothesis.
-- **Status:** corrected and proved as an algebraic separation, with the single-basis
-  probability consequence proved. Physical density/effect structures and general
-  event/POVM error bounds remain open.
+  norm-at-most-one hypothesis. `eventProbability` and `eventProjection` define a
+  finite computational-basis event and its projective restriction;
+  `operatorDistance_eventProbability_le` proves the stronger cardinality-free
+  constant-one bound for unitary images of a common norm-at-most-one pure input,
+  and `operatorDistance_eventProbability_le_two_mul` records the paper-facing
+  constant-two corollary. `epsilonSynthesisPrimitiveCircuit_eventProbability_le`
+  and its `_two_mul` form apply those results to the corrected Lemma 7.8 circuit.
+- **Status:** corrected and proved as an algebraic separation and for arbitrary
+  finite computational-basis events on pure inputs. No arbitrary-POVM theorem or
+  claim that unrestricted matrices are physical density/effect objects is made.
 
 ## C-016 — Lemma 4.1 suppresses degenerate phase choices and determinant normalization
 

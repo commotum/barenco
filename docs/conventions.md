@@ -235,16 +235,18 @@ alternatively a theorem can explicitly quotient by global phase. The generic
 makes no elementary-synthesis or accepted-cost claim.
 
 The selected scalar branch is noncanonical and is not globally continuous as the
-matrix varies. More importantly for Lemma 7.8, the current API proves each
-power-of-two root equation independently but does not yet prove a coherent sequence
-`V_{m+1}² = V_m`, nor the operator-distance estimate
-`operatorDistance V_m I ≤ π / 2^m`. Those theorems must use the already fixed L²
-operator norm and a shared eigenphase choice. Section 6 embeds the selected square
-root into the exact Lemma 6.1 circuit and its explicit sixteen-primitive
-expansion. Lemma 7.5 now uses the same independently selected square-root
-operation in an exact recursive step; it needs only `V²=U`, not a coherent
-infinite root sequence. Coherence and the norm estimates needed by Lemma 7.8
-remain separate obligations.
+matrix varies. For Lemma 7.8, `powerTwoRoot m U = unitaryRoot (2^m) U` names one
+shared principal-argument sequence. `powerTwoRoot_zero` identifies its zeroth
+member, `powerTwoRoot_succ_sq` proves `V_{m+1}²=V_m` exactly, and
+`powerTwoRoot_operatorDistance_one_le` proves the L² induced-operator estimate
+`operatorDistance V_m I ≤ π / 2^m` for every finite-dimensional unitary. These
+claims concern one fixed input `U`; they do not assert continuous dependence on
+`U` across the principal-argument branch cut.
+
+Section 6 embeds the selected square root into the exact Lemma 6.1 circuit and
+its explicit sixteen-primitive expansion. Lemma 7.5 needs only one supplied
+equation `V²=U`, so its exact recursive step does not depend on the infinite
+coherent sequence. Lemma 7.8 deliberately imports the stronger coherent API.
 
 ### Recursive multi-control boundary and cost indexing
 
@@ -271,6 +273,64 @@ total is `56n²+636−420n`. These are counts of this named syntax and an
 `O(n²)` upper bound; they do not assert that optimal exact synthesis is
 quadratic. The coefficient 56 uses the literal checked Corollary 7.4 expansion,
 not the source's unresolved optimized count.
+
+### Approximation depth, truncation, and selected resources
+
+The truncated Lemma 7.5 syntax is indexed by a residual exact depth `r` and a
+retained approximation depth `k`. It starts with `(r+6)+k` ordered controls, so
+the logical source width including the target is `n=r+k+7`. Each retained level
+keeps the first four chronological Lemma 7.5 macros and recursively replaces the
+fifth prefix-controlled root. Depth zero is literally the empty circuit; the
+omitted residual controlled root is not hidden in a semantic placeholder.
+
+Because later chronological gates multiply on the left, the exact factorization
+has order
+
+`full controlled root = residual controlled root * truncated evaluator`.
+
+Appending the residual macro therefore gives exact macro completion. The literal
+primitive completion instead appends the already verified
+`recursivePrimitiveCircuit`. Primitive truncation requires only the established
+one-qubit/CNOT expansions and is valid on an arbitrary ambient register; the
+`r+6` residual controls keep every retained prefix-X expansion within its proved
+logical-width range.
+
+For retained depth `k`, the expanded syntax has exact profile
+
+`(32k²+(64r+200)k, 24k²+(48r+164)k, 56k²+(112r+364)k)`
+
+for one-qubit, CNOT, and total/accepted cost. These are list-derived counts, not
+consequences of semantic matrix equality. Exact primitive completion recovers
+the established full-recursion profile at combined depth `r+k`.
+
+For `ε>0`, `principalRootBoundDepth ε = ⌈logb 2 (π/ε)⌉₊` is a natural ceiling:
+it is zero exactly when `π≤ε`. `epsilonSynthesisPrimitiveCircuit` uses the
+truncated circuit only when that depth fits the available exact depth; otherwise
+it selects the exact recursive circuit, whose error is zero. It never caps the
+depth and then claims an uncertified tolerance. For logical source width `n≥7`,
+the selected total is bounded by
+
+`440 + 112*n*min(principalRootBoundDepth ε, n−7)`.
+
+The conventional logarithmic statement is exported only under `0<ε≤1` and only
+as an upper bound for this named construction. No optimal-synthesis or unrestricted
+`Theta(n log(1/ε))` theorem is claimed.
+
+### Approximation metric and measured-event scope
+
+Approximation uses only `operatorDistance`, mathlib's scoped L² induced operator
+norm. Target-block assembly and simultaneous row/column reindexing are isometric;
+for a positive-controlled target the full-register distance to identity is
+exactly the one-qubit target distance. No Frobenius, entrywise, or ambiguous
+matrix norm enters the truncation proof.
+
+`eventProbability event ψ` is the Born weight of a finite computational-basis
+event. For unitary images of a common pure input with norm at most one,
+`operatorDistance_eventProbability_le` gives a cardinality-free constant-one
+bound. The paper-facing constant-two statement is a weaker corollary, and both
+forms are specialized to the selected epsilon circuit. None of these theorems is
+silently generalized to arbitrary projectors, POVMs, mixed states, or unrestricted
+effect matrices.
 
 ## Section 5 Controlled-Gate Conventions
 
