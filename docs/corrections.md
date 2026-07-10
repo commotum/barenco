@@ -360,12 +360,26 @@ statement. “Open” means the repair is identified but not yet machine checked
   `Θ(n³4^n)` wording is used as a uniform implementation estimate without a matching
   lower bound for optimal synthesis, and individual unitaries can be much cheaper.
 - **Repair:** supply a concrete elimination and circuit construction, then export a
-  syntax-based worst-case/uniform `O(n³4^n)` upper bound. A `Θ` result may describe a
+  syntax-based constructed upper bound. The source Gray route supports at most a
+  uniform cubic-per-factor upper argument from the stated path bound. The formal
+  library uses a stronger affine endpoint normalization, targeting a quadratic
+  per-factor upper bound: local X gates send the first endpoint to zero,
+  common-pivot CNOTs send the second to a singleton, and one adjacent controlled
+  block is conjugated by that literal transport. A `Theta` result may describe a
   deliberately fixed schedule that retains identity gates, but not optimal cost
   without a matching theorem.
 - **Dependent impact:** central exact-universality and resource headline results.
-- **Formal evidence:** planned universality/resource stages.
-- **Status:** open.
+- **Formal evidence:** `decomposeFinUnitary` and `decomposeFiniteUnitary` return
+  explicit conventional-order factors and a diagonal residual with exact equation
+  `U = finiteFactorProduct factors * residual`; `eval_diagonalCircuit` synthesizes
+  that residual without discarding any phase; `eval_twoLevelCircuit` implements
+  each ordered factor through exact affine conjugation; `orderedCircuitProduct`
+  supplies the explicit bridge from mathematical factor order to chronological
+  syntax; `ZeroWidth.lean` and `WidthOne.lean` prove the sharp boundary cases.
+  Exact factor and diagonal costs are syntax-derived. Final positive-width assembly
+  and Stage 12 aggregate/asymptotic theorems remain in progress.
+- **Status:** partially corrected and proved; final assembly and aggregate resource
+  bounds remain.
 
 ## C-015 — Algebraic all-measurement equality is not yet a physical measurement model
 
@@ -830,8 +844,9 @@ statement. “Open” means the repair is identified but not yet machine checked
   `eval_adjacentTwoLevelCircuit` in
   `Barenco/Universality/AdjacentTwoLevel.lean` prove the ordered block on the
   complete register for both endpoint orientations.
-- **Status:** corrected and proved for every adjacent pair; nonadjacent assembly
-  in progress.
+  `eval_twoLevelCircuit` transports that adjacent result to every distinct ordered
+  pair by a literal affine circuit and its adjoint.
+- **Status:** corrected and proved for adjacent and arbitrary distinct pairs.
 
 ## C-030 — A path-length upper bound does not prove per-factor cubic Theta
 
@@ -856,7 +871,42 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Formal evidence:** `length_basisPath`, `length_basisPath_sub_one`,
   `length_basisPath_le`, `basisPath_edge_hammingDist`, and `basisPath_isChain` in
   `Barenco/Universality/BasisPath.lean`; Stage 12 aggregate cost theorems remain
-  planned. The main library construction is being strengthened further by affine
-  endpoint transport, which avoids the repeated path-controlled blocks.
-- **Status:** source path correction proved; aggregate and strengthened affine
-  resource theorems in progress/planned.
+  planned. The main library construction is strengthened by affine endpoint
+  transport: `affinePairCircuit_cnotCount` proves exactly `d-1` clearing CNOTs,
+  `affinePairCircuit_oneQubitCount` proves the exact translation-X count, and
+  `twoLevelCircuit_oneQubitCNOTCost` accounts for those transports around one
+  fully controlled adjacent block.
+- **Status:** source path correction and exact affine structural formulas proved;
+  aggregate asymptotic theorems remain Stage 12.
+
+## C-031 — Main synthesis replaces the Gray walk by affine endpoint normalization
+
+- **Source:** Section 8 two-level implementation, manuscript pp. 27–28; Markdown
+  lines 959–976.
+- **Issue:** the source moves between two basis strings one Gray edge at a time,
+  applies a multiply controlled block at the final edge, and reverses the walk.
+  This is a valid architecture only after endpoint orientation, negative controls,
+  chronology, and reverse restoration are supplied. It is not forced by the
+  mathematics, and attaching its `2m-3` macro count to a different implementation
+  would be invalid.
+- **Repair:** the main library uses an exact affine normalization. Local X gates on
+  the true wires of the first endpoint send it to the all-zero assignment and send
+  the second endpoint to their Boolean difference. Choose one differing pivot and
+  use that pivot as the control of a CNOT to every other differing wire; the pair
+  is then all-zero and the singleton supported at the pivot. Apply one exactly
+  oriented adjacent mixed-polarity block and execute the adjoint affine circuit.
+  The source's duplicate-free shortest Hamming path remains formalized separately
+  for traceability.
+- **Dependent impact:** arbitrary two-level circuits, their exact X/CNOT counts,
+  the final universality circuit, and Stage 12 resource aggregation. The library's
+  main circuit has one fully controlled block per algebraic factor instead of a
+  repeated controlled block at every path edge, so the paper's path-macro formula
+  is not its resource formula.
+- **Formal evidence:** `affinePairCircuit`,
+  `eval_affinePairCircuit_mulVec_basisKet`,
+  `eval_affinePairCircuit_first`, `eval_affinePairCircuit_second`,
+  `affinePairCircuit_oneQubitCount`, `affinePairCircuit_cnotCount`,
+  `affinePairCircuit_oneQubitCNOTCost`,
+  `unitary_conjugate_twoLevelUnitary`, and `eval_twoLevelCircuit`.
+- **Status:** implementation difference documented and exact circuit semantics
+  proved; aggregate asymptotic comparison remains Stage 12.

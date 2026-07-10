@@ -29,9 +29,13 @@ recorded in `docs/corrections.md`, and coverage is recorded in
 - The public semantics uses standard column vectors. `U row col` is the amplitude
   of output basis state `row` from input basis state `col`; hence
   `U.mulVec ψ` represents applying `U` to state `ψ`.
-- No theorem relies on Lean's arbitrary `Fintype` enumeration of function-valued
-  bases. A later bridge to `Fin (2^n)` will use the explicit big-endian encoding
-  `Σ i, bit(i)·2^(n-1-i)`, matching the paper's lexicographic order.
+- No semantic theorem assigns physical lexicographic meaning to Lean's arbitrary
+  `Fintype` enumeration of function-valued bases. Constructive finite-unitary
+  elimination may use `Fintype.equivFin` internally to select an algebraic factor
+  schedule, but every endpoint is transported back to the actual `Basis n` and no
+  such reindexing is counted as a circuit gate. A future paper-order interchange
+  bridge may still use the explicit big-endian encoding
+  `Σ i, bit(i)·2^(n-1-i)` when lexicographic matrix displays matter.
 
 ### The paper's opposite action convention
 
@@ -725,6 +729,68 @@ does not turn the exact Section 5 family classifications, Section 5/6 constructe
 upper bounds, or Section 8 numerical/dimension evidence into global minimum
 theorems.
 
+## Section 8 Exact Synthesis Conventions
+
+The algebraic decomposition is constructive and exact. `givensUnitary a b`
+acts on the ordered Boolean coordinates `(false,true)`: left multiplication
+clears the `false` row entry and accumulates the pair norm in the `true` row.
+`factorProduct` and `finiteFactorProduct` use conventional matrix-product order,
+so the head factor is leftmost. The decomposition equation is
+
+`U = finiteFactorProduct factors * residual`,
+
+where `residual` is a certified diagonal unitary. It retains every scalar phase,
+including any phase that would be globally invisible in a different target
+relation.
+
+Circuit chronology is deliberately bridged rather than conflated with that
+algebraic order. `orderedCircuitProduct` receives component circuits in
+conventional left-to-right product order and executes them from right to left.
+Thus a component list `factor circuits ++ [diagonal circuit]` executes the
+diagonal first and evaluates exactly as
+
+`factor₁ * ... * factorₘ * diagonal`.
+
+The generic decomposition uses `Fintype.equivFin` only to run a canonical Fin
+elimination and then proves simultaneous reindex transport for every two-level
+factor and for the diagonal residual. Its public factors are indexed by the
+actual qubit basis. This algebraic choice is not a free wire permutation and is
+not present in the synthesized circuit or its resource count.
+
+An ordered two-level block always treats its first endpoint as local coordinate
+`false` and its second endpoint as `true`. For an adjacent pair whose target bit
+runs `true,false`, `endpointOrientedUnitary` uses `X U X`; this prevents the
+paper's reversed final Gray edge from silently swapping the block coordinates.
+For nonadjacent endpoints, the main backend is an affine conjugation, not the
+paper's repeated Gray walk:
+
+1. X gates on every true bit of the first endpoint send it to all-zero.
+2. A canonical differing pivot controls CNOTs to every other differing wire,
+   sending the second endpoint to the pivot singleton.
+3. One exactly oriented adjacent pattern-controlled block is applied.
+4. The adjoint affine circuit restores the original coordinates.
+
+Chronologically this is `P; Q; P†`, whose matrix is `P⁻¹ * Q * P`. The general
+unitary transport theorem needs only the two exact endpoint ket images; unitarity
+forces the orthogonal-complement behavior. The separately verified shortest
+Hamming path remains part of the source reconstruction, but its `2m-3` macro
+schedule is not attached to the affine circuit.
+
+Every positive-width diagonal residual is synthesized exactly by one
+mixed-polarity controlled diagonal qubit block per complementary pattern. No
+phase is discarded or quotiented. The exact-universality headline is consequently
+stated for successor width. At width zero, proof-carrying one-qubit/CNOT syntax is
+empty while `UnitaryGate 0` contains nonidentity `U(1)` phases; at width one, a
+separate direct theorem realizes every unitary with one arbitrary one-qubit
+primitive.
+
+The final accepted syntax uses arbitrary certified one-qubit primitives and CNOT,
+and is checked by `CostModel.oneQubitCNOT`. This is stricter than the paper's
+Section 8 convention that prices arbitrary two-qubit gates. Exact finite counts,
+constructed upper bounds, asymptotic bounds, and optimal lower bounds are separate
+theorem classes. In particular, an exact accepted cost does not by itself prove an
+`O` or `Theta` result.
+
 ## Circuit Syntax and Cost Models
 
 Resource claims are computed from syntax before semantic evaluation erases the
@@ -822,15 +888,20 @@ unitary Givens decomposition. Exact finite-matrix roots are now supplied by
 `Barenco.OneQubit.Roots` through a proved finite-spectrum functional-calculus
 construction, so root existence is no longer an outstanding stage. Coherent
 recursive principal roots, exact adjacent squaring, and L² operator-norm decay are
-now supplied by `Barenco.OneQubit.CoherentRoots`. Givens-style general-unitary
-elimination remains a later project stage. The project now supplies its own
-finite-mask reflected Gray code, pivot/transition proofs, Boolean accumulator
-semantics, and exact controlled-root circuit construction.
+now supplied by `Barenco.OneQubit.CoherentRoots`. The project now also supplies
+its own total complex Givens block, constructive finite-unitary elimination,
+generic finite-index two-level bridge, finite-mask reflected Gray code,
+pivot/transition proofs, Boolean accumulator semantics, and exact controlled-root
+circuit construction.
 
 The selected core basis is `Fin n → Bool`, rather than `Fin (2^n)` or `BitVec n`:
 it makes arbitrary controls, wire updates, and untouched-wire proofs direct.
 The implemented Gray layer likewise uses finite masks and Boolean functions;
 `BitVec n` remains optional diagnostic/interchange infrastructure rather than a
-semantic dependency. `Fin (2^n)` will be bridged only for lexicographic matrices
-and finite-dimensional decomposition APIs. This avoids bit arithmetic in the
-foundational gate semantics while retaining later synthesis tools.
+semantic dependency. General finite-dimensional decomposition does not require a
+special `Basis n ≃ Fin (2^n)` theorem: `decomposeFiniteUnitary` transports a
+canonical `Fin (Fintype.card ι)` elimination through `Fintype.equivFin` and returns
+factors directly on `ι`. An explicit `Fin (2^n)` bridge remains useful only when a
+lexicographic paper matrix or external interchange format needs a specified bit
+ordering. This avoids bit arithmetic in the foundational gate semantics while
+retaining exact synthesis tools.

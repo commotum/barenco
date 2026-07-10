@@ -97,27 +97,27 @@ formal reconstruction of the paper's Gray-path reasoning.
 
 ## Detailed Implementation Plan
 
-1. The source and pinned-API audit is complete. It fixes the multiplication and
+1. **Complete.** The source and pinned-API audit fixes the multiplication and
    endpoint-order hazards, requires a direct shortest Hamming path, retains exact
    diagonal phases, and corrects the headline to positive register width.
-2. Add a low-dependency algebraic two-level module: define the embedded `U(2)`
+2. **Complete.** Add a low-dependency algebraic two-level module: define the embedded `U(2)`
    block on two distinct finite indices, certify unitarity, prove entries/basis
    action, inverse and multiplication facts actually needed by elimination.
-3. Prove a constructive finite-unitary elimination/decomposition theorem. Keep
+3. **Complete.** Prove a constructive finite-unitary elimination/decomposition theorem. Keep
    the chronological factor list explicit, include the residual diagonal phases,
    and prove the product equation with all zero/singleton boundary cases.
-4. Add qubit-path infrastructure: construct a duplicate-free shortest Hamming path
+4. **Complete.** Add qubit-path infrastructure: construct a duplicate-free shortest Hamming path
    between distinct basis assignments, prove adjacent states differ at one named
    wire, and specify the exact fixed values required of every other wire.
-5. Define pattern-controlled one-qubit circuits via local-X conjugation of the
+5. **Complete.** Define pattern-controlled one-qubit circuits via local-X conjugation of the
    existing positive-control implementation. Prove exact full-register semantics,
    negative-control restoration, and primitive expansion to one-qubit/CNOT syntax.
-6. Construct a two-level circuit by affine-conjugating the two endpoints to zero
+6. **Complete.** Construct a two-level circuit by affine-conjugating the two endpoints to zero
    and a singleton, applying the desired ordered block on that adjacent pair, and
    reversing the X/CNOT transport. Prove evaluator equality using the general
    certified-unitary transport theorem. The shorter Hamming path remains a proved
    alternative/source model rather than the assembly dependency.
-7. Map every algebraic factor to its circuit and concatenate chronologically with
+7. **In progress.** Map every algebraic factor to its circuit and concatenate chronologically with
    the order required by `Circuit.eval_append`. Prove exact universality for
    positive register width, the direct one-qubit specialization, and the exact
    zero-wire identity-only obstruction.
@@ -185,13 +185,14 @@ formal reconstruction of the paper's Gray-path reasoning.
 
 ## Completion Requirements
 
-- [ ] A reusable finite-dimensional theorem decomposes every certified complex
+- [x] A reusable finite-dimensional theorem decomposes every certified complex
   unitary into explicit two-level and/or diagonal certified factors with a proved
   ordered product equation.
-- [ ] Every algebraic two-level factor on a qubit basis has an exact no-ancilla
+- [x] Every algebraic two-level factor on a qubit basis has an exact no-ancilla
   circuit implementation on the full register.
-- [ ] Pattern controls, Gray/Hamming path movement, endpoint rotation, reverse
-  restoration, and untouched off-path states are all machine checked.
+- [x] Pattern controls, source-path combinatorics, adjacent endpoint orientation,
+  affine forward/adjoint restoration, and exact action on the complete register
+  are all machine checked.
 - [ ] The headline theorem returns a circuit containing only arbitrary one-qubit
   and CNOT primitives and proves exact evaluator equality for every positive `n`,
   with a direct width-one case and a separate exact width-zero obstruction theorem.
@@ -259,5 +260,13 @@ formal reconstruction of the paper's Gray-path reasoning.
   X gates translate the first endpoint to zero and pivot-controlled CNOTs reduce
   the second endpoint's difference mask to one bit. This improves the construction
   targeted by the library from the source route's cubic worst-case upper bound to
-  a quadratic upper bound per two-level factor. Its implementation and independent
-  proof audit are in progress before final universality assembly.
+  a quadratic upper bound per two-level factor; the matching asymptotic theorem is
+  deliberately deferred to Stage 12 even though the exact structural counts now
+  compile.
+- `AffinePair.lean` and `TwoLevelCircuit.lean` now complete that implementation.
+  The transport sends the ordered endpoints exactly to all-zero and a canonical
+  singleton, uses exactly `hammingDist - 1` clearing CNOTs, and has literal
+  one-qubit/CNOT count and accepted-cost theorems. The chronological circuit
+  `P; Q; P†` is independently audited to evaluate as `P⁻¹ * Q * P`; the general
+  unitary transport theorem then proves exact equality to every algebraic
+  two-level factor on the full register.
