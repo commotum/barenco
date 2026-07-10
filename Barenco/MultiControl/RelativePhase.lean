@@ -137,6 +137,63 @@ theorem hybridInwardLadderCircuit_oneQubitCNOTCost {b n : ℕ}
     Circuit.cost CostModel.oneQubitCNOT (hybridInwardLadderCircuit layout) = none := by
   simp [hybridInwardLadderCircuit, Circuit.cost_append, Circuit.addCost]
 
+/-! ## Exact hybrid semantics -/
+
+/--
+The two relative smaller halves contribute the same Boolean exponent.  The
+intervening exact outer Toffoli changes only the larger target, which is outside
+the smaller phase support.
+-/
+theorem relativeHalfPhaseExponent_after_hybrid_middle {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    relativeHalfPhaseExponent b layout.smaller
+        (outerUpdate layout
+          (halfLadderUpdate b layout.smaller (outerUpdate layout input))) =
+      relativeHalfPhaseExponent b layout.smaller (outerUpdate layout input) := by
+  rw [smaller_relativeHalfPhaseExponent_outerUpdate]
+  rw [relativeHalfPhaseExponent_halfLadderUpdate]
+
+/--
+The hybrid B ladder is exact on every ambient computational-basis assignment.
+Its dirty borrowed wires and all spectators are restored by the same Boolean
+update as the trusted inward ladder.
+-/
+theorem eval_hybridInwardLadderCircuit_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    (Circuit.eval (hybridInwardLadderCircuit layout) : Gate n) *ᵥ basisKet input =
+      basisKet (inwardLadderUpdate layout input) := by
+  rw [hybridInwardLadderCircuit, Circuit.eval_append, Circuit.eval_append,
+    Circuit.eval_append]
+  simp only [Submonoid.coe_mul, Circuit.eval_singleton]
+  rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+  rw [outerToffoli_denotation_mulVec_basisKet]
+  rw [eval_relativeHalfLadderCircuit_mulVec_basisKet]
+  rw [Matrix.mulVec_smul]
+  rw [← Matrix.mulVec_mulVec]
+  rw [outerToffoli_denotation_mulVec_basisKet]
+  rw [eval_relativeHalfLadderCircuit_mulVec_basisKet]
+  rw [smul_smul]
+  rw [← relativePhaseSign_add]
+  rw [relativeHalfPhaseExponent_after_hybrid_middle]
+  rw [show relativeHalfPhaseExponent b layout.smaller (outerUpdate layout input) +
+      relativeHalfPhaseExponent b layout.smaller (outerUpdate layout input) = false by
+    cases relativeHalfPhaseExponent b layout.smaller (outerUpdate layout input) <;> rfl]
+  simp only [relativePhaseSign_false, one_smul]
+  rfl
+
+/-- Exact full-register unitary equality for the hybrid ladder. -/
+@[simp]
+theorem eval_hybridInwardLadderCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    Circuit.eval (hybridInwardLadderCircuit layout) =
+      positiveControlledUnitary layout.targetWire layout.controlSet pauliX := by
+  apply Subtype.ext
+  rw [matrix_eq_iff_mulVec_basisKet_eq]
+  intro input
+  rw [eval_hybridInwardLadderCircuit_mulVec_basisKet]
+  rw [inwardLadderUpdate_eq_update]
+  exact (positiveControlledUnitary_pauliX_mulVec_basisKet layout input).symm
+
 end
 
 end InwardLadderLayout
@@ -173,6 +230,76 @@ def relativeCorollary74Circuit {leftTail rightTail n : ℕ}
   let b := layout.hybridCorollary74BImplementation hright
   Circuit.append a
     (Circuit.append b (Circuit.append (Circuit.adjoint a) b))
+
+/-! ## Basis semantics of the contextual blocks -/
+
+/-- A's ladder control product is the first-group product from Lemma 7.3. -/
+@[simp]
+theorem relativeCorollary74A_controlProduct {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2) (input : Basis n) :
+    InwardLadderLayout.controlProduct
+        (layout.corollary74ALayout hcapacity) input =
+      layout.leftProduct input := by
+  rfl
+
+/-- A's exact Boolean permutation is precisely `blockAUpdate`. -/
+theorem relativeCorollary74A_update_eq {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2) (input : Basis n) :
+    InwardLadderLayout.inwardLadderUpdate
+        (layout.corollary74ALayout hcapacity) input =
+      layout.blockAUpdate input := by
+  rw [InwardLadderLayout.inwardLadderUpdate_eq_update]
+  rw [show (layout.corollary74ALayout hcapacity).targetWire =
+      layout.dirtyWire by
+    exact layout.aInwardLadderLayout_targetWire _]
+  rw [relativeCorollary74A_controlProduct]
+  rfl
+
+/-- Exact signed action of the all-relative A implementation. -/
+theorem eval_relativeCorollary74AImplementation_mulVec_basisKet
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2) (input : Basis n) :
+    (Circuit.eval (layout.relativeCorollary74AImplementation hcapacity) : Gate n) *ᵥ
+        basisKet input =
+      InwardLadderLayout.relativePhaseSign
+          (InwardLadderLayout.relativeInwardPhaseExponent
+            (layout.corollary74ALayout hcapacity) input) •
+        basisKet (layout.blockAUpdate input) := by
+  rw [relativeCorollary74AImplementation,
+    InwardLadderLayout.eval_relativeInwardLadderCircuit_mulVec_basisKet]
+  rw [← InwardLadderLayout.inwardLadderUpdate_eq_update]
+  rw [relativeCorollary74A_update_eq]
+
+/-- The hybrid B implementation has exactly the macro denotation of block B. -/
+@[simp]
+theorem eval_hybridCorollary74BImplementation {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : rightTail ≤ leftTail + 2) :
+    Circuit.eval (layout.hybridCorollary74BImplementation hcapacity) =
+      layout.blockB.denotation := by
+  rw [hybridCorollary74BImplementation,
+    InwardLadderLayout.eval_hybridInwardLadderCircuit]
+  rw [blockB, Primitive.positiveControlled_denotation]
+  change positiveControlledUnitary
+      (layout.corollary74BLayout hcapacity).orderedControlLayout.targetWire
+      (layout.corollary74BLayout hcapacity).orderedControlLayout.controlSet pauliX =
+    positiveControlledUnitary layout.bLayout.targetWire layout.bLayout.controlSet pauliX
+  rw [show (layout.corollary74BLayout hcapacity).orderedControlLayout =
+      layout.bLayout by
+    exact layout.bInwardLadderLayout_orderedControlLayout _]
+
+/-- Exact basis action of the phase-safe B implementation. -/
+theorem eval_hybridCorollary74BImplementation_mulVec_basisKet
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : rightTail ≤ leftTail + 2) (input : Basis n) :
+    (Circuit.eval (layout.hybridCorollary74BImplementation hcapacity) : Gate n) *ᵥ
+        basisKet input = basisKet (layout.blockBUpdate input) := by
+  rw [eval_hybridCorollary74BImplementation]
+  exact blockB_denotation_mulVec_basisKet layout input
 
 @[simp]
 theorem relativeCorollary74Circuit_toffoliCount {leftTail rightTail n : ℕ}
