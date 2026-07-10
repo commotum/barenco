@@ -219,3 +219,18 @@ language only.
   for every nonempty total control family, including an empty prefix; macro count
   is five and the early-basic cost is honestly `none`. Strict/trust-zero checks
   and its 2,929-job focused build pass.
+- `State/CleanWire.lean` supplies the missing general foundation: basis-column
+  equality lifts to arbitrary supported amplitude vectors;
+  `fixedWireSubspace`/`cleanZeroSubspace` are literal submodules; split-target
+  embed/restrict maps form a linear equivalence with complementary-wire states;
+  and controlled gates on another target preserve the subspace. Thus every clean
+  state has a machine-checked factorization witness. Strict/trust-zero checks and
+  its 2,361-job focused build pass; representative axioms are standard only.
+- `CleanAncilla.lean` reconstructs the exact three-macro Lemma 7.11 circuit on an
+  arbitrary ambient layout. It proves the general firing condition through the
+  intermediate auxiliary, including the complementary auxiliary-one behavior;
+  lifts the clean-zero basis columns to every vector in `cleanZeroSubspace`;
+  proves output closure; and returns an explicit complementary-state
+  factorization witness, so restoration/no residual entanglement is literal.
+  Macro count is three and unexpanded cost is `none`. Strict/trust-zero checks and
+  its 2,922-job focused build pass.
