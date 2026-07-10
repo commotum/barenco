@@ -520,6 +520,15 @@ def fourBitGrayCircuit {ambientWidth : ℕ}
     layout.cnotPrimitive 0 2 (by decide),
     layout.controlledTargetPrimitive 2 V]
 
+/-- The strengthened one-control boundary is exactly one controlled-`V` node. -/
+theorem grayControlledViaRootCircuit_zero_eq_singleton
+    {ambientWidth : ℕ} (layout : OrderedControlLayout 1 ambientWidth)
+    (V : QubitUnitary) :
+    grayControlledViaRootCircuit (tail := 0) layout V =
+      [layout.controlledTargetPrimitive 0 V] := by
+  simp [grayControlledViaRootCircuit, grayTransitionPrefixCircuit,
+    grayRootPrimitiveAt, grayCode_one, signedGrayRoot, Circuit.append]
+
 /-- The generated width-three syntax is exactly the paper's displayed chronology. -/
 theorem grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit
     {ambientWidth : ℕ} (layout : OrderedControlLayout 3 ambientWidth)

@@ -378,6 +378,55 @@ Section 7 claim that relative-phase gates separated by other operations cancel
 merely because they occur in pairs; that use still requires an ordered basis-path
 phase calculation.
 
+## Section 7 Gray-Code Multi-Control Conventions
+
+`OrderedControlLayout controlCount ambientWidth` names an ordered injective family
+of control wires and one disjoint target inside an arbitrary ambient register.
+The controls need not be adjacent or increasing in ambient index. Its unordered
+`controlSet` is used by the established multi-control semantics, while
+`restrictControls` retains the order needed by the Gray construction.
+
+Gray masks are nonempty `Finset (Fin controlCount)` values. `grayCode` uses the
+bit-reversed reflected order, not binary numeric order. Every mask is paired with
+its maximum-index member as an accumulator pivot. Immediately before the root for
+mask `S`, that pivot wire contains the XOR parity of the original input bits in
+`S`; every other control retains its original value. `grayCNOTEdges` contains the
+unique generated control-to-control CNOT transition schedule. Its prefix invariant
+and full restoration theorem are proved for every width, including the empty
+width at the pure Boolean layer.
+
+For `tail + 1` positive controls, `grayControlledViaRootCircuit layout V` is the
+chronological list
+
+`root₀; CNOT₀; root₁; CNOT₁; …; rootₑ₋₁; CNOTₑ₋₁; rootₑ`.
+
+The root at mask `S` is `V ^ ((-1)^(|S|-1))`, controlled by the current pivot.
+Thus chronological left multiplication accumulates signed integer powers of the
+same `V`; integer addition commutativity, not an implicit commutative-matrix
+assumption, reconciles this with the inclusion-exclusion sum. The final CNOT
+prefix restores all controls and spectators exactly. The evaluator is therefore
+the positive control of `V^(2^tail)` on the full ambient register.
+`grayControlledCircuit` chooses the exact finite-dimensional root and implements
+an arbitrary controlled `U`.
+
+The formal theorem includes the useful one-control boundary `tail = 0`, where the
+syntax is exactly one controlled-`V` node. Zero controls are intentionally not
+folded into this generator: `grayCode 0` is empty and would denote identity, while
+an uncontrolled `U` requires a local-gate base circuit. The paper's displayed
+three-control instance is reconstructed as the exact 13-node `fourBitGrayCircuit`
+with seven controlled roots and six CNOTs.
+
+For `tail + 1` controls the proved macro counts are
+
+- controlled-root nodes: `2^(tail+1)-1`;
+- Gray CNOT nodes: `2^(tail+1)-2`;
+- total nodes: `2^(tail+2)-3`.
+
+These controlled-root nodes remain `.controlledOneQubit 1` macros, so
+`CostModel.oneQubitCNOT` correctly returns `none`. The paper's later merged
+one-qubit/CNOT counts require an explicit coordinated Section 5 expansion and are
+not inferred from the semantic equality or the macro counts.
+
 ## Semantic Relations
 
 The implemented relations are deliberately noninterchangeable:
@@ -510,15 +559,19 @@ compiling smoke module:
 - `CStarMatrix`, finite matrix spectra, and continuous functional calculus on a
   finite spectrum for the exact `unitaryRoot` construction.
 
-Mathlib 4.31.0 contains no quantum-circuit or Gray-code framework and no ready
+Mathlib 4.31.0 contains no quantum-circuit or ready-made Gray-code framework and no ready
 unitary Givens decomposition. Exact finite-matrix roots are now supplied by
 `Barenco.OneQubit.Roots` through a proved finite-spectrum functional-calculus
 construction, so root existence is no longer an outstanding stage. Coherent
-recursive roots with norm decay, circuit synthesis, Gray-code infrastructure, and
-Givens-style general-unitary elimination remain explicit project stages.
+recursive roots with norm decay and Givens-style general-unitary elimination remain
+explicit project stages. The project now supplies its own finite-mask reflected
+Gray code, pivot/transition proofs, Boolean accumulator semantics, and exact
+controlled-root circuit construction.
 
 The selected core basis is `Fin n → Bool`, rather than `Fin (2^n)` or `BitVec n`:
 it makes arbitrary controls, wire updates, and untouched-wire proofs direct.
-`BitVec n` will be bridged in for Gray codes; `Fin (2^n)` will be bridged only for
-lexicographic matrices and finite-dimensional decomposition APIs. This avoids bit
-arithmetic in the foundational gate semantics while retaining later synthesis tools.
+The implemented Gray layer likewise uses finite masks and Boolean functions;
+`BitVec n` remains optional diagnostic/interchange infrastructure rather than a
+semantic dependency. `Fin (2^n)` will be bridged only for lexicographic matrices
+and finite-dimensional decomposition APIs. This avoids bit arithmetic in the
+foundational gate semantics while retaining later synthesis tools.

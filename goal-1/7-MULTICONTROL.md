@@ -1,6 +1,6 @@
 # 7-MULTICONTROL
 
-Status: in progress (Gray/parity/accumulator foundations complete; Lemma 7.1 circuit bridge in progress).
+Status: in progress (Lemma 7.1 and the displayed Gray circuit complete; Lemma 7.2 next).
 
 ## Current Facts
 
@@ -53,10 +53,12 @@ Status: in progress (Gray/parity/accumulator foundations complete; Lemma 7.1 cir
   and singly controlled target primitives.
 - `Barenco.MultiControl.Lemma71` now proves the signed target-root product, the
   selected power-of-two-root formula, the arbitrary-width basis semantics of
-  certified embedded CNOT lists, and exact restoration by the generated CNOT-only
-  circuit. The next implementation slice interleaves each signed controlled root
-  with those CNOTs and proves a target-local-state prefix invariant; this is the
-  missing bridge to full Lemma 7.1 semantics and macro counts.
+  certified embedded CNOT lists, exact restoration by the generated CNOT-only
+  circuit, the target-local-state prefix invariant for the interleaved syntax,
+  and exact full-register Lemma 7.1 semantics. The selected-root wrapper is valid
+  for every positive control count; the zero-control local-gate case is kept
+  separate. Exact root/CNOT/total macro counts are syntax-derived, while the
+  unexpanded circuit correctly has no `oneQubitCNOT` cost.
 
 ## Source Claim Audit
 
@@ -325,10 +327,10 @@ pivot invariant, not merely Hamming adjacency.
 
 ## Completion Requirements
 
-- [ ] The signed subset-parity identity and an executable Gray schedule compile
+- [x] The signed subset-parity identity and an executable Gray schedule compile
   with coverage, uniqueness, adjacency, pivot/update, length, and restoration
   theorems, including zero/one-control boundary diagnostics.
-- [ ] The four-bit diagram and general Lemma 7.1 have named chronological circuits,
+- [x] The four-bit diagram and general Lemma 7.1 have named chronological circuits,
   exact arbitrary-width evaluators, selected-root wrappers, exact macro counts,
   and any claimed expanded counts proved from coordinated syntax.
 - [ ] Lemmas 7.2 and 7.3 have named circuits and full-register dirty-wire
@@ -390,6 +392,22 @@ pivot invariant, not merely Hamming adjacency.
   and Lemma 7.5's omitted recursive boundary/base cases.
 - `Lemma71.lean` additionally exports the order-independent target product
   formula, a selected exact root, the ordered-control ambient CNOT evaluator,
-  certified generated CNOT syntax, and its full-register restoration theorem.
-  No Lemma 7.1 correctness or operation-count claim is recorded yet: those await
-  the explicit interleaved circuit and its target-local-state evaluator.
+  certified generated CNOT syntax, its full-register restoration theorem,
+  `grayControlledViaRootCircuit`, the exact interleaved prefix evaluator,
+  `eval_grayControlledViaRootCircuit`, `grayControlledCircuit`, and
+  `eval_grayControlledCircuit`. For `tail+1` controls the exact syntax has
+  `2^(tail+1)-1` controlled-root macros, `2^(tail+1)-2` CNOTs, and
+  `2^(tail+2)-3` total nodes. Its early-basic cost remains `none` pending the
+  explicit coordinated expansion.
+- `fourBitGrayCircuit` is exactly the source's 13-node chronology; the generated
+  width-three syntax is proved equal to it. Its arbitrary-width evaluator,
+  parameterized fourth-root theorem, seven-root/six-CNOT counts, and rejected
+  unexpanded early-basic cost compile. The one-control boundary is exactly one
+  controlled root and no CNOT; C-024 records why zero controls require a separate
+  local circuit.
+- Strict compilation passed for every new public/diagnostic module and the root.
+  The focused root/audit build passed with 3,482 jobs; two consecutive full builds
+  passed with 3,480 jobs each. The maintained audit now prints 96 headline
+  declarations; all use only `propext`, `Classical.choice`, and `Quot.sound`
+  (with `nodup_grayCode` not requiring choice). Forbidden-shortcut scans and
+  `git diff --check` passed.

@@ -511,3 +511,26 @@ statement. “Open” means the repair is identified but not yet machine checked
   theorems, termination proof, and syntax-derived recurrence with explicit base
   costs; the existing square-root API alone does not establish these obligations.
 - **Status:** open.
+
+## C-024 — Lemma 7.1 has a useful one-control extension but no zero-control Gray case
+
+- **Source:** Lemma 7.1 and the preceding four-bit Gray construction, manuscript
+  pp. 17–18; Markdown lines 585–629.
+- **Issue:** the source states the construction only in its multi-control range.
+  The same schedule is valid with one positive control: it reduces to one
+  controlled-`U` node and no Gray CNOT. Extending the formula to zero controls,
+  however, would be false for this generator: the nonempty-mask Gray code is
+  empty and its circuit denotes identity, whereas the desired empty-control gate
+  is the local `U` operation.
+- **Repair:** index the reusable theorem by `tail + 1` controls. Prove the
+  `tail = 0` syntax exactly equals one controlled-root primitive, and keep the
+  zero-control local-gate case separate rather than hiding it behind truncated
+  natural subtraction.
+- **Dependent impact:** boundary cases of exact multi-control synthesis and any
+  later recurrence that uses Lemma 7.1 as a base construction. The paper's stated
+  range remains correct; the formal theorem is a justified strengthening.
+- **Formal evidence:** `grayControlledViaRootCircuit_zero_eq_singleton`,
+  `eval_grayControlledViaRootCircuit`, `grayControlledViaRootCircuit_kindCounts`,
+  `grayControlledCircuit`, and `eval_grayControlledCircuit` compile. At
+  `tail = 0` the counts specialize to one controlled-root macro and zero CNOTs.
+- **Status:** boundary clarified and stronger positive-control theorem proved.

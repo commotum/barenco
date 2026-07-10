@@ -12,6 +12,7 @@ import Barenco.OneQubit.Roots
 import Barenco.OneQubit.U2Euler
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
+import Barenco.MultiControl.Lemma71
 
 /-!
 # Kernel axiom audit
@@ -104,3 +105,15 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.ThreeQubit.controlledWUnitary_basisPhaseEq_toffoli
 #print axioms Barenco.ThreeQubit.relativePhaseToffoliACircuit_oneQubitCNOTCost
 #print axioms Barenco.ThreeQubit.relativePhaseToffoliBCircuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.targetBlockRaw_mulVec_basisKet
+#print axioms Barenco.MultiControl.parityInclusionExclusionSum_formula
+#print axioms Barenco.MultiControl.grayCode_isChain
+#print axioms Barenco.MultiControl.nodup_grayCode
+#print axioms Barenco.MultiControl.runXorEdges_grayCNOTEdges
+#print axioms Barenco.MultiControl.OrderedControlLayout.all_controls_iff
+#print axioms Barenco.MultiControl.grayRootProduct_selectedRoot_formula
+#print axioms Barenco.MultiControl.eval_grayCNOTCircuit_mulVec_basisKet
+#print axioms Barenco.MultiControl.eval_grayControlledViaRootCircuit
+#print axioms Barenco.MultiControl.eval_grayControlledCircuit
+#print axioms Barenco.MultiControl.grayControlledViaRootCircuit_kindCounts
+#print axioms Barenco.MultiControl.eval_fourBitGrayCircuit
