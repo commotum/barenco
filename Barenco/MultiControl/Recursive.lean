@@ -205,7 +205,6 @@ theorem prefixEnabled_prefixXUpdate {p ambientWidth : ℕ}
     · exact hcontrol
     · exact layout.controlWire_ne (Fin.castSucc_ne_last control)
   · intro h control
-    change layout.prefixXUpdate input (layout.controlWire control.castSucc) = true
     rw [layout.prefixXUpdate_apply_of_ne]
     · exact h control
     · exact layout.controlWire_ne (Fin.castSucc_ne_last control)
@@ -392,6 +391,316 @@ theorem prefixControlledTarget_denotation_mulVec_localRaw_basisKet
           ((positiveControlsEnabled_splitTarget_eq_true_iff _ _).1 hvalue))).elim
     rw [hnot]
     simp
+
+/-! ## Exact five-block evaluator -/
+
+/-- The target-qubit product selected on one ambient basis assignment. -/
+def recursiveTargetProduct {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) (input : Basis ambientWidth) : QubitMatrix :=
+  (if layout.prefixEnabled input then (V : QubitMatrix) else 1) *
+    ((if layout.prefixXUpdate input layout.lastControlWire then
+        ((V⁻¹ : QubitUnitary) : QubitMatrix) else 1) *
+      (if input layout.lastControlWire then (V : QubitMatrix) else 1))
+
+/-- The five selected target factors collapse to `V²` exactly when all controls hold. -/
+theorem recursiveTargetProduct_eq {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) (input : Basis ambientWidth) :
+    layout.recursiveTargetProduct V input =
+      if layout.prefixEnabled input ∧ input layout.lastControlWire = true then
+        (V ^ 2 : QubitUnitary)
+      else 1 := by
+  have hstar_mul : star (V : QubitMatrix) * (V : QubitMatrix) = 1 :=
+    Matrix.mem_unitaryGroup_iff'.mp V.prop
+  have hmul_star : (V : QubitMatrix) * star (V : QubitMatrix) = 1 :=
+    Matrix.mem_unitaryGroup_iff.mp V.prop
+  by_cases henabled : layout.prefixEnabled input <;>
+    cases hlast : input layout.lastControlWire <;>
+      simp [recursiveTargetProduct, henabled, hlast, pow_two,
+        hstar_mul, hmul_star]
+
+/-- The original ordered control set is the prefix condition plus the final bit. -/
+theorem all_controls_iff_prefixEnabled_and_last {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (input : Basis ambientWidth) :
+    (∀ wire ∈ layout.controlSet, input wire = true) ↔
+      layout.prefixEnabled input ∧ input layout.lastControlWire = true := by
+  rw [layout.all_controls_iff]
+  change (∀ control : Fin (p + 1),
+      input (layout.controlWire control) = true) ↔ _
+  rw [Fin.forall_fin_succ']
+  rfl
+
+/-- Full-register raw product of the five chronological macro nodes. -/
+theorem eval_recursiveViaSquareCircuit_raw {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) :
+    (Circuit.eval (layout.recursiveViaSquareCircuit V) : Gate ambientWidth) =
+      (layout.prefixControlledTarget V).denotation *
+        layout.prefixControlledX.denotation *
+        (layout.lastControlledTarget V⁻¹).denotation *
+        layout.prefixControlledX.denotation *
+        (layout.lastControlledTarget V).denotation := by
+  simp [recursiveViaSquareCircuit, Circuit.eval]
+
+private theorem localRaw_one {ambientWidth : ℕ} (target : Fin ambientWidth) :
+    localRaw target (1 : QubitMatrix) = 1 := by
+  rw [localRaw_eq_targetBlockRaw, targetBlockRaw_one]
+
+private theorem lastControlledTarget_denotation_mulVec_basisKet
+    {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (U : QubitUnitary) (input : Basis ambientWidth) :
+    (layout.lastControlledTarget U).denotation *ᵥ basisKet input =
+      localRaw layout.targetWire
+          (if input layout.lastControlWire then (U : QubitMatrix) else 1) *ᵥ
+        basisKet input := by
+  simpa [localRaw_one] using
+    layout.lastControlledTarget_denotation_mulVec_localRaw_basisKet
+      U (1 : QubitMatrix) input
+
+/-- Exact basis-column action of the five chronological macro nodes. -/
+theorem eval_recursiveViaSquareCircuit_mulVec_basisKet {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) (input : Basis ambientWidth) :
+    (Circuit.eval (layout.recursiveViaSquareCircuit V) : Gate ambientWidth) *ᵥ
+        basisKet input =
+      localRaw layout.targetWire (layout.recursiveTargetProduct V input) *ᵥ
+        basisKet input := by
+  rw [eval_recursiveViaSquareCircuit_raw]
+  rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec,
+    ← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+  rw [layout.lastControlledTarget_denotation_mulVec_basisKet]
+  rw [layout.prefixControlledX_denotation_mulVec_localRaw_basisKet]
+  rw [layout.lastControlledTarget_denotation_mulVec_localRaw_basisKet]
+  rw [layout.prefixControlledX_denotation_mulVec_localRaw_basisKet]
+  rw [layout.prefixXUpdate_involutive]
+  rw [layout.prefixControlledTarget_denotation_mulVec_localRaw_basisKet]
+  rfl
+
+/-- Lemma 7.5: the five-macro step implements full positive control of `V²`. -/
+theorem eval_recursiveViaSquareCircuit_pow_two {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.eval (layout.recursiveViaSquareCircuit V) =
+      positiveControlledUnitary layout.targetWire layout.controlSet (V ^ 2) := by
+  apply Subtype.ext
+  rw [matrix_eq_iff_mulVec_basisKet_eq]
+  intro input
+  rw [eval_recursiveViaSquareCircuit_mulVec_basisKet,
+    recursiveTargetProduct_eq, coe_positiveControlledUnitary,
+    positiveControlledRaw_truthTable]
+  by_cases hall : ∀ wire ∈ layout.controlSet, input wire = true
+  · have henabledLast :
+        layout.prefixEnabled input ∧ input layout.lastControlWire = true :=
+      (layout.all_controls_iff_prefixEnabled_and_last input).1 hall
+    rw [if_pos hall, if_pos henabledLast]
+  · have hnotEnabledLast :
+        ¬(layout.prefixEnabled input ∧ input layout.lastControlWire = true) :=
+      fun h => hall ((layout.all_controls_iff_prefixEnabled_and_last input).2 h)
+    rw [if_neg hall, if_neg hnotEnabledLast, localRaw_one, Matrix.one_mulVec]
+
+/-- Parameterized Lemma 7.5 for any explicitly supplied square witness. -/
+theorem eval_recursiveViaSquareCircuit_of_sq_eq {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (U V : QubitUnitary) (hV : V ^ 2 = U) :
+    Circuit.eval (layout.recursiveViaSquareCircuit V) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [eval_recursiveViaSquareCircuit_pow_two, hV]
+
+/-- Lemma 7.5 using the library's selected exact unitary square root. -/
+@[simp]
+theorem eval_recursiveRootCircuit {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.eval (layout.recursiveRootCircuit U) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [recursiveRootCircuit, eval_recursiveViaSquareCircuit_pow_two,
+    unitarySquareRoot_pow_two]
+
+/-! ## Structural macro resources -/
+
+@[simp]
+theorem recursiveViaSquareCircuit_gateCount {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.gateCount (layout.recursiveViaSquareCircuit V) = 5 := by
+  rfl
+
+/--
+Exact kind accounting without pretending the arities `1` and `p` are distinct.
+At `p = 1` the two summands deliberately combine to five occurrences.
+-/
+theorem recursiveViaSquareCircuit_kindCount {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) (kind : PrimitiveKind) :
+    Circuit.kindCount kind (layout.recursiveViaSquareCircuit V) =
+      (if kind = .controlledOneQubit 1 then 2 else 0) +
+        (if kind = .controlledOneQubit p then 3 else 0) := by
+  simp [recursiveViaSquareCircuit, lastControlledTarget, prefixControlledX,
+    prefixControlledTarget, Circuit.kindCount]
+
+/-- The Section 3–7 model rejects the five unexpanded controlled macros. -/
+@[simp]
+theorem recursiveViaSquareCircuit_oneQubitCNOTCost {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT
+      (layout.recursiveViaSquareCircuit V) = none := by
+  simp [recursiveViaSquareCircuit, lastControlledTarget, prefixControlledX,
+    prefixControlledTarget, Circuit.cost, Circuit.addCost]
+
+/-- The later at-most-two-qubit model also rejects these unexpanded macros. -/
+@[simp]
+theorem recursiveViaSquareCircuit_arbitraryTwoQubitCost {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+      (layout.recursiveViaSquareCircuit V) = none := by
+  simp [recursiveViaSquareCircuit, lastControlledTarget, prefixControlledX,
+    prefixControlledTarget, Circuit.cost, Circuit.addCost]
+
+@[simp]
+theorem zeroControlCircuit_gateCount {ambientWidth : ℕ}
+    (target : Fin ambientWidth) (U : QubitUnitary) :
+    Circuit.gateCount (zeroControlCircuit target U) = 1 := by
+  rfl
+
+@[simp]
+theorem zeroControlCircuit_oneQubitCNOTCost {ambientWidth : ℕ}
+    (target : Fin ambientWidth) (U : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT (zeroControlCircuit target U) = some 1 := by
+  simp [zeroControlCircuit, Circuit.cost, Circuit.addCost]
+
+/-! ## Five-way substitution for later recursive expansion -/
+
+/--
+Substitute five independently selected implementations into the Lemma 7.5
+chronology.  The parameters remain distinct so later expansion may coordinate
+or optimize each occurrence separately.
+-/
+def recursiveSubstitutionCircuit {ambientWidth : ℕ}
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth) : Circuit ambientWidth :=
+  firstTarget ++ firstPrefixX ++ inverseTarget ++ secondPrefixX ++ residualTarget
+
+/-- The evaluator of a five-way substitution is the expected reverse product. -/
+theorem eval_recursiveSubstitutionCircuit {ambientWidth : ℕ}
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth) :
+    Circuit.eval (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      Circuit.eval residualTarget * Circuit.eval secondPrefixX *
+        Circuit.eval inverseTarget * Circuit.eval firstPrefixX *
+          Circuit.eval firstTarget := by
+  simp [recursiveSubstitutionCircuit, Circuit.eval_append, mul_assoc]
+
+/-- Checked five-way substitution preserves the five-macro evaluator exactly. -/
+theorem eval_recursiveSubstitutionCircuit_of_eq {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary)
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth)
+    (hfirstTarget : Circuit.eval firstTarget =
+      (layout.lastControlledTarget V).denotation)
+    (hfirstPrefixX : Circuit.eval firstPrefixX =
+      layout.prefixControlledX.denotation)
+    (hinverseTarget : Circuit.eval inverseTarget =
+      (layout.lastControlledTarget V⁻¹).denotation)
+    (hsecondPrefixX : Circuit.eval secondPrefixX =
+      layout.prefixControlledX.denotation)
+    (hresidualTarget : Circuit.eval residualTarget =
+      (layout.prefixControlledTarget V).denotation) :
+    Circuit.eval (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      Circuit.eval (layout.recursiveViaSquareCircuit V) := by
+  rw [eval_recursiveSubstitutionCircuit, hfirstTarget, hfirstPrefixX,
+    hinverseTarget, hsecondPrefixX, hresidualTarget]
+  apply Subtype.ext
+  exact (eval_recursiveViaSquareCircuit_raw layout V).symm
+
+/-- A checked five-way substitution therefore implements full control of `V²`. -/
+theorem eval_recursiveSubstitutionCircuit_pow_two {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary)
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth)
+    (hfirstTarget : Circuit.eval firstTarget =
+      (layout.lastControlledTarget V).denotation)
+    (hfirstPrefixX : Circuit.eval firstPrefixX =
+      layout.prefixControlledX.denotation)
+    (hinverseTarget : Circuit.eval inverseTarget =
+      (layout.lastControlledTarget V⁻¹).denotation)
+    (hsecondPrefixX : Circuit.eval secondPrefixX =
+      layout.prefixControlledX.denotation)
+    (hresidualTarget : Circuit.eval residualTarget =
+      (layout.prefixControlledTarget V).denotation) :
+    Circuit.eval (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      positiveControlledUnitary layout.targetWire layout.controlSet (V ^ 2) := by
+  rw [eval_recursiveSubstitutionCircuit_of_eq layout V firstTarget firstPrefixX
+    inverseTarget secondPrefixX residualTarget hfirstTarget hfirstPrefixX
+    hinverseTarget hsecondPrefixX hresidualTarget,
+    eval_recursiveViaSquareCircuit_pow_two]
+
+theorem recursiveSubstitutionCircuit_gateCount {ambientWidth : ℕ}
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth) :
+    Circuit.gateCount (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      Circuit.gateCount firstTarget + Circuit.gateCount firstPrefixX +
+        Circuit.gateCount inverseTarget + Circuit.gateCount secondPrefixX +
+          Circuit.gateCount residualTarget := by
+  simp [recursiveSubstitutionCircuit, Circuit.gateCount_append]
+
+theorem recursiveSubstitutionCircuit_kindCount {ambientWidth : ℕ}
+    (kind : PrimitiveKind)
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth) :
+    Circuit.kindCount kind (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      Circuit.kindCount kind firstTarget + Circuit.kindCount kind firstPrefixX +
+        Circuit.kindCount kind inverseTarget +
+          Circuit.kindCount kind secondPrefixX +
+            Circuit.kindCount kind residualTarget := by
+  simp [recursiveSubstitutionCircuit, Circuit.kindCount_append]
+
+/-- Exact partial-cost composition, retaining unsupported components as `none`. -/
+theorem recursiveSubstitutionCircuit_cost {ambientWidth : ℕ}
+    (model : CostModel)
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth) :
+    Circuit.cost model (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      Circuit.addCost
+        (Circuit.addCost
+          (Circuit.addCost
+            (Circuit.addCost (Circuit.cost model firstTarget)
+              (Circuit.cost model firstPrefixX))
+            (Circuit.cost model inverseTarget))
+          (Circuit.cost model secondPrefixX))
+        (Circuit.cost model residualTarget) := by
+  simp [recursiveSubstitutionCircuit, Circuit.cost_append,
+    Circuit.addCost_assoc]
+
+/-- Additive accepted cost when all five supplied implementations are priced. -/
+theorem recursiveSubstitutionCircuit_cost_of_eq {ambientWidth : ℕ}
+    (model : CostModel)
+    (firstTarget firstPrefixX inverseTarget secondPrefixX residualTarget :
+      Circuit ambientWidth)
+    (firstCost firstXCost inverseCost secondXCost residualCost : ℕ)
+    (hfirst : Circuit.cost model firstTarget = some firstCost)
+    (hfirstX : Circuit.cost model firstPrefixX = some firstXCost)
+    (hinverse : Circuit.cost model inverseTarget = some inverseCost)
+    (hsecondX : Circuit.cost model secondPrefixX = some secondXCost)
+    (hresidual : Circuit.cost model residualTarget = some residualCost) :
+    Circuit.cost model (recursiveSubstitutionCircuit firstTarget firstPrefixX
+      inverseTarget secondPrefixX residualTarget) =
+      some (firstCost + firstXCost + inverseCost + secondXCost + residualCost) := by
+  rw [recursiveSubstitutionCircuit_cost, hfirst, hfirstX, hinverse, hsecondX,
+    hresidual]
+  rfl
 
 end OrderedControlLayout
 
