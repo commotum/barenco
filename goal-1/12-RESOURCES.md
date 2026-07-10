@@ -10,18 +10,20 @@ resource implementation beginning).
   universality circuit. Stage 12 must aggregate those results; it must not infer
   resources from semantic equality or re-price an unsupported macro.
 - `CostModel.oneQubitCNOT` accepts exactly arbitrary certified one-qubit primitives
-  and CNOTs at cost one. `CostModel.arbitraryTwoQubit` also accepts those two kinds
-  and the metadata kind `.arbitraryTwoQubit`; no trusted arbitrary-two-qubit smart
-  constructor or embedding currently exists. The exact universality circuit uses
-  only the stricter vocabulary, so its literal count should agree under both
-  models, but this does not make the models interchangeable for other syntax.
-- The Section 8 cost-model audit found one concrete defect in the current
-  implementation: `.controlledOneQubit 1` is a certified two-wire primitive, but
-  `CostModel.arbitraryTwoQubit` currently rejects every controlled-one-qubit kind.
-  This prevents the already verified five-node Lemma 6.1 circuit and thirteen-node
-  Lemma 7.1 circuit from receiving the paper's at-most-two-qubit costs. The model
-  must accept control arity zero or one and continue rejecting arity at least two.
-  This is a correction to the named model, not a new semantic gate constructor.
+  and CNOTs at cost one. `CostModel.arbitraryTwoQubit` accepts those two kinds,
+  certified controlled-one-qubit macros with zero or one control, and the metadata
+  kind `.arbitraryTwoQubit`; it rejects controlled macros with at least two controls.
+  No trusted arbitrary-two-qubit smart constructor or embedding currently exists.
+  The exact universality circuit uses only the stricter vocabulary, so its literal
+  count agrees under both models, but this does not make the models interchangeable
+  for other syntax.
+- The Section 8 cost-model audit found and repaired one concrete defect:
+  `.controlledOneQubit 1` is a certified two-wire primitive, but the named model
+  had rejected every controlled-one-qubit kind. The repaired definition now gives
+  the already verified five-node Lemma 6.1 circuit exact cost five and the displayed
+  thirteen-node Lemma 7.1 circuit exact cost thirteen. It also exposed a hidden
+  boundary in the recursive five-node circuit: prefix arities zero and one cost
+  five, while rejection is valid only from prefix arity two onward.
 - `decomposeFinUnitary` uses a fixed, non-pruning left-Givens schedule. At a
   successor dimension `d+1`, it adds exactly `d` factors to the recursively
   synthesized `d`-dimensional block. Therefore its factor-list length should be
@@ -43,13 +45,13 @@ resource implementation beginning).
   five controls, then `56*d^2 + 364*d + 440` at `d+6` controls. A simple uniform
   polynomial envelope (expected `<= 56*(controlCount+1)^2`) will make the general
   synthesis bound substantially easier to reuse than the shifted piecewise form.
-- The completed construction audit gives sharper boundary-safe envelopes. Writing
+- The completed construction and Lean audits give sharper boundary-safe envelopes. Writing
   `n=controlCount+1`, every full-control block and every synthesized two-level
   factor cost at most `56*n^2`; every diagonal pattern also costs at most
   `56*n^2`. The number of factor components plus diagonal-pattern components is
   exactly `2*4^controlCount`, so the clean total bound is
   `112*n^2*4^controlCount`, equivalently `28*n^2*4^n` in full-width notation.
-- `exactSynthesisCost` is already an exact finite sum of the actual factor circuit
+- `exactSynthesisCost` is an exact finite sum of the actual factor circuit
   costs plus the actual diagonal-pattern schedule cost. It depends on factor
   endpoints and the chosen unitary, so Stage 12 needs a pointwise uniform upper
   bound before an asymptotic family theorem.
@@ -58,10 +60,10 @@ resource implementation beginning).
   matching lower bound. The library's main affine circuit has a different schedule,
   so the paper's `2m-3` macro count cannot be attached to it.
 - The paper's general `Theta(n^3 * 4^n)` wording is therefore not an optimality
-  theorem. For the library construction, the expected uniform result is the
-  stronger `O(n^2 * 4^n)` upper bound, with an explicit constant and no matching
-  lower or optimality claim.
-- A matching `Theta(n^2*4^n)` statement is nevertheless recoverable for the
+  theorem. For the library construction, the proved uniform result is the stronger
+  `O(n^2 * 4^n)` upper bound, with explicit natural-number constant `112` in
+  control-count indexing.
+- A matching `Theta(n^2*4^n)` statement is proved for the
   library's deliberately non-pruning *fixed syntax*: it emits all
   `choose(2^n,2)` factor circuits even for the identity, and every factor contains
   one quadratically priced full-control block. Such a theorem must be named as the
@@ -72,8 +74,8 @@ resource implementation beginning).
   separate treatment. The last two remain unresolved/excluded from Stage 10;
   pricing metadata alone is insufficient to formalize the first three merged
   arbitrary-two-qubit circuits.
-- More precisely, the five- and thirteen-node semantic circuits already exist and
-  become exact Section 8 cost theorems after the arity-one model repair. The
+- More precisely, the five- and thirteen-node semantic circuits now have exact
+  Section 8 cost theorems after the arity-one model repair. The
   three-gate relative-phase claim still requires an explicit grouping into three
   certified two-wire primitives; the existing seven-node one-qubit/CNOT syntax
   cannot be assigned cost three merely by changing its price.
@@ -217,3 +219,13 @@ classification of Section 8 resource claims under both named cost models.
   the five- and thirteen-gate Section 8 upper circuits are already semantically
   proved, while the three-gate grouping, six-`U(4)` surjectivity, and dimension
   lower bound still lack the necessary formal objects or proofs.
+- `EliminationResources.lean` proves the exact non-pruning factor-list length
+  `Nat.choose dimension 2`, preservation through finite reindexing, and the qubit
+  specialization. `TwoLevelResources.lean` proves the quadratic full-control and
+  factor envelopes. `DiagonalResources.lean` proves the `2^controlCount` schedule
+  length and matching finite cost bounds.
+- `SynthesisResources.lean` aggregates the literal syntax into the pointwise
+  sandwich
+  `(k+1)^2*4^k <= exactSynthesisCost <= 112*(k+1)^2*4^k`, plus explicit
+  `IsBigOWith` and carefully named fixed-schedule `IsTheta` results. Compilation,
+  public integration, documentation, and final audits remain in progress.

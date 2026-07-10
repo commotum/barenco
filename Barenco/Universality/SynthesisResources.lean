@@ -73,19 +73,24 @@ theorem choose_two_pow_succ_add_pow (controlCount : ℕ) :
   let a := 2 ^ controlCount
   let b := 2 ^ (controlCount + 1)
   have hb : 1 ≤ b := by
-    simp [b]
+    dsimp [b]
+    positivity
+  have hfour : 4 ^ controlCount =
+      2 ^ controlCount * 2 ^ controlCount := by
+    rw [show (4 : ℕ) = 2 * 2 by decide, mul_pow]
   calc
     a * (b - 1) + a = a * ((b - 1) + 1) := by ring
     _ = a * b := by rw [Nat.sub_add_cancel hb]
     _ = 2 * 4 ^ controlCount := by
-      simp [a, b, pow_succ, show (4 : ℕ) = 2 * 2 by decide, mul_pow]
+      dsimp [a, b]
+      rw [pow_succ, hfour]
       ring
 
 /-- The non-pruning two-level factor schedule alone has at least `4^k` factors. -/
 theorem four_pow_le_choose_two_pow_succ (controlCount : ℕ) :
     4 ^ controlCount ≤ Nat.choose (2 ^ (controlCount + 1)) 2 := by
   rw [choose_two_pow_succ]
-  have hpow : 1 ≤ 2 ^ controlCount := by simp
+  have hpow : 1 ≤ 2 ^ controlCount := by positivity
   have hright : 2 ^ controlCount ≤ 2 ^ (controlCount + 1) - 1 := by
     rw [pow_succ]
     omega
@@ -163,6 +168,46 @@ theorem exactSynthesisCost_bounds (controlCount : ℕ)
         112 * exactSynthesisBenchmark controlCount :=
   ⟨exactSynthesisBenchmark_le_cost controlCount U,
     exactSynthesisCost_le_benchmark controlCount U⟩
+
+/-! ## Literal gate count and cost-model bridge -/
+
+/--
+The exact finite cost is also the number of primitive occurrences in the final
+literal circuit.  This follows from accepted syntax, not evaluator equality.
+-/
+@[simp]
+theorem exactSynthesisCircuit_gateCount (controlCount : ℕ)
+    (U : UnitaryGate (controlCount + 1)) :
+    Circuit.gateCount (exactSynthesisCircuit controlCount U) =
+      exactSynthesisCost controlCount U :=
+  Circuit.gateCount_eq_of_oneQubitCNOT_cost
+    (exactSynthesisCircuit_oneQubitCNOTCost controlCount U)
+
+/--
+The same unmerged one-qubit/CNOT syntax has the same exact cost under the
+broader Section 8 at-most-two-qubit model.
+-/
+@[simp]
+theorem exactSynthesisCircuit_arbitraryTwoQubitCost (controlCount : ℕ)
+    (U : UnitaryGate (controlCount + 1)) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        (exactSynthesisCircuit controlCount U) =
+      some (exactSynthesisCost controlCount U) :=
+  Circuit.arbitraryTwoQubit_cost_of_oneQubitCNOT_cost
+    (exactSynthesisCircuit_oneQubitCNOTCost controlCount U)
+
+/--
+Positive-width exact universality, priced under the later Section 8 model but
+using the very same literal one-qubit/CNOT circuit.
+-/
+theorem exact_arbitraryTwoQubit_universality (controlCount : ℕ)
+    (U : UnitaryGate (controlCount + 1)) :
+    ∃ circuit : Circuit (controlCount + 1), ∃ cost : ℕ,
+      Circuit.eval circuit = U ∧
+        Circuit.cost CostModel.arbitraryTwoQubit circuit = some cost := by
+  exact ⟨exactSynthesisCircuit controlCount U, exactSynthesisCost controlCount U,
+    eval_exactSynthesisCircuit controlCount U,
+    exactSynthesisCircuit_arbitraryTwoQubitCost controlCount U⟩
 
 /-! ## Family-level asymptotics -/
 

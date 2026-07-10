@@ -785,11 +785,27 @@ separate direct theorem realizes every unitary with one arbitrary one-qubit
 primitive.
 
 The final accepted syntax uses arbitrary certified one-qubit primitives and CNOT,
-and is checked by `CostModel.oneQubitCNOT`. This is stricter than the paper's
-Section 8 convention that prices arbitrary two-qubit gates. Exact finite counts,
-constructed upper bounds, asymptotic bounds, and optimal lower bounds are separate
-theorem classes. In particular, an exact accepted cost does not by itself prove an
-`O` or `Theta` result.
+and is checked by `CostModel.oneQubitCNOT`. The same literal circuit is accepted
+at the same count by the broader Section 8 model; this is proved structurally by
+`Circuit.arbitraryTwoQubit_cost_of_oneQubitCNOT_cost` and specialized by
+`exactSynthesisCircuit_arbitraryTwoQubitCost`. No gate merger is inferred from
+that comparison.
+
+The elimination schedule is deliberately non-pruning. In Hilbert dimension `d`
+it emits exactly `Nat.choose d 2` factor circuits, including factors that happen
+to be identity for the selected input. At width `k+1` the factor schedule and
+diagonal schedule together contain exactly `2 * 4^k` blocks. Every selected block
+has a syntax-derived quadratic envelope, yielding
+
+`(k+1)^2 * 4^k <= exactSynthesisCost k U
+  <= 112 * (k+1)^2 * 4^k`.
+
+Thus `exactSynthesisCost_isTheta_fixedSchedule` is a two-sided asymptotic theorem
+for this padded fixed syntax. Its lower side measures work the implementation
+chooses to emit even for easy targets; it is not a circuit lower bound, an
+optimal-synthesis theorem, or a proof of the paper's `Theta(n^3 * 4^n)` wording.
+Exact finite counts, constructed upper bounds, fixed-algorithm asymptotics, and
+optimal lower bounds remain separate theorem classes.
 
 ## Circuit Syntax and Cost Models
 
@@ -801,11 +817,12 @@ Named cost models:
 - **`CostModel.oneQubitCNOT` (Sections 3–7):** kinds `.oneQubit` and `.cnot`
   cost one. Controlled one-qubit, Toffoli, arbitrary-two-qubit, and `.other` kinds
   are unsupported rather than silently treated as free.
-- **`CostModel.arbitraryTwoQubit` (Section 8):** `.oneQubit`, `.cnot`, and the
-  certified `.arbitraryTwoQubit` kind cost one. Controlled-one-qubit, Toffoli, and
-  `.other` kinds remain unsupported. This deliberately changes the earlier ground
-  rules; no arbitrary-two-qubit smart constructor or paper decomposition theorem is
-  thereby supplied.
+- **`CostModel.arbitraryTwoQubit` (Section 8):** `.oneQubit`, `.cnot`, the
+  certified `.arbitraryTwoQubit` kind, and `.controlledOneQubit controls` when
+  `controls <= 1` cost one. A zero-control macro acts on one wire and a one-control
+  macro on two; arity at least two, Toffoli, and `.other` remain unsupported. This
+  deliberately changes the earlier ground rules; no arbitrary-two-qubit smart
+  constructor or paper decomposition theorem is thereby supplied.
 - Additional diagnostic models may count one-qubit, CNOT, controlled-one-qubit,
   Toffoli, arbitrary two-qubit gates, swaps, or negative-control conjugations in
   separate coordinates.
@@ -817,7 +834,9 @@ fits inside the ambient width.
 cost `none`. Append and adjoint theorems prove the structural count/cost laws, and
 `Primitive.namedModels_reject_unclassified_of_mem` proves that both named models
 reject any circuit containing `.unclassified`. Semantic matrix equality is never
-used to infer a resource count.
+used to infer a resource count. For syntax accepted by `oneQubitCNOT`,
+`Circuit.gateCount_eq_of_oneQubitCNOT_cost` additionally proves that the accepted
+cost is exactly the literal primitive count.
 
 Counts distinguish exact equality from phase-relaxed targets, allow gate merging
 only through an explicit syntactic optimization theorem, and label exact count,

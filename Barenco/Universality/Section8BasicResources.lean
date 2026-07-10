@@ -1,4 +1,5 @@
 import Barenco.MultiControl.Lemma71
+import Barenco.ThreeQubit.RelativePhase
 
 /-!
 # Section 8 basic-operation costs for verified macro circuits
@@ -13,9 +14,10 @@ were proved earlier: the five-node circuit of Lemma 6.1 and the displayed
 thirteen-node instance of Lemma 7.1.  The results below are syntax-derived;
 they do not infer costs from semantic matrix equalities.
 
-The paper's separate three-operation relative-phase construction is not priced
-here.  Establishing that claim requires a literal three-node circuit whose
-merged operations are certified to act on at most two wires.
+The library's two unmerged relative-phase circuits have exact literal cost seven
+under this model.  The paper's separate three-operation count is not assigned to
+either syntax: establishing it requires a literal three-node circuit whose merged
+operations are certified to act on at most two wires.
 -/
 
 namespace Barenco.ThreeQubit
@@ -47,6 +49,32 @@ theorem doubleControlledRootCircuit_arbitraryTwoQubitCost {n : ℕ}
         (doubleControlledRootCircuit first second target hfirstSecond
           hfirstTarget hsecondTarget U) = some 5 := by
   simp [doubleControlledRootCircuit]
+
+/-!
+The paper obtains three operations only after merging neighboring one-qubit
+rotations into two-wire operations.  The two already verified, deliberately
+unmerged circuit syntaxes each contain seven accepted nodes.
+-/
+
+/-- Exact Section 8 cost of the unmerged CNOT-based relative-phase circuit. -/
+@[simp]
+theorem relativePhaseToffoliACircuit_arbitraryTwoQubitCost {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        (relativePhaseToffoliACircuit first second target
+          hfirstTarget hsecondTarget) = some 7 := by
+  simp [relativePhaseToffoliACircuit, Circuit.cost, Circuit.addCost]
+
+/-- Exact Section 8 cost of the unmerged controlled-Z relative-phase circuit. -/
+@[simp]
+theorem relativePhaseToffoliBCircuit_arbitraryTwoQubitCost {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        (relativePhaseToffoliBCircuit first second target
+          hfirstTarget hsecondTarget) = some 7 := by
+  simp [relativePhaseToffoliBCircuit, Circuit.cost, Circuit.addCost]
 
 end
 

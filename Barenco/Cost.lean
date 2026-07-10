@@ -360,7 +360,7 @@ theorem gateCount_eq_of_oneQubitCNOT_cost {n totalCost : ℕ}
     gateCount circuit = totalCost := by
   induction circuit generalizing totalCost with
   | nil =>
-      simpa [cost, gateCount] using hcost.symm
+      simpa [cost, gateCount] using hcost
   | cons primitive circuit ih =>
       rw [cost_cons] at hcost
       cases hkind : primitive.kind with
@@ -370,14 +370,14 @@ theorem gateCount_eq_of_oneQubitCNOT_cost {n totalCost : ℕ}
           | some tailCost =>
               have ih' := ih htail
               simp only [gateCount_cons, ih']
-              simpa [hkind, htail, addCost, Nat.add_comm] using hcost.symm
+              simpa [hkind, htail, addCost, Nat.add_comm] using hcost
       | cnot =>
           cases htail : cost CostModel.oneQubitCNOT circuit with
           | none => simp [hkind, htail, addCost] at hcost
           | some tailCost =>
               have ih' := ih htail
               simp only [gateCount_cons, ih']
-              simpa [hkind, htail, addCost, Nat.add_comm] using hcost.symm
+              simpa [hkind, htail, addCost, Nat.add_comm] using hcost
       | toffoli =>
           simp [hkind, addCost] at hcost
       | controlledOneQubit controls =>
