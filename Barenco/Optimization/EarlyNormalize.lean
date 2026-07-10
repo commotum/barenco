@@ -265,4 +265,341 @@ theorem earlyAdjacentNormalize_idempotent {n : ℕ} (circuit : FusionCircuit n) 
       earlyAdjacentNormalize circuit :=
   NormalizeCore.normalize_idempotent earlyIsIdentity earlyCombine circuit
 
+/-! ## Exact literal CNOT order -/
+
+/--
+The ordered control/target sequence of literal CNOT nodes in visible syntax.
+One-qubit and generic two-qubit payload nodes do not contribute entries.
+-/
+def earlyCNOTSequence {n : ℕ} :
+    FusionCircuit n → List (OrderedWirePair n)
+  | [] => []
+  | .oneQubit _ _ :: circuit => earlyCNOTSequence circuit
+  | .cnot control target h :: circuit =>
+      ⟨control, target, h⟩ :: earlyCNOTSequence circuit
+  | .twoQubit _ _ :: circuit => earlyCNOTSequence circuit
+
+private theorem earlyCNOTSequence_earlyExposeInsert {n : ℕ}
+    (gate : FusionPrimitive n) :
+    ∀ circuit : FusionCircuit n,
+      earlyCNOTSequence (earlyExposeInsert gate circuit) =
+        earlyCNOTSequence (gate :: circuit) := by
+  intro circuit
+  induction circuit generalizing gate with
+  | nil => cases gate <;> rfl
+  | cons next rest ih =>
+      cases gate with
+      | cnot => rfl
+      | twoQubit => rfl
+      | oneQubit wire payload =>
+          cases next with
+          | twoQubit => rfl
+          | oneQubit nextWire nextPayload =>
+              by_cases hsame : wire = nextWire
+              · simp [earlyExposeInsert, earlyCNOTSequence, hsame]
+              · by_cases horder : wire ≤ nextWire
+                · simp [earlyExposeInsert, earlyCNOTSequence, hsame, horder]
+                · simp [earlyExposeInsert, earlyCNOTSequence, hsame, horder, ih]
+          | cnot control target hcontrolTarget =>
+              by_cases htouch : wire = control ∨ wire = target
+              · simp [earlyExposeInsert, earlyCNOTSequence, htouch]
+              · simp [earlyExposeInsert, earlyCNOTSequence, htouch, ih]
+
+/-- Exposure preserves every literal CNOT and their exact chronological order. -/
+@[simp]
+theorem earlyCNOTSequence_earlyExpose {n : ℕ}
+    (circuit : FusionCircuit n) :
+    earlyCNOTSequence (earlyExpose circuit) =
+      earlyCNOTSequence circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons gate circuit ih =>
+      rw [earlyExpose, earlyCNOTSequence_earlyExposeInsert]
+      cases gate <;> simp [earlyCNOTSequence, ih]
+
+private theorem earlyCNOTSequence_normalizeInsert {n : ℕ}
+    (gate : FusionPrimitive n) :
+    ∀ circuit : FusionCircuit n,
+      earlyCNOTSequence
+          (NormalizeCore.insert earlyIsIdentity earlyCombine gate circuit) =
+        earlyCNOTSequence (gate :: circuit) := by
+  intro circuit
+  induction circuit generalizing gate with
+  | nil => cases gate <;> rfl
+  | cons next rest ih =>
+      cases gate with
+      | cnot => rfl
+      | twoQubit => rfl
+      | oneQubit wire payload =>
+          cases next with
+          | cnot => rfl
+          | twoQubit => rfl
+          | oneQubit nextWire nextPayload =>
+              by_cases hsame : wire = nextWire
+              · simp [NormalizeCore.insert, earlyIsIdentity, earlyCombine,
+                  earlyCNOTSequence, hsame, ih]
+              · simp [NormalizeCore.insert, earlyIsIdentity, earlyCombine,
+                  earlyCNOTSequence, hsame]
+
+/-- Adjacent one-qubit fusion preserves literal CNOT syntax and order. -/
+@[simp]
+theorem earlyCNOTSequence_earlyAdjacentNormalize {n : ℕ}
+    (circuit : FusionCircuit n) :
+    earlyCNOTSequence (earlyAdjacentNormalize circuit) =
+      earlyCNOTSequence circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons gate circuit ih =>
+      have ih' :
+          earlyCNOTSequence
+              (NormalizeCore.normalize earlyIsIdentity earlyCombine circuit) =
+            earlyCNOTSequence circuit := by
+        simpa only [earlyAdjacentNormalize] using ih
+      rw [earlyAdjacentNormalize, NormalizeCore.normalize,
+        earlyCNOTSequence_normalizeInsert]
+      cases gate <;> simp only [earlyCNOTSequence, ih']
+
+/-- The complete early pass preserves every literal CNOT in exact order. -/
+@[simp]
+theorem earlyCNOTSequence_normalizeEarly {n : ℕ}
+    (circuit : FusionCircuit n) :
+    earlyCNOTSequence (normalizeEarly circuit) =
+      earlyCNOTSequence circuit := by
+  rw [normalizeEarly, earlyCNOTSequence_earlyAdjacentNormalize,
+    earlyCNOTSequence_earlyExpose]
+
+@[simp]
+private theorem earlyCNOTSequence_append {n : ℕ}
+    (first second : FusionCircuit n) :
+    earlyCNOTSequence (FusionCircuit.append first second) =
+      earlyCNOTSequence first ++ earlyCNOTSequence second := by
+  induction first with
+  | nil => rfl
+  | cons gate first ih =>
+      have ih' : earlyCNOTSequence (first ++ second) =
+          earlyCNOTSequence first ++ earlyCNOTSequence second := by
+        simpa only [FusionCircuit.append] using ih
+      cases gate <;> simp only [FusionCircuit.append, List.cons_append,
+        earlyCNOTSequence, ih']
+
+/-! ## Barrier-preserving mixed programs -/
+
+/--
+Normalize a mixed program while carrying the visible run since the previous
+barrier.  A barrier flushes that run, is copied verbatim, and restarts the
+accumulator.  The final run is flushed at the end of the program.
+-/
+def earlyNormalizeProgramAux {n : ℕ} (visible : FusionCircuit n) :
+    FusionProgram n → FusionProgram n
+  | [] => FusionProgram.visible (normalizeEarly visible)
+  | .gate gate :: program =>
+      earlyNormalizeProgramAux (FusionCircuit.append visible [gate]) program
+  | .barrier primitive :: program =>
+      FusionProgram.append
+        (FusionProgram.visible (normalizeEarly visible))
+        (.barrier primitive :: earlyNormalizeProgramAux [] program)
+
+/-- Normalize each maximal visible run independently across exact barriers. -/
+def normalizeEarlyProgram {n : ℕ} (program : FusionProgram n) :
+    FusionProgram n :=
+  earlyNormalizeProgramAux [] program
+
+private theorem eval_earlyNormalizeProgramAux {n : ℕ}
+    (visible : FusionCircuit n) (program : FusionProgram n) :
+    FusionProgram.eval (earlyNormalizeProgramAux visible program) =
+      FusionProgram.eval program * FusionCircuit.eval visible := by
+  induction program generalizing visible with
+  | nil => simp [earlyNormalizeProgramAux]
+  | cons step program ih =>
+      cases step with
+      | gate gate =>
+          rw [earlyNormalizeProgramAux, ih, FusionCircuit.eval_append]
+          simp [FusionProgram.eval_cons, FusionStep.denotation,
+            FusionStep.lower, mul_assoc]
+      | barrier primitive =>
+          rw [earlyNormalizeProgramAux, FusionProgram.eval_append]
+          simp [ih, FusionProgram.eval_cons, mul_assoc]
+
+/-- Mixed-program early normalization preserves exact full-register evaluation. -/
+@[simp]
+theorem eval_normalizeEarlyProgram {n : ℕ} (program : FusionProgram n) :
+    FusionProgram.eval (normalizeEarlyProgram program) =
+      FusionProgram.eval program := by
+  rw [normalizeEarlyProgram, eval_earlyNormalizeProgramAux]
+  simp
+
+/-- Exact evaluation is also preserved after lowering to trusted circuit syntax. -/
+@[simp]
+theorem eval_lower_normalizeEarlyProgram {n : ℕ}
+    (program : FusionProgram n) :
+    Circuit.eval (normalizeEarlyProgram program).lower =
+      Circuit.eval program.lower := by
+  rw [FusionProgram.eval_lower, FusionProgram.eval_lower,
+    eval_normalizeEarlyProgram]
+
+/-- Ordered list of exact trusted primitives stored at early-program barriers. -/
+def earlyBarrierSequence {n : ℕ} : FusionProgram n → List (Primitive n)
+  | [] => []
+  | .gate _ :: program => earlyBarrierSequence program
+  | .barrier primitive :: program =>
+      primitive :: earlyBarrierSequence program
+
+@[simp]
+private theorem earlyBarrierSequence_visible {n : ℕ}
+    (circuit : FusionCircuit n) :
+    earlyBarrierSequence (FusionProgram.visible circuit) = [] := by
+  induction circuit with
+  | nil => rfl
+  | cons gate circuit ih =>
+      change earlyBarrierSequence
+          (.gate gate :: FusionProgram.visible circuit) = []
+      simpa only [earlyBarrierSequence] using ih
+
+@[simp]
+private theorem earlyBarrierSequence_append {n : ℕ}
+    (first second : FusionProgram n) :
+    earlyBarrierSequence (FusionProgram.append first second) =
+      earlyBarrierSequence first ++ earlyBarrierSequence second := by
+  induction first with
+  | nil => rfl
+  | cons step first ih =>
+      have ih' : earlyBarrierSequence (first ++ second) =
+          earlyBarrierSequence first ++ earlyBarrierSequence second := by
+        simpa only [FusionProgram.append] using ih
+      cases step <;> simp only [FusionProgram.append, List.cons_append,
+        earlyBarrierSequence, ih']
+
+private theorem earlyBarrierSequence_earlyNormalizeProgramAux {n : ℕ}
+    (visible : FusionCircuit n) (program : FusionProgram n) :
+    earlyBarrierSequence (earlyNormalizeProgramAux visible program) =
+      earlyBarrierSequence program := by
+  induction program generalizing visible with
+  | nil => simp [earlyNormalizeProgramAux, earlyBarrierSequence]
+  | cons step program ih =>
+      cases step with
+      | gate gate =>
+          rw [earlyNormalizeProgramAux, ih]
+          rfl
+      | barrier primitive =>
+          rw [earlyNormalizeProgramAux, earlyBarrierSequence_append,
+            earlyBarrierSequence_visible]
+          simp only [List.nil_append, earlyBarrierSequence]
+          rw [ih]
+
+/-- Every barrier payload is retained verbatim and in exact chronological order. -/
+@[simp]
+theorem earlyBarrierSequence_normalizeEarlyProgram {n : ℕ}
+    (program : FusionProgram n) :
+    earlyBarrierSequence (normalizeEarlyProgram program) =
+      earlyBarrierSequence program := by
+  exact earlyBarrierSequence_earlyNormalizeProgramAux [] program
+
+/-- Ordered literal-CNOT trace across the visible steps of a mixed program. -/
+def earlyProgramCNOTSequence {n : ℕ} :
+    FusionProgram n → List (OrderedWirePair n)
+  | [] => []
+  | .gate (.cnot control target h) :: program =>
+      ⟨control, target, h⟩ :: earlyProgramCNOTSequence program
+  | .gate _ :: program => earlyProgramCNOTSequence program
+  | .barrier _ :: program => earlyProgramCNOTSequence program
+
+@[simp]
+private theorem earlyProgramCNOTSequence_visible {n : ℕ}
+    (circuit : FusionCircuit n) :
+    earlyProgramCNOTSequence (FusionProgram.visible circuit) =
+      earlyCNOTSequence circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons gate circuit ih =>
+      change earlyProgramCNOTSequence
+          (.gate gate :: FusionProgram.visible circuit) =
+        earlyCNOTSequence (gate :: circuit)
+      cases gate <;> simp only [earlyProgramCNOTSequence,
+        earlyCNOTSequence, ih]
+
+@[simp]
+private theorem earlyProgramCNOTSequence_append {n : ℕ}
+    (first second : FusionProgram n) :
+    earlyProgramCNOTSequence (FusionProgram.append first second) =
+      earlyProgramCNOTSequence first ++ earlyProgramCNOTSequence second := by
+  induction first with
+  | nil => rfl
+  | cons step first ih =>
+      have ih' : earlyProgramCNOTSequence (first ++ second) =
+          earlyProgramCNOTSequence first ++
+            earlyProgramCNOTSequence second := by
+        simpa only [FusionProgram.append] using ih
+      cases step with
+      | barrier primitive =>
+          simpa only [FusionProgram.append, List.cons_append,
+            earlyProgramCNOTSequence] using ih'
+      | gate gate =>
+          cases gate <;>
+            simp only [FusionProgram.append, List.cons_append,
+              earlyProgramCNOTSequence, ih']
+
+private theorem earlyProgramCNOTSequence_earlyNormalizeProgramAux {n : ℕ}
+    (visible : FusionCircuit n) (program : FusionProgram n) :
+    earlyProgramCNOTSequence (earlyNormalizeProgramAux visible program) =
+      earlyCNOTSequence visible ++ earlyProgramCNOTSequence program := by
+  induction program generalizing visible with
+  | nil =>
+      rw [earlyNormalizeProgramAux, earlyProgramCNOTSequence_visible,
+        earlyCNOTSequence_normalizeEarly]
+      simp only [earlyProgramCNOTSequence, List.append_nil]
+  | cons step program ih =>
+      cases step with
+      | barrier primitive =>
+          rw [earlyNormalizeProgramAux, earlyProgramCNOTSequence_append,
+            earlyProgramCNOTSequence_visible,
+            earlyCNOTSequence_normalizeEarly]
+          simp only [earlyProgramCNOTSequence]
+          rw [ih ([] : FusionCircuit n)]
+          simp only [earlyCNOTSequence, List.nil_append]
+      | gate gate =>
+          rw [earlyNormalizeProgramAux, ih,
+            earlyCNOTSequence_append]
+          cases gate with
+          | oneQubit target payload =>
+              simp only [earlyCNOTSequence, earlyProgramCNOTSequence,
+                List.append_nil]
+          | twoQubit pair payload =>
+              simp only [earlyCNOTSequence, earlyProgramCNOTSequence,
+                List.append_nil]
+          | cnot control target hcontrolTarget =>
+              simp only [earlyCNOTSequence, earlyProgramCNOTSequence]
+              rw [List.append_assoc]
+              rfl
+
+/--
+Mixed-program early normalization retains every visible literal CNOT, including
+its control, target, multiplicity, and chronological order.
+-/
+@[simp]
+theorem earlyProgramCNOTSequence_normalizeEarlyProgram {n : ℕ}
+    (program : FusionProgram n) :
+    earlyProgramCNOTSequence (normalizeEarlyProgram program) =
+      earlyProgramCNOTSequence program := by
+  simpa only [normalizeEarlyProgram, earlyCNOTSequence, List.nil_append] using
+    earlyProgramCNOTSequence_earlyNormalizeProgramAux
+      ([] : FusionCircuit n) program
+
+/-- An all-barrier program is copied exactly, not merely semantically. -/
+@[simp]
+theorem normalizeEarlyProgram_barriers {n : ℕ} (circuit : Circuit n) :
+    normalizeEarlyProgram (FusionProgram.barriers circuit) =
+      FusionProgram.barriers circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      have ih' : earlyNormalizeProgramAux []
+          (FusionProgram.barriers circuit) =
+            FusionProgram.barriers circuit := by
+        simpa only [normalizeEarlyProgram] using ih
+      change earlyNormalizeProgramAux []
+          (.barrier primitive :: FusionProgram.barriers circuit) =
+        .barrier primitive :: FusionProgram.barriers circuit
+      rw [earlyNormalizeProgramAux, ih']
+      rfl
+
 end Barenco.Optimization
