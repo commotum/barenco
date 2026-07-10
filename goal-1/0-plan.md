@@ -71,15 +71,14 @@ extra assumption, omission, or unresolved obstruction.
   Euclidean operator distance and a stated `2ε` probability consequence, and Section 8
   contains both constructive upper bounds and informal dimension-counting claims.
 
-## Current Assumptions to Test
+## Current Assumptions and Decisions
 
-- A finite basis indexed by bit assignments, together with complex matrices, is
-  likely the smallest useful semantic core; circuit syntax can be layered on it.
-- A register basis such as `Fin n → Bool` gives easy wire access, while a separate
-  explicit encoding theorem can relate it to the paper's lexicographic matrices.
-- Mathlib's finite matrix, Kronecker product, unitary, normed-operator, and finite
-  permutation APIs will cover much of the algebra, but their exact fit is not yet
-  established.
+- The selected semantic core is `Fin n → Bool` indexed complex matrices, with raw
+  algebraic gates and certified unitaries separated; circuit syntax is a later layer.
+- `basisIndex` fixes the paper's big-endian lexicographic bridge, while `BitVec`
+  remains a later Gray-code bridge rather than the core basis.
+- The pinned matrix, unitary-group, Kronecker, reindexing, permutation, wire-split,
+  and L² operator-norm APIs compile in `Barenco/ApiSmoke.lean`.
 - The existential Euler decomposition in Lemma 4.1 and general unitary-root
   existence may need independent finite-dimensional spectral results; early
   modules should not depend on those hard existence theorems unnecessarily.
@@ -111,8 +110,8 @@ extra assumption, omission, or unresolved obstruction.
 
 ## Stage Index
 
-- [ ] `1-GUARDRAILS` — pin the project, audit sources/APIs, and freeze conventions.
-- [ ] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits.
+- [x] `1-GUARDRAILS` — pin the project, audit sources/APIs, and freeze conventions.
+- [ ] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits (in progress).
 - [ ] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
 - [ ] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
 - [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
@@ -144,7 +143,7 @@ foundational representation choices deliberately.
   multiplication order, matrix entries, controls/targets, phase, norm, and costs.
 - Create living traceability, correction, and axiom-audit documents with all paper
   claims inventoried rather than only the easiest claims.
-- Track `lake-manifest.json`, ignore generated `.lake/` and render scratch, and
+- Keep `lake-manifest.json` as a versionable project artifact, ignore generated `.lake/` and render scratch, and
   verify generated artifacts do not enter source audits.
 - Establish focused/full build and proof-hole/diff audit commands.
 

@@ -1,6 +1,6 @@
 # 1-GUARDRAILS
 
-Status: in progress.
+Status: completed 2026-07-09.
 
 ## Current Facts
 
@@ -48,7 +48,7 @@ untested conventions.
 - Create `docs/conventions.md`, `docs/traceability.md`, `docs/corrections.md`, and
   `docs/axiom-audit.md` with stable row formats and the full initial paper inventory.
 - Define and run focused/full build, forbidden-hole, axiom, and diff checks.
-- Track the resolved manifest and verify generated dependency/render files remain
+- Keep the resolved manifest as a versionable project artifact and verify generated dependency/render files remain
   excluded from source and proof-hole audits.
 - Record the selected Stage 2 representation and rejected alternatives with
   concrete API/build evidence.
@@ -72,22 +72,77 @@ verification.
 
 ## Completion Requirements
 
-- [ ] Exact Lean and mathlib revisions are pinned and documented.
-- [ ] The resolved manifest is tracked; generated `.lake/` and render scratch are
+- [x] Exact Lean and mathlib revisions are pinned and documented.
+- [x] The resolved manifest is present as a versionable project artifact; generated `.lake/` and render scratch are
   ignored and absent from source audits.
-- [ ] `lake build` succeeds twice from unchanged sources.
-- [ ] The root module and smoke module compile without proof holes.
-- [ ] Candidate mathlib APIs and the chosen foundational representation are
+- [x] `lake build` succeeds twice from unchanged sources.
+- [x] The root module and smoke module compile without proof holes.
+- [x] Candidate mathlib APIs and the chosen foundational representation are
   recorded with compiling evidence.
-- [ ] Conventions cover basis/wire order, execution/multiplication order, controls,
+- [x] Conventions cover basis/wire order, execution/multiplication order, controls,
   phase relations, norm, ancilla contracts, and both cost models.
-- [ ] Traceability inventories every numbered Section 4–7 result, important
+- [x] Traceability inventories every numbered Section 4–7 result, important
   unnumbered definitions/constructions/external claims, all sixteen diagrams, and
   each distinct Section 8 construction, upper bound, and heuristic lower-bound claim.
-- [ ] Correction and axiom-audit logs exist with explicit evidence/status formats.
-- [ ] Focused/full builds, hole/axiom searches, and `git diff --check` are recorded.
+- [x] Correction and axiom-audit logs exist with explicit evidence/status formats.
+- [x] Focused/full builds, hole/axiom searches, and `git diff --check` are recorded.
 
 ## Stage Results
 
-- In progress. Populate with exact commands, outputs, representation decision,
-  source discrepancies, risks, and next-stage changes before marking complete.
+### Reproducible project
+
+- Pinned Lean to `leanprover/lean4:v4.31.0` and mathlib to exact commit
+  `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`. `lake-manifest.json` resolves all
+  transitive revisions. `.lake/` and `tmp/` are ignored; the unrelated `.DS_Store`
+  was preserved.
+- The official mathlib v4.31.0 release and its matching toolchain were checked
+  before project creation. The first build caught and repaired Lean 4.31's rule
+  that `import` commands precede module documentation.
+
+### Source and convention evidence
+
+- Audited all 31 PDF pages and the Markdown index. Relevant manuscript pages were
+  rendered and visually inspected for matrix signs, wire positions, labels, and
+  gate order; render scratch was removed afterward.
+- Confirmed the source's row-vector/right-action convention despite ket notation.
+  `Barenco.fromPaper` is transpose, `fromPaper_mul` proves product reversal, and
+  `fromPaper_mem_unitaryGroup_iff` proves unitarity preservation/reflection.
+- Selected `Basis n := Fin n → Bool`, standard column-vector matrix semantics, wire
+  zero at the top/leftmost bit, and chronological circuit lists. `basisIndex` checks
+  `00,01,10,11 ↦ 0,1,2,3`; `evalGates_pair` and `evalGates_append` prove execution
+  order rather than relying on comments.
+- Rejected `Fin (2^n)` as the core basis because it obscures arbitrary wire updates;
+  rejected `BitVec n` as the core because selected-wire/complement splits are less
+  direct. Both remain planned bridge types for lexicographic matrices and Gray code.
+
+### API probes and risks
+
+- `Barenco/ApiSmoke.lean` compiles certified identity/Kronecker unitaries, matrix
+  reindexing as an algebra equivalence, permutation-matrix action orientation,
+  selected-wire splitting, and L² operator-norm submultiplicativity.
+- Mathlib has no ready quantum-circuit/Gray-code framework. General unitary roots,
+  normal-unitary spectral decomposition, Givens/two-level synthesis, and
+  operator-error-to-measurement bounds remain substantive later stages.
+- The correction log records fourteen initial issues, including Corollary 7.4's
+  invalid `n=7` partition and arithmetic remainder, Lemma 7.8's missing branch/depth
+  conditions, cost-model drift, unsupported six-U(4)-gate surjectivity, and
+  conjectural dimension counting.
+
+### Verification evidence
+
+- `lake env lean Barenco/Basic.lean`: success.
+- `lake env lean Barenco/ApiSmoke.lean`: success.
+- `lake env lean Barenco/AxiomAudit.lean`: only `propext`, `Classical.choice`, and
+  `Quot.sound` reported for the four audited exports; no project axiom.
+- `lake build`: success twice from unchanged sources, 2,360 jobs each.
+- Project Lean-source searches found no `sorry`, `admit`, `by?`, `native_decide`,
+  `bv_decide`, project `axiom`, or `opaque` declaration.
+- `git diff --check`, a trailing-whitespace scan, manifest revision check, and a
+  script confirming all sixteen image filenames occur in traceability succeeded.
+
+### Fold-forward decision
+
+Stage 2 should retain the raw `Gate` matrix for algebra and introduce certified
+unitary/local-gate structures plus syntactic circuits separately. Basis-action
+matrices should define embeddings and controls directly; Kronecker/reindexing can
+then be proved equivalent for contiguous cases instead of determining the API.
