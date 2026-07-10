@@ -64,6 +64,27 @@ def aBorrowSlotEmbedding {l r : ℕ} (hcapacity : l ≤ r + 2) :
     Fin l ↪ FourBlockSlot l r :=
   (Fin.castLEEmb hcapacity).trans (aWorkspaceSlotEmbedding l r)
 
+/-- Under the stronger prefix bound, A's chosen workspace stays in the right group. -/
+theorem aBorrowSlotEmbedding_eq_rightControl {l r : ℕ}
+    (hcapacity : l ≤ r + 2) (htargetFree : l ≤ r + 1) (borrowed : Fin l) :
+    aBorrowSlotEmbedding hcapacity borrowed =
+      Sum.inr (Sum.inl (Fin.castLE htargetFree borrowed)) := by
+  have hcast : Fin.castLE hcapacity borrowed =
+      Fin.castAdd 1 (Fin.castLE htargetFree borrowed) := by
+    apply Fin.ext
+    rfl
+  simp [aBorrowSlotEmbedding, aWorkspaceSlotEmbedding,
+    aWorkspaceSumEmbedding, hcast]
+
+/-- Thus the target slot is not borrowed whenever the right group alone has capacity. -/
+theorem aBorrowSlotEmbedding_ne_target {l r : ℕ}
+    (hcapacity : l ≤ r + 2) (htargetFree : l ≤ r + 1) (borrowed : Fin l) :
+    aBorrowSlotEmbedding hcapacity borrowed ≠
+      (Sum.inr (Sum.inr 1) : FourBlockSlot l r) := by
+  rw [aBorrowSlotEmbedding_eq_rightControl hcapacity htargetFree]
+  intro h
+  cases Sum.inr.inj h
+
 /-- First-group controls as possible dirty workspace for block B. -/
 def leftControlSlotEmbedding (l r : ℕ) :
     Fin (l + 2) ↪ FourBlockSlot l r where
@@ -324,7 +345,7 @@ theorem aInwardLadderLayout_orderedControlLayout {l r n : ℕ}
     (layout : FourBlockLayout l r n) (hcapacity : l ≤ r + 2) :
     (layout.aInwardLadderLayout hcapacity).orderedControlLayout =
       layout.aLayout := by
-  apply OrderedControlLayout.mk.injEq.mpr
+  rw [OrderedControlLayout.mk.injEq]
   constructor
   · apply Function.Embedding.ext
     intro control
@@ -335,7 +356,7 @@ theorem bInwardLadderLayout_orderedControlLayout {l r n : ℕ}
     (layout : FourBlockLayout l r n) (hcapacity : r ≤ l + 2) :
     (layout.bInwardLadderLayout hcapacity).orderedControlLayout =
       layout.bLayout := by
-  apply OrderedControlLayout.mk.injEq.mpr
+  rw [OrderedControlLayout.mk.injEq]
   constructor
   · apply Function.Embedding.ext
     intro control
@@ -424,6 +445,216 @@ theorem eval_corollary74Circuit {leftTail rightTail n : ℕ}
   exact eval_fourBlockSubstitutionCircuit layout _ _
     (eval_corollary74AImplementation layout hleft)
     (eval_corollary74BImplementation layout hright)
+
+/-! ## Exact Toffoli-macro resources -/
+
+@[simp]
+theorem corollary74AImplementation_gateCount {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2) :
+    Circuit.gateCount (layout.corollary74AImplementation hcapacity) =
+      4 * (leftTail + 1) := by
+  simp [corollary74AImplementation]
+
+@[simp]
+theorem corollary74AImplementation_toffoliCount {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : leftTail ≤ rightTail + 2) :
+    Circuit.kindCount .toffoli (layout.corollary74AImplementation hcapacity) =
+      4 * (leftTail + 1) := by
+  simp [corollary74AImplementation]
+
+@[simp]
+theorem corollary74BImplementation_gateCount {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : rightTail ≤ leftTail + 2) :
+    Circuit.gateCount (layout.corollary74BImplementation hcapacity) =
+      4 * (rightTail + 1) := by
+  simp [corollary74BImplementation]
+
+@[simp]
+theorem corollary74BImplementation_toffoliCount {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hcapacity : rightTail ≤ leftTail + 2) :
+    Circuit.kindCount .toffoli (layout.corollary74BImplementation hcapacity) =
+      4 * (rightTail + 1) := by
+  simp [corollary74BImplementation]
+
+/-- The exact circuit contains `8(leftTail + rightTail + 2)` Toffoli macros. -/
+@[simp]
+theorem corollary74Circuit_gateCount {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2) (hright : rightTail ≤ leftTail + 2) :
+    Circuit.gateCount (layout.corollary74Circuit hleft hright) =
+      8 * (leftTail + rightTail + 2) := by
+  simp [corollary74Circuit]
+  omega
+
+/-- Every syntactic node in the exact expansion is a trusted Toffoli macro. -/
+@[simp]
+theorem corollary74Circuit_toffoliCount {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2) (hright : rightTail ≤ leftTail + 2) :
+    Circuit.kindCount .toffoli (layout.corollary74Circuit hleft hright) =
+      8 * (leftTail + rightTail + 2) := by
+  simp [corollary74Circuit]
+  omega
+
+/-- The unexpanded Toffoli circuit has no cost in the early basic-operation model. -/
+@[simp]
+theorem corollary74Circuit_oneQubitCNOTCost {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2) (hright : rightTail ≤ leftTail + 2) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (layout.corollary74Circuit hleft hright) = none := by
+  simp [corollary74Circuit, fourBlockSubstitutionCircuit, Circuit.cost_append,
+    corollary74AImplementation, corollary74BImplementation]
+
+/-! ## Balanced source-width partition -/
+
+/-- Left borrowed tail in the repaired floor partition for source width `sourceWidth`. -/
+def balancedLeftTail (sourceWidth : ℕ) : ℕ := sourceWidth / 2 - 3
+
+/-- Right borrowed tail in the repaired floor partition for source width `sourceWidth`. -/
+def balancedRightTail (sourceWidth : ℕ) : ℕ :=
+  sourceWidth - sourceWidth / 2 - 4
+
+/-- The two positive borrowed counts consume exactly the source's `n` logical wires. -/
+theorem balancedTails_add_seven {sourceWidth : ℕ} (hwidth : 7 ≤ sourceWidth) :
+    balancedLeftTail sourceWidth + balancedRightTail sourceWidth + 7 = sourceWidth := by
+  simp [balancedLeftTail, balancedRightTail]
+  omega
+
+/-- Subtraction-safe form used by the exact `8(n-5)` resource equation. -/
+theorem balancedTails_add_two {sourceWidth : ℕ} (hwidth : 7 ≤ sourceWidth) :
+    balancedLeftTail sourceWidth + balancedRightTail sourceWidth + 2 =
+      sourceWidth - 5 := by
+  have := balancedTails_add_seven hwidth
+  omega
+
+/-- The left tail never exceeds the right tail by more than one. -/
+theorem balancedLeftTail_le_right_add_one {sourceWidth : ℕ}
+    (hwidth : 7 ≤ sourceWidth) :
+    balancedLeftTail sourceWidth ≤ balancedRightTail sourceWidth + 1 := by
+  simp [balancedLeftTail, balancedRightTail]
+  omega
+
+/-- The right tail never exceeds the left tail. -/
+theorem balancedRightTail_le_left {sourceWidth : ℕ}
+    (hwidth : 7 ≤ sourceWidth) :
+    balancedRightTail sourceWidth ≤ balancedLeftTail sourceWidth := by
+  simp [balancedLeftTail, balancedRightTail]
+  omega
+
+/-- In particular, the A ladder fits and does not need to borrow the final target. -/
+theorem balancedLeftCapacity {sourceWidth : ℕ} (hwidth : 7 ≤ sourceWidth) :
+    balancedLeftTail sourceWidth ≤ balancedRightTail sourceWidth + 2 :=
+  (balancedLeftTail_le_right_add_one hwidth).trans (by omega)
+
+/-- The B ladder fits inside the first-group data controls. -/
+theorem balancedRightCapacity {sourceWidth : ℕ} (hwidth : 7 ≤ sourceWidth) :
+    balancedRightTail sourceWidth ≤ balancedLeftTail sourceWidth + 2 :=
+  (balancedRightTail_le_left hwidth).trans (by omega)
+
+/-- The stronger balanced A bound certifies that A never borrows the final target. -/
+theorem balancedABorrowSlotEmbedding_ne_target {sourceWidth : ℕ}
+    (hwidth : 7 ≤ sourceWidth)
+    (borrowed : Fin (balancedLeftTail sourceWidth + 1)) :
+    aBorrowSlotEmbedding
+        (l := balancedLeftTail sourceWidth + 1)
+        (r := balancedRightTail sourceWidth + 1) (by
+          have := balancedLeftTail_le_right_add_one hwidth
+          omega) borrowed ≠
+      (Sum.inr (Sum.inr 1) :
+        FourBlockSlot (balancedLeftTail sourceWidth + 1)
+          (balancedRightTail sourceWidth + 1)) := by
+  apply aBorrowSlotEmbedding_ne_target
+  have := balancedLeftTail_le_right_add_one hwidth
+  omega
+
+/-! ## Canonical exact-width circuit -/
+
+/-- Consecutive embedding of the nested four-block slots into their logical width. -/
+def consecutiveSlotEmbedding (l r : ℕ) :
+    FourBlockSlot l r ↪ Fin (logicalWidth l r) :=
+  (Equiv.sumCongr (Equiv.refl _) (@finSumFinEquiv (r + 1) 2)).toEmbedding |>.trans
+    ((@finSumFinEquiv (l + 2) ((r + 1) + 2)).toEmbedding |>.trans
+      (Fin.castLEEmb (by simp [logicalWidth]; omega)))
+
+/-- A canonical adjacent placement of every logical four-block wire. -/
+def consecutiveLayout (l r : ℕ) : FourBlockLayout l r (logicalWidth l r) where
+  wire := consecutiveSlotEmbedding l r
+
+/-- Canonical source-width placement for every legal width `sourceWidth ≥ 7`. -/
+def balancedLayout (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    FourBlockLayout (balancedLeftTail sourceWidth + 1)
+      (balancedRightTail sourceWidth + 1) sourceWidth where
+  wire :=
+    (consecutiveSlotEmbedding (balancedLeftTail sourceWidth + 1)
+      (balancedRightTail sourceWidth + 1)).trans
+      (Fin.castLEEmb (by
+        have hsum := balancedTails_add_seven hwidth
+        simp only [logicalWidth]
+        omega))
+
+/-- The repaired floor-partition construction on exactly `sourceWidth` wires. -/
+def balancedCorollary74Circuit (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit sourceWidth :=
+  (balancedLayout sourceWidth hwidth).corollary74Circuit
+    (balancedLeftCapacity hwidth) (balancedRightCapacity hwidth)
+
+/-- Exact semantics of the canonical balanced construction. -/
+@[simp]
+theorem eval_balancedCorollary74Circuit (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    Circuit.eval (balancedCorollary74Circuit sourceWidth hwidth) =
+      positiveControlledUnitary
+        (balancedLayout sourceWidth hwidth).targetWire
+        (balancedLayout sourceWidth hwidth).dataLayout.controlSet pauliX := by
+  exact eval_corollary74Circuit _ _ _
+
+/-- Corrected Corollary 7.4's exact `8(sourceWidth - 5)` Toffoli count. -/
+@[simp]
+theorem balancedCorollary74Circuit_gateCount (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    Circuit.gateCount (balancedCorollary74Circuit sourceWidth hwidth) =
+      8 * (sourceWidth - 5) := by
+  rw [balancedCorollary74Circuit, corollary74Circuit_gateCount]
+  rw [balancedTails_add_two hwidth]
+
+/-- Every node in the canonical exact expansion is a Toffoli macro. -/
+@[simp]
+theorem balancedCorollary74Circuit_toffoliCount (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    Circuit.kindCount .toffoli (balancedCorollary74Circuit sourceWidth hwidth) =
+      8 * (sourceWidth - 5) := by
+  rw [balancedCorollary74Circuit, corollary74Circuit_toffoliCount]
+  rw [balancedTails_add_two hwidth]
+
+/-- The exact-width circuit carries the requested source register width. -/
+@[simp]
+theorem balancedCorollary74Circuit_registerWidth (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    Circuit.registerWidth (balancedCorollary74Circuit sourceWidth hwidth) = sourceWidth :=
+  rfl
+
+/-- The canonical Toffoli-macro circuit remains unsupported by one-qubit+CNOT cost. -/
+@[simp]
+theorem balancedCorollary74Circuit_oneQubitCNOTCost (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (balancedCorollary74Circuit sourceWidth hwidth) = none := by
+  apply corollary74Circuit_oneQubitCNOTCost
+
+/-- The repaired construction includes the formerly problematic `sourceWidth = 7` boundary. -/
+theorem balancedCorollary74Circuit_seven_gateCount :
+    Circuit.gateCount (balancedCorollary74Circuit 7 (by omega)) = 16 := by
+  rw [balancedCorollary74Circuit_gateCount]
+
+/-- At width seven, all sixteen syntactic nodes are Toffoli macros. -/
+theorem balancedCorollary74Circuit_seven_toffoliCount :
+    Circuit.kindCount .toffoli (balancedCorollary74Circuit 7 (by omega)) = 16 := by
+  rw [balancedCorollary74Circuit_toffoliCount]
 
 end FourBlockLayout
 

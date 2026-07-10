@@ -83,6 +83,13 @@ Status: in progress (Lemmas 7.1–7.3 complete; corrected Corollary 7.4 next).
   `ℓ=n/2−3`, `r=n−n/2−4`; then logical width is `n`, both capacities hold, and
   the count is `8(n−5)`. Ambient spectator width must not replace logical width
   in this formula.
+- The generic minimal A-ladder capacity `ℓ≤r+2` may force A to use the final
+  target as dirty workspace at the endpoint; exact Lemma 7.2 semantics make that
+  safe, but it invalidates any generic claim that only four Toffolis touch the
+  target. The repaired balanced split proves the stronger `ℓ≤r+1`, so the chosen
+  A-workspace prefix stays inside the right data-control group and avoids the
+  final target. This phase-ready strengthening must be proved before the later
+  “four exact occurrences” accounting is attempted.
 
 ## Source Claim Audit
 

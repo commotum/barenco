@@ -88,6 +88,13 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** exact early-basic count in Corollary 7.4 and leading counts
   derived from it.
 - **Formal evidence:** planned syntax count; no claim yet that `48n−204` is correct.
+- **Additional structural requirement:** a generic minimally capacitated Lemma 7.3
+  substitution may borrow the final target inside an A ladder, causing additional
+  Toffolis to touch it. The repaired balanced partition satisfies a stronger
+  capacity inequality that keeps A's borrowed prefix entirely on right-group data
+  controls. The later “four exact target occurrences” statement is therefore
+  valid, if at all, only for that phase-ready balanced syntax and needs its own
+  touched-target theorem.
 - **Status:** open.
 
 ## C-005 — Quadratic “Theta” is not an optimal-synthesis theorem
