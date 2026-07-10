@@ -1,8 +1,9 @@
 # 7-MULTICONTROL
 
-Status: in progress (Lemmas 7.1–7.3 and corrected Corollary 7.4 complete through
-an exact literal primitive upper bound; optimized source count unresolved;
-Lemma 7.5 next).
+Status: in progress (Lemmas 7.1–7.5 are semantically complete; corrected
+Corollary 7.4 is complete through an exact literal primitive upper bound;
+the recursive primitive expansion and corrected Corollary 7.6 resource theorem
+are in progress; the optimized source count remains unresolved).
 
 ## Current Facts
 
@@ -132,6 +133,18 @@ Lemma 7.5 next).
   shifted `d` formula (or write `56n²+636−420n`) to avoid intermediate truncated
   subtraction. These are pending syntax linkage and do not imply an optimal
   `Θ(n²)` theorem.
+- The five-node Lemma 7.5 macro circuit, its selected square-root wrapper, and its
+  generic five-way substitution theorem now compile. The theorem is exact even
+  for an empty prefix (one total control), while a zero-control gate is a separate
+  local circuit. A direct primitive Gray expansion supplies the six-control base
+  with exact `(252,188,440)` one-qubit/CNOT/total counts. The remaining syntax
+  task is to embed the corrected Corollary 7.4 prefix-controlled-X circuit into
+  every recursive step and link its exact component counts to the closed forms.
+- A strict scratch proof has checked the planned asymptotic wrapper:
+  after casting the exact natural-number count to `ℝ`, the shifted polynomial
+  is `IsBigOWith 860` of `d²` at `atTop`, using the eventual threshold `d≥1`.
+  No global pointwise comparison is possible at `d=0`, where the circuit cost is
+  440 but `d²=0`.
 
 ## Source Claim Audit
 
@@ -576,10 +589,23 @@ pivot invariant, not merely Hamming adjacency.
 - An independent audit exhaustively checked the signed Boolean recurrence through
   borrowed depth four (13,624 obligations), confirmed the stronger target-free
   assumption has a counterexample when dropped, recomputed every contextual/raw
-  count, and found no semantic or resource error. The maintained root axiom audit
-  now contains 143 prints, all within `propext`, `Classical.choice`, and
+  count, and found no semantic or resource error. At that integration point the
+  maintained root axiom audit contained 143 prints, all within `propext`, `Classical.choice`, and
   `Quot.sound`. The integrated focused root/audit build passed with 3,489 jobs;
   two consecutive post-root full builds passed with 3,488 jobs each.
+- `Selected.lean` packages one coordinated six-node Corollary 5.3 witness with
+  exact evaluator and `(4,2,6)` one-qubit/CNOT/total counts. `GrayExpansion.lean`
+  expands every signed-root macro by that witness without inspecting opaque
+  primitive metadata, preserves the full Gray evaluator, and gives the direct
+  six-control recursive base profile `(252,188,440)`.
+- `Recursive.lean` now proves the five-node Lemma 7.5 chronology exactly on an
+  arbitrary-width ordered layout, including `prefix=0`; the genuinely
+  zero-control local gate is separate. It also proves selected-root correctness,
+  exact macro counts, and evaluator/count/cost preservation for five supplied
+  implementation circuits. An independent read-only review approved its
+  chronology, boundary algebra, substitution theorem, and resource accounting.
+  Strict root/audit compilation passes with 160 maintained axiom prints, all
+  within `propext`, `Classical.choice`, and `Quot.sound`.
 - Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
   `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
   proves the source's original `n=9,m=5` split exhausts A's right workspace and

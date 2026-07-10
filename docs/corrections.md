@@ -555,10 +555,20 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** Corollaries 7.6 and 7.8, every recursive fully controlled
   circuit constructor, and downstream Section 8 estimates that charge the
   quadratic exact construction.
-- **Formal evidence:** planned width-indexed recursive syntax, base/step evaluator
-  theorems, termination proof, and syntax-derived recurrence with explicit base
-  costs; the existing square-root API alone does not establish these obligations.
-- **Status:** open.
+- **Formal evidence:** `recursiveViaSquareCircuit` is indexed by an
+  `OrderedControlLayout (prefix+1) ambientWidth` and stores the exact five-node
+  chronology. `eval_recursiveViaSquareCircuit_pow_two` and its square-equation
+  variant prove exact full-register semantics; `recursiveRootCircuit` supplies
+  the certified square root. The proof genuinely includes `prefix=0`, while
+  `zeroControlCircuit` and `eval_zeroControlCircuit` expose the distinct local
+  base. `recursiveSubstitutionCircuit` proves evaluator and additive resource
+  preservation for five supplied implementations. `sixControlExpandedGrayCircuit`
+  supplies the separately proved recursive resource base with exact
+  `(252,188,440)` one-qubit/CNOT/total counts. The remaining primitive recursion
+  and closed recurrence are isolated in the planned expansion/resource leaves.
+- **Status:** corrected and proved for semantic boundaries and macro
+  substitution; primitive recursive termination/count linkage remains in
+  progress.
 
 ## C-024 — Lemma 7.1 has a useful one-control extension but no zero-control Gray case
 

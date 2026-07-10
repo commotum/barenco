@@ -429,7 +429,11 @@ Current implementation facts:
   evaluator preservation and literal counts `32n−144` one-qubit,
   `24n−100` CNOT, and `56n−244` total/cost. The source's optimized `48n−204`
   remains unresolved because no explicit evaluator-preserving normalization
-  establishes it. Lemma 7.5 is next.
+  establishes it. Lemma 7.5 now has an exact arbitrary-width five-node evaluator,
+  selected square-root wrapper, explicit zero/one-control boundaries, and a
+  generic checked substitution theorem. Its recursive primitive expansion and
+  the corrected construction-specific Corollary 7.6 recurrence are in progress;
+  the direct six-control base is exactly `(252,188,440)`.
 
 ### Detailed Implementation Plan
 

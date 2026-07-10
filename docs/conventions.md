@@ -239,10 +239,30 @@ matrix varies. More importantly for Lemma 7.8, the current API proves each
 power-of-two root equation independently but does not yet prove a coherent sequence
 `V_{m+1}² = V_m`, nor the operator-distance estimate
 `operatorDistance V_m I ≤ π / 2^m`. Those theorems must use the already fixed L²
-operator norm and a shared eigenphase choice. Section 6 now embeds the selected
-square root into the exact Lemma 6.1 circuit and its explicit sixteen-primitive
-expansion. The later coherent-root circuits of Lemmas 7.5 and 7.8 and their
-syntax-based counts remain separate circuit/resource obligations.
+operator norm and a shared eigenphase choice. Section 6 embeds the selected square
+root into the exact Lemma 6.1 circuit and its explicit sixteen-primitive
+expansion. Lemma 7.5 now uses the same independently selected square-root
+operation in an exact recursive step; it needs only `V²=U`, not a coherent
+infinite root sequence. Coherence and the norm estimates needed by Lemma 7.8
+remain separate obligations.
+
+### Recursive multi-control boundary and cost indexing
+
+For Lemma 7.5, an `OrderedControlLayout (prefix+1) ambientWidth` orders a nonempty
+control family. The first `prefix` controls drive both multi-controlled-X macros
+and the smaller controlled root; the last ordered control drives the two singly
+controlled target gates. The chronological syntax is
+
+`C(last,V,target); MCX(prefix,last); C(last,V⁻¹,target);`
+`MCX(prefix,last); MC-V(prefix,target)`.
+
+This statement includes `prefix=0`, where both MCX nodes are ordinary local-X
+gates and the final macro is a local `V`. A truly zero-control `U` is a separate
+one-qubit circuit. Primitive resource recursion starts instead at six controls,
+because that width has a direct expanded Gray circuit and every later recursive
+step can use the corrected Corollary 7.4 construction for its prefix-controlled
+X. Its natural closed forms are indexed by `d = registerWidth − 7`; keeping the
+shift avoids misleading truncated subtraction in `ℕ`.
 
 ## Section 5 Controlled-Gate Conventions
 
