@@ -72,6 +72,135 @@ def doubleControlledExpansion16Circuit {n : ℕ}
     Primitive.cnot first target hfirstTarget,
     Primitive.oneQubit target C]
 
+/-! ## Exact cancellation semantics -/
+
+private theorem eval_local_cnot_localAdjoint {n : ℕ}
+    (control cnotTarget localTarget : Fin n)
+    (hct : control ≠ cnotTarget) (hcl : control ≠ localTarget)
+    (htl : cnotTarget ≠ localTarget) (U : QubitUnitary) :
+    Circuit.eval
+        [Primitive.oneQubit localTarget U,
+          Primitive.cnot control cnotTarget hct,
+          (Primitive.oneQubit localTarget U).adjoint] =
+      Circuit.eval [Primitive.cnot control cnotTarget hct] := by
+  simp only [Circuit.eval_cons, Circuit.eval_nil, one_mul,
+    Primitive.adjoint_denotation, Primitive.oneQubit_denotation,
+    Primitive.cnot_denotation]
+  rw [mul_assoc,
+    cnotUnitary_commute_localUnitary control cnotTarget localTarget
+      hct hcl htl]
+  simp
+
+private theorem eval_A_controlOnly_A_cancel {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target)
+    (delta : ℝ) (A : QubitUnitary) :
+    Circuit.eval
+        [(Primitive.oneQubit target A).adjoint,
+          (Primitive.oneQubit second (controlPhaseUnitary delta)).adjoint,
+          Primitive.cnot first second hfirstSecond,
+          Primitive.oneQubit first (controlPhaseUnitary delta),
+          Primitive.oneQubit target A] =
+      Circuit.eval
+        [(Primitive.oneQubit second (controlPhaseUnitary delta)).adjoint,
+          Primitive.cnot first second hfirstSecond,
+          Primitive.oneQubit first (controlPhaseUnitary delta)] := by
+  let LA : UnitaryGate n := localUnitary target A
+  let E1 : UnitaryGate n := localUnitary first (controlPhaseUnitary delta)
+  let E2 : UnitaryGate n := localUnitary second (controlPhaseUnitary delta)
+  let K : UnitaryGate n := cnotUnitary first second hfirstSecond
+  simp only [Circuit.eval_cons, Circuit.eval_nil, one_mul,
+    Primitive.adjoint_denotation, Primitive.oneQubit_denotation,
+    Primitive.cnot_denotation]
+  change LA * E1 * K * E2⁻¹ * LA⁻¹ = E1 * K * E2⁻¹
+  have hAE1 : Commute LA E1 := by
+    exact localUnitary_commute_of_ne target first hfirstTarget.symm A
+      (controlPhaseUnitary delta)
+  have hAK : Commute LA K := by
+    exact (cnotUnitary_commute_localUnitary first second target
+      hfirstSecond hfirstTarget hsecondTarget A).symm
+  have hAE2 : Commute LA E2 := by
+    exact localUnitary_commute_of_ne target second hsecondTarget.symm A
+      (controlPhaseUnitary delta)
+  calc
+    LA * E1 * K * E2⁻¹ * LA⁻¹ =
+        E1 * LA * K * E2⁻¹ * LA⁻¹ := by rw [hAE1.eq]
+    _ = E1 * K * LA * E2⁻¹ * LA⁻¹ := by
+      rw [mul_assoc E1 LA K, hAK.eq, ← mul_assoc E1 K LA]
+    _ = E1 * K * E2⁻¹ * LA * LA⁻¹ := by
+      rw [mul_assoc (E1 * K) LA E2⁻¹, (hAE2.inv_right).eq,
+        ← mul_assoc (E1 * K) E2⁻¹ LA]
+    _ = E1 * K * E2⁻¹ := by simp
+
+/--
+The paper's two implicit disjoint-wire commutations and inverse-pair
+cancellations turn the twenty-node expansion into the explicit sixteen-node
+circuit without changing its full-register evaluator.
+-/
+theorem eval_doubleControlledExpansion20Circuit_eq_16 {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target)
+    (delta : ℝ) (A B C : QubitUnitary) :
+    Circuit.eval
+        (doubleControlledExpansion20Circuit first second target hfirstSecond
+          hfirstTarget hsecondTarget delta A B C) =
+      Circuit.eval
+        (doubleControlledExpansion16Circuit first second target hfirstSecond
+          hfirstTarget hsecondTarget delta A B C) := by
+  change Circuit.eval (Circuit.append
+      [Primitive.oneQubit second (controlPhaseUnitary delta),
+        Primitive.oneQubit target A,
+        Primitive.cnot second target hsecondTarget,
+        Primitive.oneQubit target B,
+        Primitive.cnot second target hsecondTarget]
+      (Circuit.append
+        [Primitive.oneQubit target C,
+          Primitive.cnot first second hfirstSecond,
+          (Primitive.oneQubit target C).adjoint]
+        (Circuit.append
+          [(Primitive.cnot second target hsecondTarget).adjoint,
+            (Primitive.oneQubit target B).adjoint,
+            (Primitive.cnot second target hsecondTarget).adjoint]
+          (Circuit.append
+            [(Primitive.oneQubit target A).adjoint,
+              (Primitive.oneQubit second (controlPhaseUnitary delta)).adjoint,
+              Primitive.cnot first second hfirstSecond,
+              Primitive.oneQubit first (controlPhaseUnitary delta),
+              Primitive.oneQubit target A]
+            [Primitive.cnot first target hfirstTarget,
+              Primitive.oneQubit target B,
+              Primitive.cnot first target hfirstTarget,
+              Primitive.oneQubit target C])))) =
+    Circuit.eval (Circuit.append
+      [Primitive.oneQubit second (controlPhaseUnitary delta),
+        Primitive.oneQubit target A,
+        Primitive.cnot second target hsecondTarget,
+        Primitive.oneQubit target B,
+        Primitive.cnot second target hsecondTarget]
+      (Circuit.append
+        [Primitive.cnot first second hfirstSecond]
+        (Circuit.append
+          [(Primitive.cnot second target hsecondTarget).adjoint,
+            (Primitive.oneQubit target B).adjoint,
+            (Primitive.cnot second target hsecondTarget).adjoint]
+          (Circuit.append
+            [(Primitive.oneQubit second (controlPhaseUnitary delta)).adjoint,
+              Primitive.cnot first second hfirstSecond,
+              Primitive.oneQubit first (controlPhaseUnitary delta)]
+            [Primitive.cnot first target hfirstTarget,
+              Primitive.oneQubit target B,
+              Primitive.cnot first target hfirstTarget,
+              Primitive.oneQubit target C]))))
+  simp only [Circuit.eval_append]
+  rw [eval_local_cnot_localAdjoint first second target hfirstSecond
+      hfirstTarget hsecondTarget C,
+    eval_A_controlOnly_A_cancel first second target hfirstSecond
+      hfirstTarget hsecondTarget delta A]
+
 /-! ## Structural resources -/
 
 @[simp]
