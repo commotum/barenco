@@ -502,6 +502,34 @@ def grayControlledViaRootCircuit {tail ambientWidth : ℕ}
     [grayRootPrimitiveAt layout V (grayCNOTEdges (tail + 1)).length
       (grayFinalMask_index_lt tail)]
 
+/-- The paper's displayed 13-node circuit for three controls and one target. -/
+def fourBitGrayCircuit {ambientWidth : ℕ}
+    (layout : OrderedControlLayout 3 ambientWidth) (V : QubitUnitary) :
+    Circuit ambientWidth :=
+  [layout.controlledTargetPrimitive 0 V,
+    layout.cnotPrimitive 0 1 (by decide),
+    layout.controlledTargetPrimitive 1 V⁻¹,
+    layout.cnotPrimitive 0 1 (by decide),
+    layout.controlledTargetPrimitive 1 V,
+    layout.cnotPrimitive 1 2 (by decide),
+    layout.controlledTargetPrimitive 2 V⁻¹,
+    layout.cnotPrimitive 0 2 (by decide),
+    layout.controlledTargetPrimitive 2 V,
+    layout.cnotPrimitive 1 2 (by decide),
+    layout.controlledTargetPrimitive 2 V⁻¹,
+    layout.cnotPrimitive 0 2 (by decide),
+    layout.controlledTargetPrimitive 2 V]
+
+/-- The generated width-three syntax is exactly the paper's displayed chronology. -/
+theorem grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit
+    {ambientWidth : ℕ} (layout : OrderedControlLayout 3 ambientWidth)
+    (V : QubitUnitary) :
+    grayControlledViaRootCircuit (tail := 2) layout V =
+      fourBitGrayCircuit layout V := by
+  simp [grayControlledViaRootCircuit, grayTransitionPrefixCircuit, Circuit.append,
+    grayTransitionPair, grayRootPrimitiveAt, fourBitGrayCircuit,
+    grayCode_three, grayCNOTEdges_three, signedGrayRoot]
+
 @[simp]
 theorem grayRootPrimitiveAt_kind {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
@@ -580,8 +608,11 @@ theorem grayControlledViaRootCircuit_kindCounts {tail ambientWidth : ℕ}
     Circuit.kindCount_append]
   rcases grayTransitionPrefixCircuit_kindCounts layout V
       (grayCNOTEdges (tail + 1)).length le_rfl with ⟨hroot, hcnot⟩
-  rw [hroot, hcnot, length_grayCNOTEdges]
+  rw [hroot, hcnot]
   simp [grayRootPrimitiveAt, Circuit.kindCount]
+  have hpow : 0 < 2 ^ tail := pow_pos (by omega) tail
+  simp only [pow_succ]
+  omega
 
 /--
 The macro circuit is intentionally not assigned an early-basic cost: its
@@ -862,5 +893,66 @@ theorem eval_grayControlledCircuit {tail ambientWidth : ℕ}
   rw [grayControlledCircuit, eval_grayControlledViaRootCircuit]
   congr 1
   exact OneQubit.unitaryRoot_pow (2 ^ tail) (pow_pos (by omega) tail) U
+
+@[simp]
+theorem grayControlledCircuit_gateCount {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (U : QubitUnitary) :
+    Circuit.gateCount (grayControlledCircuit layout U) = 2 ^ (tail + 2) - 3 := by
+  simp [grayControlledCircuit]
+
+theorem grayControlledCircuit_kindCounts {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (U : QubitUnitary) :
+    Circuit.kindCount (.controlledOneQubit 1) (grayControlledCircuit layout U) =
+          2 ^ (tail + 1) - 1 ∧
+      Circuit.kindCount .cnot (grayControlledCircuit layout U) =
+          2 ^ (tail + 1) - 2 := by
+  exact grayControlledViaRootCircuit_kindCounts layout (graySelectedRoot tail U)
+
+@[simp]
+theorem grayControlledCircuit_oneQubitCNOTCost {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (U : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT (grayControlledCircuit layout U) = none := by
+  exact grayControlledViaRootCircuit_oneQubitCNOTCost layout (graySelectedRoot tail U)
+
+/-! ## The displayed four-bit instance -/
+
+/-- Exact arbitrary-width semantics of the paper's displayed 13-node circuit. -/
+theorem eval_fourBitGrayCircuit {ambientWidth : ℕ}
+    (layout : OrderedControlLayout 3 ambientWidth) (V : QubitUnitary) :
+    Circuit.eval (fourBitGrayCircuit layout V) =
+      positiveControlledUnitary layout.targetWire layout.controlSet (V ^ 4) := by
+  rw [← grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit,
+    eval_grayControlledViaRootCircuit]
+  norm_num
+
+/-- Parameterized displayed-circuit theorem for any certified fourth root. -/
+theorem eval_fourBitGrayCircuit_of_pow_four_eq {ambientWidth : ℕ}
+    (layout : OrderedControlLayout 3 ambientWidth) (U V : QubitUnitary)
+    (hV : V ^ 4 = U) :
+    Circuit.eval (fourBitGrayCircuit layout V) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [eval_fourBitGrayCircuit, hV]
+
+/-- The displayed circuit contains exactly seven controlled roots and six CNOTs. -/
+@[simp]
+theorem fourBitGrayCircuit_gateCount {ambientWidth : ℕ}
+    (layout : OrderedControlLayout 3 ambientWidth) (V : QubitUnitary) :
+    Circuit.gateCount (fourBitGrayCircuit layout V) = 13 := by
+  rw [← grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit]
+  norm_num
+
+theorem fourBitGrayCircuit_kindCounts {ambientWidth : ℕ}
+    (layout : OrderedControlLayout 3 ambientWidth) (V : QubitUnitary) :
+    Circuit.kindCount (.controlledOneQubit 1) (fourBitGrayCircuit layout V) = 7 ∧
+      Circuit.kindCount .cnot (fourBitGrayCircuit layout V) = 6 := by
+  rw [← grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit]
+  simpa using grayControlledViaRootCircuit_kindCounts layout V
+
+@[simp]
+theorem fourBitGrayCircuit_oneQubitCNOTCost {ambientWidth : ℕ}
+    (layout : OrderedControlLayout 3 ambientWidth) (V : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT (fourBitGrayCircuit layout V) = none := by
+  rw [← grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit]
+  exact grayControlledViaRootCircuit_oneQubitCNOTCost layout V
 
 end Barenco.MultiControl

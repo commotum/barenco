@@ -1,11 +1,12 @@
-import Barenco.MultiControl.GrayAccumulator
+import Barenco.MultiControl.Lemma71
 
 /-!
-# Diagnostic checks for the Section 7 Gray-code foundation
+# Diagnostic checks for the Section 7 Gray construction
 
 This module is intentionally excluded from the public root.  Its finite checks
 pin the paper's width-three masks, toggles, pivots, CNOT chronology, signed parity
-identity, and final restoration without replacing any general public proof.
+identity, final restoration, explicit 13-node syntax, and resource counts without
+replacing any general public proof.
 -/
 
 namespace Barenco.MultiControlExamples
@@ -55,5 +56,29 @@ theorem threeControl_grayCNOTs_restore (input : Fin 3 → Bool) :
     cases h₂ : input 2 <;>
     simp [runXorEdges, xorWireUpdate, h₀, h₁, h₂] <;>
     decide
+
+/-- The generic generator specializes to the exact displayed 13-node circuit. -/
+example {ambientWidth : ℕ} (layout : OrderedControlLayout 3 ambientWidth)
+    (V : QubitUnitary) :
+    grayControlledViaRootCircuit (tail := 2) layout V =
+      fourBitGrayCircuit layout V :=
+  grayControlledViaRootCircuit_two_eq_fourBitGrayCircuit layout V
+
+/-- The displayed syntax has the paper's exact macro counts. -/
+example {ambientWidth : ℕ} (layout : OrderedControlLayout 3 ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.gateCount (fourBitGrayCircuit layout V) = 13 ∧
+      Circuit.kindCount (.controlledOneQubit 1) (fourBitGrayCircuit layout V) = 7 ∧
+      Circuit.kindCount .cnot (fourBitGrayCircuit layout V) = 6 := by
+  exact ⟨fourBitGrayCircuit_gateCount layout V,
+    (fourBitGrayCircuit_kindCounts layout V).1,
+    (fourBitGrayCircuit_kindCounts layout V).2⟩
+
+/-- The selected fourth root gives exact full-register three-control semantics. -/
+example {ambientWidth : ℕ} (layout : OrderedControlLayout 3 ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.eval (grayControlledCircuit (tail := 2) layout U) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  exact eval_grayControlledCircuit layout U
 
 end Barenco.MultiControlExamples

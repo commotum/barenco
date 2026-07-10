@@ -15,6 +15,7 @@ import Barenco.OneQubit.Roots
 import Barenco.OneQubit.CircuitBridge
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
+import Barenco.MultiControl.Lemma71
 
 /-!
 # Barenco
