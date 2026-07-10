@@ -8,6 +8,7 @@ import Barenco.Equivalence.OperatorNorm
 import Barenco.Cost
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
+import Barenco.ControlledCircuit.Selected
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.U2Euler
@@ -22,6 +23,8 @@ import Barenco.MultiControl.FourBlock
 import Barenco.MultiControl.Corollary74
 import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
+import Barenco.MultiControl.GrayExpansion
+import Barenco.MultiControl.Recursive
 
 /-!
 # Barenco

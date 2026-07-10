@@ -201,7 +201,9 @@ theorem expandedGrayTransitionPair_gateCount {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
     (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
     Circuit.gateCount (expandedGrayTransitionPair layout V index hindex) = 7 := by
-  simp [expandedGrayTransitionPair, Circuit.gateCount, Circuit.append]
+  rw [expandedGrayTransitionPair, Circuit.gateCount_append,
+    expandedGrayRootCircuitAt_gateCount]
+  simp [Circuit.gateCount]
 
 @[simp]
 theorem expandedGrayTransitionPair_oneQubitCount
@@ -210,7 +212,9 @@ theorem expandedGrayTransitionPair_oneQubitCount
     (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
     Circuit.kindCount .oneQubit
         (expandedGrayTransitionPair layout V index hindex) = 4 := by
-  simp [expandedGrayTransitionPair, Circuit.kindCount, Circuit.append]
+  rw [expandedGrayTransitionPair, Circuit.kindCount_append,
+    expandedGrayRootCircuitAt_oneQubitCount]
+  simp [Circuit.kindCount]
 
 @[simp]
 theorem expandedGrayTransitionPair_cnotCount {controlCount ambientWidth : ℕ}
@@ -218,7 +222,9 @@ theorem expandedGrayTransitionPair_cnotCount {controlCount ambientWidth : ℕ}
     (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
     Circuit.kindCount .cnot
         (expandedGrayTransitionPair layout V index hindex) = 3 := by
-  simp [expandedGrayTransitionPair, Circuit.kindCount, Circuit.append]
+  rw [expandedGrayTransitionPair, Circuit.kindCount_append,
+    expandedGrayRootCircuitAt_cnotCount]
+  simp [Circuit.kindCount]
 
 @[simp]
 theorem expandedGrayTransitionPair_oneQubitCNOTCost

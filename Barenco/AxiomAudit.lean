@@ -2,6 +2,7 @@ import Barenco.Circuit
 import Barenco.Cost
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
+import Barenco.ControlledCircuit.Selected
 import Barenco.Equivalence.Measurement
 import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.Phase
@@ -19,6 +20,8 @@ import Barenco.MultiControl.FourBlock
 import Barenco.MultiControl.Corollary74
 import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
+import Barenco.MultiControl.GrayExpansion
+import Barenco.MultiControl.Recursive
 
 /-!
 # Kernel axiom audit
@@ -170,3 +173,20 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_cnotCount
 #print axioms Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_gateCount
 #print axioms Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.eval_selectedControlledU2Circuit
+#print axioms Barenco.ControlledCircuit.selectedControlledU2Circuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedGrayControlledViaRootCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedGrayControlledCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedGrayControlledCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedGrayControlledCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_sixControlExpandedGrayCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.sixControlExpandedGrayCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.all_controls_iff_prefixEnabled_and_last
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_recursiveViaSquareCircuit_pow_two
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_recursiveRootCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_kindCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_zeroControlCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_recursiveSubstitutionCircuit_pow_two
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursiveSubstitutionCircuit_cost_of_eq
