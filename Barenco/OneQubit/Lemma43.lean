@@ -9,8 +9,9 @@ existential consequence using the independently proved Euler theorem.
 Two statements are kept distinct.  The first is the paper's raw row-action matrix
 identity `A B C = I` and `A X B X C = W`.  The second translates the same factors
 to standard-column gates and states the reversed products that a chronological
-column-vector circuit actually evaluates.  Neither theorem makes a circuit-cost
-claim.
+list of column-vector matrices evaluates. Both declarations are public proof-side
+API. They quantify over certified special-unitary matrices but do not construct a
+`Circuit`, count primitives, or establish any other resource claim.
 -/
 
 namespace Barenco.OneQubit
@@ -34,7 +35,8 @@ theorem specialUnitary_exists_paperABC (W : QubitSpecialUnitary) :
 
 /--
 Standard-column chronological form of Lemma 4.3.  Here `A` is applied first and
-`C` last, so the semantic matrix products are `C B A` and `C X B X A`.
+`C` last, so the semantic matrix products are `C B A` and `C X B X A`. This is an
+existential matrix equality, not a syntactic circuit construction.
 -/
 theorem specialUnitary_exists_columnChronologicalABC (W : QubitSpecialUnitary) :
     ∃ A B C : QubitSpecialUnitary,

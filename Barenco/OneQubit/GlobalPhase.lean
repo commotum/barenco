@@ -24,6 +24,14 @@ noncomputable section
 def determinantPhaseAngle (U : QubitUnitary) : ℝ :=
   Complex.arg (Matrix.det (U : QubitMatrix)) / 2
 
+/-- The selected determinant phase is the half-open principal choice `(-pi/2, pi/2]`. -/
+theorem determinantPhaseAngle_mem_Ioc (U : QubitUnitary) :
+    determinantPhaseAngle U ∈ Set.Ioc (-(Real.pi / 2)) (Real.pi / 2) := by
+  obtain ⟨hargLower, hargUpper⟩ :=
+    Complex.arg_mem_Ioc (Matrix.det (U : QubitMatrix))
+  rw [determinantPhaseAngle]
+  constructor <;> linarith
+
 /-- The chosen scalar phase has exactly the determinant of `U`. -/
 theorem cis_two_determinantPhaseAngle (U : QubitUnitary) :
     cis (2 * determinantPhaseAngle U) = Matrix.det (U : QubitMatrix) := by
@@ -38,6 +46,12 @@ theorem cis_two_determinantPhaseAngle (U : QubitUnitary) :
   rw [hangle]
   simpa only [cis, hnorm, Complex.ofReal_one, one_mul] using
     Complex.norm_mul_exp_arg_mul_I (Matrix.det (U : QubitMatrix))
+
+/-- Matrix-level determinant form of the chosen scalar-phase equation. -/
+theorem phaseShift_determinantPhaseAngle_det (U : QubitUnitary) :
+    Matrix.det (phaseShift (determinantPhaseAngle U)) =
+      Matrix.det (U : QubitMatrix) := by
+  rw [phaseShift_det, cis_two_determinantPhaseAngle]
 
 /-- Remove the selected scalar determinant phase while retaining unitarity. -/
 def removeGlobalPhase (U : QubitUnitary) : QubitUnitary :=

@@ -6,6 +6,10 @@ import Barenco.Equivalence.Phase
 import Barenco.Equivalence.Measurement
 import Barenco.Equivalence.OperatorNorm
 import Barenco.Cost
+import Barenco.OneQubit.Lemma43
+import Barenco.OneQubit.U2Euler
+import Barenco.OneQubit.Roots
+import Barenco.OneQubit.CircuitBridge
 
 /-!
 # Barenco

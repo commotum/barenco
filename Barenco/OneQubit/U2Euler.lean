@@ -12,6 +12,13 @@ The proof does not infer that the scalar phase of a special unitary is literally
 zero.  In the paper's factorization, determinant one only gives
 `exp(2 i delta) = 1`, so the scalar can also be `-1`; the independently proved
 special-unitary Euler theorem already absorbs that case into its Z angles.
+
+The two exported existential statements do not claim that their outer witnesses
+have the same names.  The paper theorem uses the row-action order
+`paperRz alpha * paperRy theta * paperRz beta`.  Transposition reverses those
+outer factors, and the standard-column theorem uses the already-renamed semantic
+order `rz alpha * ry theta * rz beta`.  The scalar phase is central, so retaining
+it as the leftmost matrix factor is exact in either convention.
 -/
 
 namespace Barenco.OneQubit

@@ -3,6 +3,10 @@ import Barenco.Cost
 import Barenco.Equivalence.Measurement
 import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.Phase
+import Barenco.OneQubit.CircuitBridge
+import Barenco.OneQubit.Lemma43
+import Barenco.OneQubit.Roots
+import Barenco.OneQubit.U2Euler
 
 /-!
 # Kernel axiom audit
@@ -40,3 +44,20 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Circuit.cost_adjoint
 #print axioms Barenco.Circuit.touchedSupport_card_le_registerWidth
 #print axioms Barenco.Primitive.namedModels_reject_unclassified_of_mem
+#print axioms Barenco.OneQubit.paperRy_mul
+#print axioms Barenco.OneQubit.paperX_mul_paperRy_mul_paperX
+#print axioms Barenco.OneQubit.ry_mem_specialUnitaryGroup
+#print axioms Barenco.OneQubit.sigmaX_mul_ry_mul_sigmaX
+#print axioms Barenco.OneQubit.paperA_mul_paperB_mul_paperC
+#print axioms Barenco.OneQubit.paperA_mul_X_mul_paperB_mul_X_mul_paperC
+#print axioms Barenco.OneQubit.specialUnitary_canonical
+#print axioms Barenco.OneQubit.specialUnitary_eq_paperEuler_arg
+#print axioms Barenco.OneQubit.specialUnitary_exists_rz_mul_ry_mul_rz
+#print axioms Barenco.OneQubit.removeGlobalPhase_det
+#print axioms Barenco.OneQubit.phaseShift_mul_specialUnitaryPart
+#print axioms Barenco.OneQubit.unitary_exists_phaseShift_mul_rz_mul_ry_mul_rz
+#print axioms Barenco.OneQubit.specialUnitary_exists_paperABC
+#print axioms Barenco.OneQubit.specialUnitary_exists_columnChronologicalABC
+#print axioms Barenco.OneQubit.unitaryRoot_pow
+#print axioms Barenco.OneQubit.unitaryRoot_pow_two_pow
+#print axioms Barenco.OneQubit.sigmaXUnitary_eq_pauliX
