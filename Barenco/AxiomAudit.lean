@@ -13,6 +13,8 @@ import Barenco.OneQubit.U2Euler
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.MultiControl.Lemma71
+import Barenco.MultiControl.BorrowedSemantics
+import Barenco.MultiControl.BorrowedResources
 
 /-!
 # Kernel axiom audit
@@ -119,3 +121,11 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.eval_grayControlledCircuit
 #print axioms Barenco.MultiControl.grayControlledViaRootCircuit_kindCounts
 #print axioms Barenco.MultiControl.eval_fourBitGrayCircuit
+#print axioms Barenco.Primitive.namedModels_reject_toffoli
+#print axioms Barenco.MultiControl.InwardLadderLayout.slotCount_le_ambientWidth
+#print axioms Barenco.MultiControl.InwardLadderLayout.halfLadderCircuit_gateCount
+#print axioms Barenco.MultiControl.InwardLadderLayout.inwardLadderCircuit_toffoliCount
+#print axioms Barenco.MultiControl.InwardLadderLayout.inwardLadderUpdate_eq_update
+#print axioms Barenco.MultiControl.InwardLadderLayout.eval_inwardLadderCircuit
+#print axioms Barenco.MultiControl.InwardLadderLayout.touchedSupport_inwardLadderCircuit_subset
+#print axioms Barenco.MultiControl.InwardLadderLayout.inwardLadderCircuit_oneQubitCNOTCost
