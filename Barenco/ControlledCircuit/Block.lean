@@ -15,6 +15,8 @@ builder and makes no resource claim.
 
 namespace Barenco.ControlledCircuit
 
+open scoped Matrix
+
 /--
 Assemble a full-register matrix from one target-qubit matrix for each assignment
 of the complementary wires.
@@ -32,6 +34,32 @@ theorem targetBlockRaw_apply {n : ℕ} (target : Fin n)
         blocks (splitTarget target row).2 (row target) (col target)
       else 0 := by
   rfl
+
+/--
+On a computational-basis column, a target-block matrix acts by the unique
+one-qubit block selected by the complementary input assignment.
+
+This state-action bridge is useful when a circuit changes only the designated
+target qubit while the other wires remain in a definite basis assignment.
+-/
+theorem targetBlockRaw_mulVec_basisKet {n : ℕ} (target : Fin n)
+    (blocks : ComplementBasis target → QubitMatrix) (input : Basis n) :
+    targetBlockRaw target blocks *ᵥ basisKet input =
+      localRaw target (blocks (splitTarget target input).2) *ᵥ basisKet input := by
+  funext row
+  rw [mulVec_basisKet_apply, targetBlockRaw_apply,
+    localRaw_mulVec_basisKet]
+  change (if (splitTarget target row).2 = (splitTarget target input).2 then
+      blocks (splitTarget target row).2 (row target) (input target) else 0) =
+    if AgreeOff target row input then
+      blocks (splitTarget target input).2 (row target) (input target) else 0
+  by_cases hrest : (splitTarget target row).2 = (splitTarget target input).2
+  · have hagree : AgreeOff target row input :=
+      (splitTarget_snd_eq_iff target row input).1 hrest
+    rw [if_pos hrest, if_pos hagree, hrest]
+  · have hagree : ¬AgreeOff target row input := by
+      exact fun h => hrest ((splitTarget_snd_eq_iff target row input).2 h)
+    rw [if_neg hrest, if_neg hagree]
 
 /-- Full-register multiplication is pointwise multiplication of target blocks. -/
 theorem targetBlockRaw_mul {n : ℕ} (target : Fin n)

@@ -1,6 +1,7 @@
 import Barenco.MultiControl.GrayAccumulator
 import Barenco.MultiControl.Layout
 import Barenco.OneQubit.Roots
+import Barenco.ThreeQubit.Lemma61
 
 /-!
 # Gray-code circuit semantics for Lemma 7.1
@@ -16,6 +17,7 @@ after the generated Gray edge schedule has a general validity/restoration proof.
 
 namespace Barenco.MultiControl
 
+open Barenco.ControlledCircuit
 open scoped BigOperators Matrix
 
 /-! ## Signed target product, independent of the CNOT realization -/
@@ -137,6 +139,50 @@ theorem cnotPrimitive_mulVec_basisKet {controlCount ambientWidth : ℕ}
   simpa [embeddedCNOTUpdate] using
     cnotRaw_mulVec_basisKet (layout.controlWire control)
       (layout.controlWire target) (layout.controlWire_ne h) input
+
+/--
+A singly controlled target gate acts on a target-local state by left-multiplying
+the target matrix exactly when its control wire is true.
+-/
+theorem controlledTargetPrimitive_mulVec_localRaw_basisKet
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (control : Fin controlCount) (U : QubitUnitary) (A : QubitMatrix)
+    (input : Basis ambientWidth) :
+    ((layout.controlledTargetPrimitive control U).denotation : Gate ambientWidth) *ᵥ
+        (localRaw layout.targetWire A *ᵥ basisKet input) =
+      localRaw layout.targetWire
+          ((if input (layout.controlWire control) then (U : QubitMatrix) else 1) * A) *ᵥ
+        basisKet input := by
+  rw [Matrix.mulVec_mulVec]
+  rw [OrderedControlLayout.controlledTargetPrimitive,
+    Primitive.positiveControlled_denotation_val,
+    positiveControlledRaw_singleton_eq_targetBlockRaw,
+    localRaw_eq_targetBlockRaw, targetBlockRaw_mul,
+    targetBlockRaw_mulVec_basisKet]
+  simp [OrderedControlLayout.controlComplement, splitTarget_snd_apply]
+
+/--
+A logical control-to-control CNOT commutes past target-local state evolution and
+performs only its certified ambient basis update.
+-/
+theorem cnotPrimitive_mulVec_localRaw_basisKet
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (control target : Fin controlCount) (h : control ≠ target)
+    (A : QubitMatrix) (input : Basis ambientWidth) :
+    ((layout.cnotPrimitive control target h).denotation : Gate ambientWidth) *ᵥ
+        (localRaw layout.targetWire A *ᵥ basisKet input) =
+      localRaw layout.targetWire A *ᵥ
+        basisKet (embeddedCNOTUpdate layout control target input) := by
+  rw [Matrix.mulVec_mulVec]
+  rw [OrderedControlLayout.cnotPrimitive, Primitive.cnot_denotation_val,
+    Barenco.ThreeQubit.cnotRaw_commute_localRaw
+      (layout.controlWire control) (layout.controlWire target) layout.targetWire
+      (layout.controlWire_ne h) (layout.control_ne_target control)
+      (layout.control_ne_target target) A,
+    ← Matrix.mulVec_mulVec, cnotRaw_mulVec_basisKet]
+  rfl
 
 /-- Restricting an embedded logical CNOT is exactly the pure Boolean XOR update. -/
 theorem restrictControls_embeddedCNOTUpdate {controlCount ambientWidth : ℕ}
