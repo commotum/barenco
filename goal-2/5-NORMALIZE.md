@@ -33,6 +33,16 @@ Status: in progress (2026-07-10).
 - Stage 4's transparent controlled-U, relative-A, and Gray inputs remain raw:
   `(4,2,6)`, `(4,3,7)`, and
   `(4(2^m-1), 3*2^m-4, 7*2^m-8)`. No disputed merger count is yet established.
+- A strict/trust-zero disposable Section 8 prototype against the actual API
+  reifies CNOT as ordered local `0 -> 1`, greedily fuses endpoint-compatible
+  nodes, proves every supported branch has denotation
+  `second.denotation * first.denotation`, and reduces the generic relative-A input
+  definitionally from seven nodes to three `U(4)` nodes.
+- A second compiled prototype supplies a reusable tail-first adjacent-rewrite
+  engine with results `blocked`, `deleted`, or `fused gate`. From executable
+  identity/combination functions plus semantic soundness certificates it proves
+  exact chronological evaluation, length nonincrease, a precise `Stable`
+  predicate, fixed points, and unconditional idempotence.
 
 ## Updated Assumptions
 
@@ -50,11 +60,13 @@ Status: in progress (2026-07-10).
   `some inputCost`, output has `some outputCost` with
   `outputCost <= inputCost`. Unsupported inputs remain unsupported unless a
   separately proved policy theorem states otherwise.
-- Do not promise arbitrary identity recognition or inverse cancellation until an
-  executable syntax/provenance representation has compiled. Acceptable designs
-  include a small proof-carrying/keyed local-expression layer whose denotation is
-  checked; unacceptable designs include matrix equality, opaque choice, semantic
-  oracle predicates, or example-specific hard-coded positions.
+- Generic raw-payload normalization never tests arbitrary matrix identity. Add an
+  honest symbolic cancellation layer whose one-qubit payload is
+  `FreeGroup Atom`, parameterized by `[DecidableEq Atom]` and one valuation
+  `Atom -> QubitUnitary`. Free-group reduction makes identity and inverse
+  cancellation executable; `FreeGroup.lift` proves the exact denotation. Fresh
+  keys reify arbitrary unrelated payloads conservatively, while coherent future
+  builders may deliberately share one key with opposite polarity.
 - A useful stable result may be a deterministic pass with a proved local
   fixed-point/stability predicate rather than a globally canonical or minimal
   circuit. Idempotence is required only if it follows from the actual pass.
@@ -68,12 +80,11 @@ model-specific nonincreasing costs from literal output syntax.
 
 ## Detailed Implementation Plan
 
-- Resolve the executable-cancellation boundary before committing the runtime API:
-  - prototype equality-free adjacent fusion and pair absorption;
-  - prototype an honest syntactic provenance/certificate representation for the
-    inverse cancellations needed later by coherent Gray boundaries;
-  - record which cancellation laws are automatic and which require explicit
-    proof-carrying input.
+- Add `Barenco/Optimization/NormalizeCore.lean`:
+  - define generic `CombineResult := blocked | deleted | fused gate`;
+  - define structurally recursive insertion and tail-first normalization;
+  - prove exact group-valued chronological soundness, length nonincrease,
+    stability, fixed points, and idempotence from explicit local certificates.
 - Add `Barenco/Optimization/FusionLaws.lean`:
   - prove exact same-wire one-qubit chronological multiplication;
   - prove exact same-oriented-pair `U(4)` chronological multiplication;
@@ -84,6 +95,13 @@ model-specific nonincreasing costs from literal output syntax.
     normalizer;
   - prove exact identity and inverse-cancellation laws at the strongest executable
     syntactic/proof-carrying level actually supported.
+- Add `Barenco/Optimization/SymbolicCancellation.lean`:
+  - define decidable free-group one-qubit words and certified atom valuation;
+  - erase symbolic one-qubit/CNOT syntax exactly into `FusionCircuit`;
+  - instantiate the generic engine so same-wire words compose chronologically and
+    inverse words/empty identity delete without matrix equality;
+  - prove evaluator preservation, literal count nonincrease, stability, and
+    idempotence; retain CNOT nodes literally.
 - Add `Barenco/Optimization/Normalize.lean`:
   - define deterministic visible-run passes for the early and Section 8 policies;
   - compare only decidable wire/orientation/provenance data;
@@ -112,8 +130,14 @@ model-specific nonincreasing costs from literal output syntax.
 
 ## Build Structure
 
+- `Barenco/Optimization/NormalizeCore.lean` — low public generic runtime/proofs;
+  depends only on group/list infrastructure.
 - `Barenco/Optimization/FusionLaws.lean` — public proof-side exact local algebra;
-  imports the narrow two-wire controlled bridges plus Fusion IR.
+  imports the narrow two-wire controlled bridges plus Fusion IR/NormalizeCore.
+- `Barenco/Optimization/FusionCommutation.lean` — narrow proof-only wrappers around
+  exact disjoint local/CNOT laws; isolates the heavier `ThreeQubit.Lemma61` import.
+- `Barenco/Optimization/SymbolicCancellation.lean` — public executable certified
+  free-group cancellation layer; imports NormalizeCore and Fusion IR/resources.
 - `Barenco/Optimization/Normalize.lean` — public runtime pass and exact semantic
   soundness; imports FusionLaws but no paper-specific construction.
 - `Barenco/Optimization/NormalizeResources.lean` — public proof/resource leaf;
@@ -128,7 +152,9 @@ model-specific nonincreasing costs from literal output syntax.
   intentionally unchanged unless a checked missing law forces a documented narrow
   migration.
 - Focused sequence:
-  `lake build Barenco.Optimization.FusionLaws`, then
+  `lake build Barenco.Optimization.NormalizeCore`,
+  `Barenco.Optimization.FusionLaws`, and
+  `Barenco.Optimization.SymbolicCancellation`, then
   `Barenco.Optimization.Normalize`, `Barenco.Optimization.NormalizeResources`, and
   the diagnostic leaf.
 - Adjacent sequence includes Stage 4 canonical/relative/Gray inputs, existing
