@@ -72,6 +72,14 @@ Status: in progress (Lemmas 7.1–7.2 complete; Lemma 7.3 next).
   a single injected slot layout must include both groups, the dirty borrowed wire,
   and the target. General Lemma 7.3 counts four controlled-X macros only. Its later
   Corollary 7.4 expansion through Lemma 7.2 is a separate syntax theorem.
+- For the repaired Corollary 7.4 expansion, use Lemma 7.2 borrowed-count tails
+  `ℓ,r`, so the two macro control counts are `ℓ+3,r+3` and logical width is
+  `ℓ+r+7`. The exact capacity assumptions reduce to `ℓ≤r+2` and `r≤ℓ+2`, while
+  the expanded count is subtraction-free:
+  `2·4(ℓ+1)+2·4(r+1)=8(ℓ+r+2)`. The source-facing wrapper for `n≥7` chooses
+  `ℓ=n/2−3`, `r=n−n/2−4`; then logical width is `n`, both capacities hold, and
+  the count is `8(n−5)`. Ambient spectator width must not replace logical width
+  in this formula.
 
 ## Source Claim Audit
 
