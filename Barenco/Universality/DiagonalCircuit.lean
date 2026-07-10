@@ -45,6 +45,8 @@ theorem diagonalUnitary_entry_star_mul {n : ℕ} (D : UnitaryGate n)
 def diagonalQubitUnitary (zFalse zTrue : ℂ)
     (hFalse : star zFalse * zFalse = 1)
     (hTrue : star zTrue * zTrue = 1) : QubitUnitary := by
+  change (starRingEnd ℂ) zFalse * zFalse = 1 at hFalse
+  change (starRingEnd ℂ) zTrue * zTrue = 1 at hTrue
   refine ⟨matrix2 zFalse 0 0 zTrue, ?_⟩
   rw [Matrix.mem_unitaryGroup_iff', star_matrix2, matrix2_mul]
   apply Matrix.ext
@@ -217,15 +219,15 @@ theorem eval_diagonalPatternCircuit_mulVec_basisKet {controlCount : ℕ}
     coe_patternControlledUnitary, controlledRaw_truthTable]
   simp only [exactPatternEnabled, decide_eq_true_eq]
   by_cases hpattern : (splitTarget target input).2 = pattern
-  · rw [if_pos hpattern]
+  · rw [if_pos hpattern, if_pos hpattern]
     have hinput : input = targetPatternBasis target pattern (input target) := by
       apply (splitTarget target).injective
       apply Prod.ext
-      · rfl
-      · exact hpattern
-    subst input
+      · simp
+      · simpa using hpattern
+    rw [hinput]
     exact local_diagonalPatternBlock_mulVec_basisKet target D hD pattern _
-  · rw [if_neg hpattern]
+  · rw [if_neg hpattern, if_neg hpattern]
 
 /--
 Action of an arbitrary duplicate-free pattern schedule. Exactly the matching
@@ -291,7 +293,7 @@ theorem eval_diagonalCircuit (controlCount : ℕ)
     eval_diagonalPatternCircuits_mulVec_basisKet target D hD
       (allComplementPatterns target) (nodup_allComplementPatterns target) input,
     if_pos (mem_allComplementPatterns target (splitTarget target input).2),
-    diagonalUnitary_mulVec_basisKet]
+    diagonalUnitary_mulVec_basisKet D hD input]
 
 /-! ## Literal accepted cost -/
 
@@ -310,7 +312,7 @@ theorem diagonalPatternCircuits_oneQubitCNOTCost {controlCount : ℕ}
       Circuit.cost CostModel.oneQubitCNOT
           (diagonalPatternCircuits target D hD patterns) =
         some (diagonalPatternCircuitsCost target patterns)
-  | [] => by simp [diagonalPatternCircuitsCost]
+  | [] => rfl
   | pattern :: patterns => by
       rw [diagonalPatternCircuits_cons, Circuit.cost_append,
         diagonalPatternCircuits_oneQubitCNOTCost target D hD patterns]

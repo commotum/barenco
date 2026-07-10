@@ -89,9 +89,16 @@ theorem exists_cost_orderedCircuitProduct {n : ℕ} (model : CostModel)
       ∃ cost, Circuit.cost model circuit = some cost) :
     ∃ cost,
       Circuit.cost model (orderedCircuitProduct circuits) = some cost := by
-  choose componentCost hcomponentCost using hcost
-  exact ⟨(circuits.map componentCost).sum,
-    cost_orderedCircuitProduct model componentCost circuits hcomponentCost⟩
+  induction circuits with
+  | nil => exact ⟨0, by simp [orderedCircuitProduct]⟩
+  | cons circuit circuits ih =>
+      obtain ⟨headCost, hheadCost⟩ := hcost circuit (by simp)
+      obtain ⟨tailCost, htailCost⟩ :=
+        ih (fun tail htail => hcost tail (by simp [htail]))
+      refine ⟨tailCost + headCost, ?_⟩
+      rw [orderedCircuitProduct_cons, Circuit.cost_append,
+        htailCost, hheadCost]
+      rfl
 
 end
 

@@ -237,6 +237,15 @@ formal reconstruction of the paper's Gray-path reasoning.
   any certified unitary with the two required basis-ket images transports the
   corresponding ordered two-level block; no unsupported claim about the remaining
   basis permutation is needed.
+- `DiagonalCircuit.lean` now turns every certified positive-width diagonal
+  unitary into literal one-qubit/CNOT syntax. It constructs one certified
+  two-entry diagonal block for each complementary basis pattern, proves that the
+  duplicate-free schedule contributes exactly the matching phase on every basis
+  ket, and derives an exact finite-sum accepted cost from the circuit syntax.
+- `ZeroWidth.lean` proves that every proof-carrying one-qubit/CNOT circuit at
+  width zero is literally empty, evaluates to identity, and has gate count zero.
+  Its explicit certified scalar `-1` unitary proves the exact headline cannot be
+  extended to zero wires; this is not hidden by global-phase relaxation.
 - A smaller affine implementation was discovered after the path layer compiled:
   X gates translate the first endpoint to zero and pivot-controlled CNOTs reduce
   the second endpoint's difference mask to one bit. This improves the construction

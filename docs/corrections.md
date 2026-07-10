@@ -798,9 +798,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   examples, and any API advertised for “all `n`.” It does not affect ordinary
   positive-width quantum registers or a separately stated global-phase-relaxed
   zero-width theorem.
-- **Formal evidence:** Stage 11 source/API audit; exact Lean obstruction and
-  positive-width synthesis are in progress.
-- **Status:** corrected statement fixed; proof in progress.
+- **Formal evidence:** `basicCircuit_zero_eq_nil`, `basicCircuit_zero_eval`,
+  `zeroWidthNegUnitary_ne_one`, and `no_basicCircuit_zero_realizes_neg` in
+  `Barenco/Universality/ZeroWidth.lean`; positive-width synthesis remains in
+  progress.
+- **Status:** zero-width obstruction corrected and proved; positive-width
+  headline in progress.
 
 ## C-029 — The final Gray edge may reverse the two-level block orientation
 
@@ -819,9 +822,14 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** every non-adjacent two-level circuit, the exact
   universality theorem, and its resource counts. Control-polarity X conjugations
   are a separate issue and do not repair this target-order reversal.
-- **Formal evidence:** Stage 11 audit identifies the concrete reversed source edge;
-  the endpoint-transport circuit theorem is in progress.
-- **Status:** correction identified; proof in progress.
+- **Formal evidence:** `endpointOrientedUnitary_apply`,
+  `local_endpointOriented_mulVec_first`,
+  `local_endpointOriented_mulVec_second`, and
+  `eval_adjacentTwoLevelCircuit` in
+  `Barenco/Universality/AdjacentTwoLevel.lean` prove the ordered block on the
+  complete register for both endpoint orientations.
+- **Status:** corrected and proved for every adjacent pair; nonadjacent assembly
+  in progress.
 
 ## C-030 — A path-length upper bound does not prove per-factor cubic Theta
 
@@ -843,6 +851,10 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** U8 path counts, the general resource headline, and any
   comparison with the conjectural dimension lower bound. Exact universality does
   not depend on the asymptotic correction.
-- **Formal evidence:** Stage 11 source audit; shortest-path length/count and Stage
-  12 aggregate cost theorems are in progress/planned respectively.
-- **Status:** corrected statement fixed; structural proof in progress.
+- **Formal evidence:** `length_basisPath`, `length_basisPath_sub_one`,
+  `length_basisPath_le`, `basisPath_edge_hammingDist`, and `basisPath_isChain` in
+  `Barenco/Universality/BasisPath.lean`; Stage 12 aggregate cost theorems remain
+  planned. The main library construction is being strengthened further by affine
+  endpoint transport, which avoids the repeated path-controlled blocks.
+- **Status:** source path correction proved; aggregate and strengthened affine
+  resource theorems in progress/planned.
