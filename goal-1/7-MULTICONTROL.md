@@ -122,6 +122,16 @@ Lemma 7.5 next).
   the last macro becomes an uncontrolled target `V`. A genuinely zero-control
   target `U` remains a separate local-gate base. The five-node macro circuit and
   its recursive expansion/cost recurrence are separate APIs.
+- For the corrected primitive recurrence, stop at a directly expanded six-control
+  Gray circuit on width seven. Its exact profile is 252 one-qubit plus 188 CNOT,
+  total 440; using a legal Lemma 7.5 step at width seven would instead cost 524.
+  For `d=n−7`, each later step adds `64d+232` one-qubit and `48d+188`
+  CNOT nodes, hence total `112d+420`. The closed constructed counts are
+  `32d²+200d+252`, `24d²+164d+188`, and `56d²+364d+440`, equivalently
+  total `56n²−420n+636` only after casting to `ℤ` or `ℝ`. In `ℕ`, keep the
+  shifted `d` formula (or write `56n²+636−420n`) to avoid intermediate truncated
+  subtraction. These are pending syntax linkage and do not imply an optimal
+  `Θ(n²)` theorem.
 
 ## Source Claim Audit
 
@@ -361,8 +371,19 @@ pivot invariant, not merely Hamming adjacency.
   exact evaluator preservation, and the unmerged `56n−244` primitive count.
 - `Barenco/MultiControl/Recursive.lean`: runtime/public Lemma 7.5 constructor and
   proof-side/public exact evaluator and root-selected theorem.
+- `Barenco/ControlledCircuit/Selected.lean`: reusable selected six-node
+  Corollary 5.3 circuit with exact evaluator and primitive counts; shared by the
+  Gray base and recursive steps.
+- `Barenco/MultiControl/GrayExpansion.lean`: explicit schedule-aware substitution
+  of selected six-node circuits into Lemma 7.1, with exact evaluator and general
+  one-qubit/CNOT counts. Do not inspect/flat-map opaque primitive metadata.
+- `Barenco/MultiControl/RecursiveExpansion.lean`: width-seven expanded-Gray base
+  and explicit recursive substitution of two selected controlled gates, two
+  arbitrary-layout corrected Corollary 7.4 circuits, and the smaller recursive
+  call.
 - `Barenco/MultiControl/Resources.lean`: construction-specific recurrences and
-  upper bounds only after all counted syntax exists.
+  exact component/total closed forms and cast-to-real `O(n²)` only after all
+  counted syntax exists.
 - `Barenco/MultiControlExamples.lean`: diagnostic exhaustive cases, excluded from
   the public root and axiom surface.
 - Existing high-fanout `Basic`, `Controlled`, `Circuit`, and `Cost` modules remain
