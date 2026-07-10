@@ -41,8 +41,8 @@ claim.
 - mathlib: `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
-- Project Lean files below `Barenco/`: 121, plus `Barenco.lean`
-- Maintained kernel axiom checks: 377
+- Project Lean files below `Barenco/`: 130, plus `Barenco.lean`
+- Maintained kernel axiom checks: 417
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -55,6 +55,7 @@ The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 | Ordered two-wire gates | `TwoWire/Layout`, `TwoWire/Semantics`, `TwoWire/ControlledBridges`, `TwoWire/Circuit` | certified arbitrary-`U(4)` embeddings, spectator/orientation laws, trusted syntax, adjoints, and model-specific costs |
 | Circuit syntax | `Circuit`, `Cost` | chronological primitive lists, exact evaluation, support, gate counts, named partial cost models |
 | Exact fusion input | `Optimization/FusionIR`, `Optimization/FusionResources` | closed payload-preserving one-/two-wire syntax, exact lowering, explicit opaque barriers, and syntax-derived model-specific resources |
+| Exact normalization | `Optimization/NormalizeCore`, `FusionLaws`, `FusionCommutation`, `Normalize`, `SymbolicCancellation`, `NormalizeResources` | terminating exact rewrite policies, barrier-separated programs, honest syntactic inverse provenance, ordered-CNOT preservation, and conditional partial-cost nonincrease |
 | Equivalence and error | `Equivalence/*` | exact global phase, basis-dependent phase, basis behavior, channel/all-measurement equality, L2 operator distance, event-probability bounds |
 | One-qubit algebra | `OneQubit/*` | row/column convention bridge, Euler forms, Pauli/rotation identities, ABC factors, exact and coherent roots |
 | Controlled gates | `ControlledCircuit/*` | target-block semantics, general and special controlled-U decompositions, controlled scalar phases, explicit expansions |
@@ -80,6 +81,9 @@ imported by the public root.
 | `Circuit.gateCount`, `Circuit.kindCount`, `Circuit.touchedSupport`, `Circuit.cost` | syntax-derived resources |
 | `Optimization.FusionPrimitive`, `FusionCircuit`, `FusionProgram` | optimizer-visible local payloads, exact compilation, and a lossless barrier path for unsupported existing syntax |
 | `FusionCircuit.eval_lower`, `FusionCircuit.cost_lower`, `FusionProgram.lower_barriers` | exact semantic/resource compiler contracts |
+| `normalizeEarly`, `section8Normalize` | exact visible passes for the one-qubit/CNOT-preserving and arbitrary-two-qubit policies |
+| `normalizeEarlyProgram`, `section8NormalizeProgram` | exact maximal-run normalization with verbatim hard barriers |
+| `SymbolicCircuit.normalize`, `AcceptedCostNonincrease` | executable free-group inverse cancellation and honest conditional partial-cost comparison |
 | `CostModel.oneQubitCNOT`, `CostModel.arbitraryTwoQubit` | distinct Sections 3--7 and Section 8 cost conventions |
 | `GlobalPhaseEq`, `BasisPhaseEq`, `SameBasisBehavior`, `BasisMeasurementEq`, `ChannelEq` | deliberately distinct relaxed target relations |
 | `operatorDistance`, `eventProbability` | L2 induced operator distance and finite computational-basis event probabilities |

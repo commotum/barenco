@@ -116,6 +116,39 @@ Section 8 model charges every visible one- or two-wire node one operation. A mix
 barrier inherits the stored primitive's original partial price and never receives
 an optimistic optimizer tag.
 
+### Exact normalization policies
+
+`Optimization.NormalizeCore` is a terminating tail-first list engine with three
+explicit adjacent outcomes: blocked, deleted, or replaced by one supplied node.
+Its soundness contract is chronological: if `first` executes before `second`, a
+replacement must denote `second * first`. The engine proves exact group-valued
+evaluation, length nonincrease, local stability, fixed points, and idempotence;
+it does not claim global canonicality, completeness, or optimality.
+
+The concrete early policy, `normalizeEarly`, uses proved disjoint commutations to
+expose same-wire one-qubit nodes and fuses only those nodes. It never consumes or
+relabels a CNOT and never emits a new generic `U(4)`. Its complete ordered CNOT
+sequence is preserved exactly. The Section 8 policy, `section8Normalize`, first
+promotes each CNOT to its certified ordered local `U(4)` payload and then absorbs
+compatible endpoint-local and same-pair operations. Its output is CNOT-free and
+is generally unsupported by the stricter one-qubit/CNOT cost model.
+
+Neither concrete policy tests equality of arbitrary complex matrices. Their raw
+identity predicate is deliberately false, so scalar phases are retained exactly.
+When cancellation provenance is required, `SymbolicCircuit` stores one-qubit
+payloads as free-group words over a caller-supplied decidable atom type. Only a
+syntactically reduced identity word is deleted; `FreeGroup.lift` proves exact
+semantics under every certified atom valuation. Literal CNOT nodes and their order
+remain unchanged.
+
+`normalizeEarlyProgram` and `section8NormalizeProgram` normalize maximal visible
+runs without crossing a `FusionStep.barrier`. They copy every stored primitive
+verbatim, preserve the exact barrier sequence and evaluator, and are exact fixed
+paths on all-barrier programs. `AcceptedCostNonincrease` is conditional on the
+input partial cost being `some`; unsupported inputs and barriers remain
+unsupported. All cost theorems are derived from the emitted syntax, not from
+semantic matrix equality.
+
 ## Wires, Controls, Targets, and Embeddings
 
 - Wire indices are `Fin n` and increase from top to bottom.

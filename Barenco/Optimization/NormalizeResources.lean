@@ -95,6 +95,10 @@ private theorem addCost_zero_right (cost : Option ℕ) :
     Circuit.addCost cost (some 0) = cost := by
   cases cost <;> simp [Circuit.addCost]
 
+private theorem addCost_eq_none_iff (first second : Option ℕ) :
+    Circuit.addCost first second = none ↔ first = none ∨ second = none := by
+  cases first <;> cases second <;> simp [Circuit.addCost]
+
 /-! ## Concrete early-policy counts -/
 
 private theorem kindCount_earlyExposeInsert {n : ℕ} (kind : PrimitiveKind)
@@ -240,6 +244,18 @@ theorem normalizeEarly_oneQubitCNOT_acceptedCostNonincrease {n : ℕ}
     exact ⟨by simpa using htwo, rfl⟩
   · simpa [hgate] using gateCount_normalizeEarly_le circuit
 
+/--
+The early pass preserves unsupportedness in the one-qubit/CNOT model exactly:
+generic two-qubit nodes are neither created nor removed.
+-/
+theorem normalizeEarly_oneQubitCNOT_cost_eq_none_iff {n : ℕ}
+    (circuit : FusionCircuit n) :
+    FusionCircuit.cost CostModel.oneQubitCNOT (normalizeEarly circuit) = none ↔
+      FusionCircuit.cost CostModel.oneQubitCNOT circuit = none := by
+  rw [FusionCircuit.oneQubitCNOT_cost_eq_none_iff,
+    FusionCircuit.oneQubitCNOT_cost_eq_none_iff,
+    twoQubitCount_normalizeEarly]
+
 /-- The same accepted-cost theorem after exact lowering to trusted syntax. -/
 theorem normalizeEarly_lower_oneQubitCNOT_acceptedCostNonincrease {n : ℕ}
     (circuit : FusionCircuit n) :
@@ -248,6 +264,14 @@ theorem normalizeEarly_lower_oneQubitCNOT_acceptedCostNonincrease {n : ℕ}
       (Circuit.cost CostModel.oneQubitCNOT (normalizeEarly circuit).lower) := by
   simpa only [FusionCircuit.cost_lower] using
     normalizeEarly_oneQubitCNOT_acceptedCostNonincrease circuit
+
+/-- Exact unsupportedness preservation after lowering the early visible pass. -/
+theorem normalizeEarly_lower_oneQubitCNOT_cost_eq_none_iff {n : ℕ}
+    (circuit : FusionCircuit n) :
+    Circuit.cost CostModel.oneQubitCNOT (normalizeEarly circuit).lower = none ↔
+      Circuit.cost CostModel.oneQubitCNOT circuit.lower = none := by
+  simpa only [FusionCircuit.cost_lower] using
+    normalizeEarly_oneQubitCNOT_cost_eq_none_iff circuit
 
 /-! ## Section 8 visible resources -/
 
