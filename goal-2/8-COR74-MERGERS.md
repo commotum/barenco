@@ -129,6 +129,11 @@ that named construction realizes the paper's `48n-204` count.
   the existing Corollary expansion for baseline comparison plus the new raw
   fusion leaves and symbolic exposure, but must not edit the `Primitive`/`Circuit`
   trust core.
+- Add the low-dependency reusable leaf
+  `Barenco/Optimization/SymbolicAdjoint.lean` if the final construction needs a
+  literal formal adjoint of a generated symbolic ladder. It may only reverse
+  syntax, invert free-group words, preserve CNOTs, and prove exact erasure/
+  evaluation laws; it must not contain paper-specific atoms or rewrites.
 - Keep width-seven/eight/nine traces and alternative-orientation probes in the
   root-excluded diagnostic leaf
   `Barenco/MultiControl/Corollary74MergerExamples.lean`.
