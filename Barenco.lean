@@ -51,6 +51,11 @@ import Barenco.MultiControl.LinearResources
 import Barenco.Universality.ExactSynthesis
 import Barenco.Universality.WidthOne
 import Barenco.Universality.ZeroWidth
+import Barenco.Universality.EliminationResources
+import Barenco.Universality.TwoLevelResources
+import Barenco.Universality.DiagonalResources
+import Barenco.Universality.SynthesisResources
+import Barenco.Universality.Section8BasicResources
 
 /-!
 # Barenco

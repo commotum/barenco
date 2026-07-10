@@ -226,6 +226,6 @@ classification of Section 8 resource claims under both named cost models.
   length and matching finite cost bounds.
 - `SynthesisResources.lean` aggregates the literal syntax into the pointwise
   sandwich
-  `(k+1)^2*4^k <= exactSynthesisCost <= 112*(k+1)^2*4^k`, plus explicit
+  `2*(k+1)^2*4^k <= exactSynthesisCost <= 112*(k+1)^2*4^k`, plus explicit
   `IsBigOWith` and carefully named fixed-schedule `IsTheta` results. Compilation,
   public integration, documentation, and final audits remain in progress.

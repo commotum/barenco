@@ -379,9 +379,14 @@ statement. “Open” means the repair is identified but not yet machine checked
   Exact factor and diagonal costs are syntax-derived, and
   `eval_exactSynthesisCircuit` plus
   `exactSynthesisCircuit_oneQubitCNOTCost` assemble them in the proved product
-  order. Stage 12 aggregate/asymptotic theorems remain in progress.
-- **Status:** exact synthesis corrected and proved; aggregate resource bounds
-  remain.
+  order. `decomposeQubitUnitary_factors_length` and
+  `allComplementPatterns_length` count the fixed schedules;
+  `exactSynthesisCost_bounds` proves the finite quadratic-times-exponential
+  sandwich; and `exactSynthesisCost_isBigOWith_fixedSchedule` and
+  `exactSynthesisCost_isTheta_fixedSchedule` state the upper and deliberately
+  padded two-sided algorithmic results.
+- **Status:** corrected and proved for exact synthesis and the selected fixed
+  construction. No optimal general-synthesis `Theta` theorem is claimed.
 
 ## C-015 — Algebraic all-measurement equality is not yet a physical measurement model
 
@@ -872,14 +877,18 @@ statement. “Open” means the repair is identified but not yet machine checked
   not depend on the asymptotic correction.
 - **Formal evidence:** `length_basisPath`, `length_basisPath_sub_one`,
   `length_basisPath_le`, `basisPath_edge_hammingDist`, and `basisPath_isChain` in
-  `Barenco/Universality/BasisPath.lean`; Stage 12 aggregate cost theorems remain
-  planned. The main library construction is strengthened by affine endpoint
+  `Barenco/Universality/BasisPath.lean`. The main library construction is
+  strengthened by affine endpoint
   transport: `affinePairCircuit_cnotCount` proves exactly `d-1` clearing CNOTs,
   `affinePairCircuit_oneQubitCount` proves the exact translation-X count, and
   `twoLevelCircuit_oneQubitCNOTCost` accounts for those transports around one
-  fully controlled adjacent block.
+  fully controlled adjacent block. `twoLevelCircuitCost_le_sq_succ` supplies the
+  uniform quadratic factor envelope, and `exactSynthesisCost_le_benchmark` plus
+  `exactSynthesisCost_isBigOWith_fixedSchedule` aggregate the affine backend.
 - **Status:** source path correction and exact affine structural formulas proved;
-  aggregate asymptotic theorems remain Stage 12.
+  the library backend's stronger aggregate upper bound is proved. The source's
+  unrepresented complete Gray-walk macro count remains partial rather than being
+  transferred to the affine circuit.
 
 ## C-031 — Main synthesis replaces the Gray walk by affine endpoint normalization
 
@@ -909,6 +918,67 @@ statement. “Open” means the repair is identified but not yet machine checked
   `eval_affinePairCircuit_first`, `eval_affinePairCircuit_second`,
   `affinePairCircuit_oneQubitCount`, `affinePairCircuit_cnotCount`,
   `affinePairCircuit_oneQubitCNOTCost`,
-  `unitary_conjugate_twoLevelUnitary`, and `eval_twoLevelCircuit`.
+  `unitary_conjugate_twoLevelUnitary`, `eval_twoLevelCircuit`,
+  `affinePairGateCount_le`, `twoLevelCircuitCost_le_sq_succ`, and the aggregate
+  `exactSynthesisCost_bounds` theorem.
 - **Status:** implementation difference documented and exact circuit semantics
-  proved; aggregate asymptotic comparison remains Stage 12.
+  and aggregate resource comparison proved.
+
+## C-032 — Section 8's at-most-two-qubit model includes one-control macros
+
+- **Source:** Section 8, manuscript p. 26; Markdown lines 891–900.
+- **Issue:** the first formal cost model for Section 8 accepted `.oneQubit`,
+  `.cnot`, and `.arbitraryTwoQubit`, but rejected every
+  `.controlledOneQubit controls` node. That was too coarse: a zero-control macro
+  acts on one wire and a one-control macro on exactly two. The omission prevented
+  the already certified five-node Lemma 6.1 and thirteen-node Lemma 7.1 circuits
+  from receiving their stated Section 8 upper counts. It also made a recursive
+  rejection theorem accidentally true only because valid two-wire nodes were
+  being rejected.
+- **Repair:** price `.controlledOneQubit controls` at one exactly when
+  `controls <= 1`, and continue to reject it when `2 <= controls`. Re-audit every
+  earlier theorem that mentioned the model. The recursive five-node circuit has
+  cost five at prefix arities zero and one and is rejected only from prefix arity
+  two onward.
+- **Dependent impact:** the Section 8 five- and thirteen-operation upper bounds,
+  both unmerged relative-phase circuits, the recursive macro boundary, and the
+  comparison between the two named models. It does not create an arbitrary
+  two-qubit embedding or justify gate merging.
+- **Formal evidence:** `CostModel.arbitraryTwoQubit_controlled`,
+  `CostModel.arbitraryTwoQubit_controlled_eq_some_one_iff`,
+  `Primitive.arbitraryTwoQubit_cost_positiveControlled`,
+  `recursiveViaSquareCircuit_arbitraryTwoQubitCost`,
+  `doubleControlledRootCircuit_arbitraryTwoQubitCost`, and
+  `fourBitGrayCircuit_arbitraryTwoQubitCost`.
+- **Status:** corrected and proved with explicit zero-, one-, and at-least-two
+  control boundaries. The paper's merged relative-phase cost three remains
+  unresolved because the library has no corresponding literal three-node syntax;
+  the two verified unmerged circuits each have exact Section 8 cost seven.
+
+## C-033 — A fixed-schedule Theta lower bound is not target hardness
+
+- **Source:** Section 8, manuscript pp. 27–28; Markdown lines 939–983.
+- **Issue:** the source presents `Theta(n^3 * 4^n)` as the cost of its general
+  synthesis outline, but does not distinguish a lower bound caused by a fixed
+  non-pruning schedule from a lower bound on all circuits for the target unitary.
+  Those are radically different claims. In particular, the library eliminator
+  emits its complete factor schedule even for the identity.
+- **Repair:** count the selected syntax exactly before taking asymptotics. In
+  width `k+1`, elimination emits `Nat.choose (2^(k+1)) 2` factor circuits and the
+  diagonal stage emits `2^k` blocks, for `2*4^k` scheduled blocks in total. The
+  affine backend gives a quadratic envelope per block and the machine-checked
+  finite sandwich
+  `2*(k+1)^2*4^k <= exactSynthesisCost <= 112*(k+1)^2*4^k`.
+  Export `Theta((k+1)^2*4^k)` only under a name that says `fixedSchedule`.
+- **Dependent impact:** the aggregate universality resource headline and every
+  comparison with conjectural dimension lower bounds. The upper inequality is a
+  valid construction bound for every target. The lower inequality describes
+  padding in this particular implementation; it says nothing about an optimal
+  circuit, and is especially non-informative for easy targets such as identity.
+- **Formal evidence:** `decomposeQubitUnitary_factors_length`,
+  `allComplementPatterns_length`, `choose_two_pow_succ_add_pow`,
+  `two_mul_exactSynthesisBenchmark_le_cost`, `exactSynthesisCost_bounds`,
+  `exactSynthesisCost_isBigOWith_fixedSchedule`, and
+  `exactSynthesisCost_isTheta_fixedSchedule`.
+- **Status:** corrected and proved for the named non-pruning affine construction;
+  no general exact-synthesis lower bound or optimality theorem is claimed.

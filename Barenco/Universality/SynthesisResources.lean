@@ -73,8 +73,10 @@ theorem choose_two_pow_succ_add_pow (controlCount : ℕ) :
   let a := 2 ^ controlCount
   let b := 2 ^ (controlCount + 1)
   have hb : 1 ≤ b := by
-    dsimp [b]
-    positivity
+    have hpos : 0 < b := by
+      dsimp [b]
+      positivity
+    omega
   have hfour : 4 ^ controlCount =
       2 ^ controlCount * 2 ^ controlCount := by
     rw [show (4 : ℕ) = 2 * 2 by decide, mul_pow]
@@ -90,7 +92,9 @@ theorem choose_two_pow_succ_add_pow (controlCount : ℕ) :
 theorem four_pow_le_choose_two_pow_succ (controlCount : ℕ) :
     4 ^ controlCount ≤ Nat.choose (2 ^ (controlCount + 1)) 2 := by
   rw [choose_two_pow_succ]
-  have hpow : 1 ≤ 2 ^ controlCount := by positivity
+  have hpow : 1 ≤ 2 ^ controlCount := by
+    have hpos : 0 < 2 ^ controlCount := by positivity
+    omega
   have hright : 2 ^ controlCount ≤ 2 ^ (controlCount + 1) - 1 := by
     rw [pow_succ]
     omega
@@ -106,29 +110,45 @@ theorem four_pow_le_choose_two_pow_succ (controlCount : ℕ) :
 def exactSynthesisBenchmark (controlCount : ℕ) : ℕ :=
   (controlCount + 1) ^ 2 * 4 ^ controlCount
 
-/-- Every input pays the complete non-pruning factor schedule. -/
-theorem exactSynthesisBenchmark_le_cost (controlCount : ℕ)
+/-- Every input pays both complete non-pruning schedules. -/
+theorem two_mul_exactSynthesisBenchmark_le_cost (controlCount : ℕ)
     (U : UnitaryGate (controlCount + 1)) :
-    exactSynthesisBenchmark controlCount ≤ exactSynthesisCost controlCount U := by
+    2 * exactSynthesisBenchmark controlCount ≤
+      exactSynthesisCost controlCount U := by
   let decomposition := decomposeFiniteUnitary U
   have hfactor := length_mul_sq_succ_le_finiteFactorCircuitsCost
     controlCount decomposition.factors
-  have hlength : 4 ^ controlCount ≤ decomposition.factors.length := by
-    rw [decomposeQubitUnitary_factors_length]
-    exact four_pow_le_choose_two_pow_succ controlCount
-  change (controlCount + 1) ^ 2 * 4 ^ controlCount ≤
+  have hdiagonal := pow_two_mul_sq_succ_le_diagonalCircuitCost controlCount
+    (Fin.last controlCount)
+  have hlength : decomposition.factors.length =
+      Nat.choose (2 ^ (controlCount + 1)) 2 := by
+    exact decomposeQubitUnitary_factors_length U
+  change 2 * ((controlCount + 1) ^ 2 * 4 ^ controlCount) ≤
     finiteFactorCircuitsCost controlCount decomposition.factors +
       diagonalPatternCircuitsCost (Fin.last controlCount)
         (allComplementPatterns (Fin.last controlCount))
   calc
-    (controlCount + 1) ^ 2 * 4 ^ controlCount =
-        4 ^ controlCount * (controlCount + 1) ^ 2 := Nat.mul_comm _ _
-    _ ≤ decomposition.factors.length * (controlCount + 1) ^ 2 :=
-      Nat.mul_le_mul_right _ hlength
-    _ ≤ finiteFactorCircuitsCost controlCount decomposition.factors := hfactor
+    2 * ((controlCount + 1) ^ 2 * 4 ^ controlCount) =
+        (decomposition.factors.length + 2 ^ controlCount) *
+          (controlCount + 1) ^ 2 := by
+      rw [hlength, choose_two_pow_succ_add_pow]
+      ring
+    _ = decomposition.factors.length * (controlCount + 1) ^ 2 +
+        2 ^ controlCount * (controlCount + 1) ^ 2 := by rw [Nat.add_mul]
     _ ≤ finiteFactorCircuitsCost controlCount decomposition.factors +
         diagonalPatternCircuitsCost (Fin.last controlCount)
-          (allComplementPatterns (Fin.last controlCount)) := Nat.le_add_right _ _
+          (allComplementPatterns (Fin.last controlCount)) :=
+      Nat.add_le_add hfactor hdiagonal
+
+/-- Weaker constant-one projection convenient for the reverse Big-O theorem. -/
+theorem exactSynthesisBenchmark_le_cost (controlCount : ℕ)
+    (U : UnitaryGate (controlCount + 1)) :
+    exactSynthesisBenchmark controlCount ≤ exactSynthesisCost controlCount U := by
+  calc
+    exactSynthesisBenchmark controlCount ≤
+        2 * exactSynthesisBenchmark controlCount := by omega
+    _ ≤ exactSynthesisCost controlCount U :=
+      two_mul_exactSynthesisBenchmark_le_cost controlCount U
 
 /-- Uniform finite upper bound for every exact synthesized unitary. -/
 theorem exactSynthesisCost_le_benchmark (controlCount : ℕ)
@@ -163,10 +183,10 @@ theorem exactSynthesisCost_le_benchmark (controlCount : ℕ)
 /-- The exact finite sandwich for the selected, non-pruning syntax. -/
 theorem exactSynthesisCost_bounds (controlCount : ℕ)
     (U : UnitaryGate (controlCount + 1)) :
-    exactSynthesisBenchmark controlCount ≤ exactSynthesisCost controlCount U ∧
+    2 * exactSynthesisBenchmark controlCount ≤ exactSynthesisCost controlCount U ∧
       exactSynthesisCost controlCount U ≤
         112 * exactSynthesisBenchmark controlCount :=
-  ⟨exactSynthesisBenchmark_le_cost controlCount U,
+  ⟨two_mul_exactSynthesisBenchmark_le_cost controlCount U,
     exactSynthesisCost_le_benchmark controlCount U⟩
 
 /-! ## Literal gate count and cost-model bridge -/

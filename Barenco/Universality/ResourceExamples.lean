@@ -36,7 +36,7 @@ example : Nat.choose (2 ^ (2 + 1)) 2 + 2 ^ 2 = 32 := by
 
 /-- Concrete specialization of the uniform width-two finite sandwich. -/
 example (U : UnitaryGate 2) :
-    16 ≤ exactSynthesisCost 1 U ∧ exactSynthesisCost 1 U ≤ 1792 := by
+    32 ≤ exactSynthesisCost 1 U ∧ exactSynthesisCost 1 U ≤ 1792 := by
   simpa [exactSynthesisBenchmark] using exactSynthesisCost_bounds 1 U
 
 end

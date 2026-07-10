@@ -797,7 +797,7 @@ to be identity for the selected input. At width `k+1` the factor schedule and
 diagonal schedule together contain exactly `2 * 4^k` blocks. Every selected block
 has a syntax-derived quadratic envelope, yielding
 
-`(k+1)^2 * 4^k <= exactSynthesisCost k U
+`2 * (k+1)^2 * 4^k <= exactSynthesisCost k U
   <= 112 * (k+1)^2 * 4^k`.
 
 Thus `exactSynthesisCost_isTheta_fixedSchedule` is a two-sided asymptotic theorem
