@@ -239,6 +239,8 @@ def arbitraryTwoQubit : CostModel where
   primitiveCost
     | .oneQubit => some 1
     | .cnot => some 1
+    | .controlledOneQubit controls =>
+        if controls ≤ 1 then some 1 else none
     | .arbitraryTwoQubit => some 1
     | _ => none
 
@@ -270,7 +272,32 @@ def arbitraryTwoQubit : CostModel where
     arbitraryTwoQubit.primitiveCost .arbitraryTwoQubit = some 1 := rfl
 
 @[simp] theorem arbitraryTwoQubit_controlled (controls : ℕ) :
-    arbitraryTwoQubit.primitiveCost (.controlledOneQubit controls) = none := rfl
+    arbitraryTwoQubit.primitiveCost (.controlledOneQubit controls) =
+      if controls ≤ 1 then some 1 else none := rfl
+
+@[simp] theorem arbitraryTwoQubit_controlled_zero :
+    arbitraryTwoQubit.primitiveCost (.controlledOneQubit 0) = some 1 := by
+  simp
+
+@[simp] theorem arbitraryTwoQubit_controlled_one :
+    arbitraryTwoQubit.primitiveCost (.controlledOneQubit 1) = some 1 := by
+  simp
+
+theorem arbitraryTwoQubit_controlled_eq_some_one_iff (controls : ℕ) :
+    arbitraryTwoQubit.primitiveCost (.controlledOneQubit controls) = some 1 ↔
+      controls ≤ 1 := by
+  simp
+
+theorem arbitraryTwoQubit_controlled_eq_none_iff (controls : ℕ) :
+    arbitraryTwoQubit.primitiveCost (.controlledOneQubit controls) = none ↔
+      2 ≤ controls := by
+  simp
+  omega
+
+@[simp] theorem arbitraryTwoQubit_controlled_add_two (controls : ℕ) :
+    arbitraryTwoQubit.primitiveCost (.controlledOneQubit (controls + 2)) = none := by
+  rw [arbitraryTwoQubit_controlled_eq_none_iff]
+  omega
 
 @[simp] theorem arbitraryTwoQubit_toffoli :
     arbitraryTwoQubit.primitiveCost .toffoli = none := rfl
@@ -312,6 +339,37 @@ theorem oneQubitCNOT_rejects_positiveControlled {n : ℕ} (target : Fin n)
     Circuit.cost CostModel.oneQubitCNOT [Primitive.positiveControlled target controls U] =
       none := by
   simp [Circuit.cost, Circuit.addCost]
+
+/--
+The Section 8 model accepts a controlled one-qubit macro exactly when its
+support has at most two wires: zero or one controls together with the target.
+-/
+@[simp]
+theorem arbitraryTwoQubit_cost_positiveControlled {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        [Primitive.positiveControlled target controls U] =
+      if controls.card ≤ 1 then some 1 else none := by
+  by_cases hcontrols : controls.card ≤ 1 <;>
+    simp [Circuit.cost, Circuit.addCost, hcontrols]
+
+@[simp]
+theorem arbitraryTwoQubit_cost_positiveControlled_singleton {n : ℕ}
+    (target : Fin n) (control : TargetComplement target) (U : QubitUnitary) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        [Primitive.positiveControlled target ({control} : ControlSet target) U] =
+      some 1 := by
+  simp
+
+/-- Two or more controls make the macro a gate on at least three wires. -/
+theorem arbitraryTwoQubit_rejects_positiveControlled_of_two_le {n : ℕ}
+    (target : Fin n) (controls : ControlSet target) (U : QubitUnitary)
+    (hcontrols : 2 ≤ controls.card) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        [Primitive.positiveControlled target controls U] = none := by
+  rw [arbitraryTwoQubit_cost_positiveControlled]
+  simp only [if_neg]
+  omega
 
 @[simp]
 theorem namedModels_reject_unclassified {n : ℕ} (tag : String) (U : UnitaryGate n) :
