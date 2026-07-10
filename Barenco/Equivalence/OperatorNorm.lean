@@ -71,6 +71,32 @@ theorem operatorDistance_unitary_mul_right (A B : Matrix ι ι ℂ)
   rw [operatorDistance, operatorDistance, ← sub_mul]
   exact CStarRing.norm_mul_coe_unitary (A - B) U
 
+/-- Errors of two sequential unitary factors add in operator distance. -/
+theorem operatorDistance_mul_unitary_le
+    (A A' B B' : Matrix.unitaryGroup ι ℂ) :
+    operatorDistance
+        ((A : Matrix ι ι ℂ) * (B : Matrix ι ι ℂ))
+        ((A' : Matrix ι ι ℂ) * (B' : Matrix ι ι ℂ)) ≤
+      operatorDistance (A : Matrix ι ι ℂ) (A' : Matrix ι ι ℂ) +
+        operatorDistance (B : Matrix ι ι ℂ) (B' : Matrix ι ι ℂ) := by
+  calc
+    operatorDistance
+          ((A : Matrix ι ι ℂ) * (B : Matrix ι ι ℂ))
+          ((A' : Matrix ι ι ℂ) * (B' : Matrix ι ι ℂ)) ≤
+        operatorDistance
+            ((A : Matrix ι ι ℂ) * (B : Matrix ι ι ℂ))
+            ((A : Matrix ι ι ℂ) * (B' : Matrix ι ι ℂ)) +
+          operatorDistance
+            ((A : Matrix ι ι ℂ) * (B' : Matrix ι ι ℂ))
+            ((A' : Matrix ι ι ℂ) * (B' : Matrix ι ι ℂ)) :=
+      operatorDistance_triangle _ _ _
+    _ = operatorDistance (B : Matrix ι ι ℂ) (B' : Matrix ι ι ℂ) +
+        operatorDistance (A : Matrix ι ι ℂ) (A' : Matrix ι ι ℂ) := by
+      rw [operatorDistance_unitary_mul_left,
+        operatorDistance_unitary_mul_right]
+    _ = operatorDistance (A : Matrix ι ι ℂ) (A' : Matrix ι ι ℂ) +
+        operatorDistance (B : Matrix ι ι ℂ) (B' : Matrix ι ι ℂ) := add_comm _ _
+
 /--
 Operator distance controls the Euclidean norm of the output-state difference.
 The explicit `EuclideanSpace.equiv` wrapper is mathlib's bridge from raw amplitude
