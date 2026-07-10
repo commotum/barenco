@@ -214,5 +214,6 @@ row below for each checked declaration.
 | Stage 7 corrected Corollary 7.4 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,485 jobs each, 2026-07-10 |
 | Stage 7 contextual/raw Corollary 7.4 warning-as-error/root/audit | direct strict compilation of `RelativeHalf.lean`, `RelativePhase.lean`, `Corollary74Expansion.lean`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 143 declarations: two new arithmetic/count checks use `propext` and `Quot.sound`, and the other nineteen new checks use those plus `Classical.choice`, 2026-07-10 |
 | Stage 7 contextual/raw Corollary 7.4 focused/root/audit build | `lake build Barenco.MultiControl.RelativeHalf Barenco.MultiControl.RelativePhase Barenco.MultiControl.Corollary74Expansion Barenco.AxiomAudit Barenco` | successful, 3,489 jobs, 2026-07-10 |
+| Stage 7 contextual/raw Corollary 7.4 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,488 jobs each, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

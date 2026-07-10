@@ -112,6 +112,16 @@ Lemma 7.5 next).
   component counts `32n−144` one-qubit plus `24n−100` CNOT. No optimized count
   is accepted until a named evaluator-preserving normalization proves every
   merger.
+- Lemma 7.5 is best indexed by an `OrderedControlLayout (prefix+1) ambient`.
+  Its prefix restriction controls both the two multi-controlled X macros and the
+  recursively smaller controlled `V`; the last ordered control drives the two
+  singly controlled `V`/`V†` gates. The exact chronology is
+  `C(last,V,target); MCX(prefix,last); C(last,V†,target);`
+  `MCX(prefix,last); MC-V(prefix,target)`. This semantic step is valid at
+  `prefix=0`: the two MCX nodes become local X operations on the last control and
+  the last macro becomes an uncontrolled target `V`. A genuinely zero-control
+  target `U` remains a separate local-gate base. The five-node macro circuit and
+  its recursive expansion/cost recurrence are separate APIs.
 
 ## Source Claim Audit
 
@@ -192,8 +202,8 @@ Lemma 7.5 next).
   integer-depth theorem, a restricted logarithmic corollary, and exact fallback.
 - C-009: “congruent modulo phase shifts” is not one relation. Stage 6 now has the
   exact `101` input-column phase witness and adjacent-pair cancellation. Stage 7
-  must still prove cancellation in the ordered Corollary 7.4 basis paths; mere
-  even occurrence counts are insufficient.
+  now proves cancellation in the corrected ordered Corollary 7.4 basis paths;
+  mere even occurrence counts remain insufficient.
 - C-010: Lemmas 7.2–7.3 use dirty borrowed wires; Lemma 7.11 uses a clean-zero
   wire. Restoration prose must become full-register equality in the dirty case
   and a quantified zero-subspace/factorization theorem in the clean case.
@@ -530,6 +540,25 @@ pivot invariant, not merely Hamming adjacency.
   balanced wrapper has four exact and `8n−44` relative occurrences, including
   four/twelve at `n=7`. Both leaves pass focused and warning-as-error checks;
   forbidden scans and `git diff --check` are clean.
+- `Corollary74Expansion.lean` chooses a checked sixteen-node exact-Toffoli
+  witness, replaces the four exposed hybrid-B outer macros without a generic
+  opaque-primitive rewrite, and proves evaluator preservation at the outer,
+  hybrid, contextual, and balanced layers. The balanced primitive syntax has
+  exact one-qubit count `32n−144`, CNOT count `24n−100`, total/accepted cost
+  `56n−244`, and width-seven profile `(80,68,148)`. No merger or optimized
+  `48n−204` theorem is claimed. The leaf passes a 3,474-job focused build and
+  warning-as-error/forbidden/diff checks.
+- Root-excluded `RelativePhaseExamples.lean` checks exact evaluators and mixed
+  profiles at widths 7/8/9: exact occurrences remain four, relative occurrences
+  are 12/20/28, and mixed node totals are 88/144/200 before the exact four are
+  expanded. Its warning-as-error and 3,473-job focused build pass.
+- An independent audit exhaustively checked the signed Boolean recurrence through
+  borrowed depth four (13,624 obligations), confirmed the stronger target-free
+  assumption has a counterexample when dropped, recomputed every contextual/raw
+  count, and found no semantic or resource error. The maintained root axiom audit
+  now contains 143 prints, all within `propext`, `Classical.choice`, and
+  `Quot.sound`. The integrated focused root/audit build passed with 3,489 jobs;
+  two consecutive post-root full builds passed with 3,488 jobs each.
 - Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
   `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
   proves the source's original `n=9,m=5` split exhausts A's right workspace and

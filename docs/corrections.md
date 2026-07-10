@@ -75,8 +75,8 @@ statement. “Open” means the repair is identified but not yet machine checked
   `balancedLayout`, and `balancedCorollary74Circuit` now implement the repaired
   floor partition and concrete ladder substitution, with exact operator equality,
   `n−2` controls, and `8(n−5)` Toffoli macros for every `n≥7`.
-- **Status:** corrected and proved at the exact Toffoli-macro layer; the dependent
-  contextual phase/basic-operation expansion remains separate under C-004.
+- **Status:** corrected and proved, including the contextual and literal primitive
+  layers recorded separately under C-004.
 
 ## C-004 — Corollary 7.4 remainder has an arithmetic error
 
@@ -201,10 +201,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   `BasisMeasurementEq` are separate relations. Both Section 6.2 diagrams now
   compile with exact signed basis actions and exact equality to each other;
   `relativePhaseToffoliACircuit_basisPhaseEq_toffoli` and its B-circuit analogue
-  record the `101` column sign. The contextual Corollary 7.4 cancellation remains
-  a separate ordered-circuit obligation.
-- **Status:** partial: the diagrams and semantic relation are proved; their later
-  contextual phase cancellation remains open.
+  record the `101` column sign. `relativeHalfPhaseExponent` and
+  `relativeInwardPhaseExponent` compute its recursive propagation, while
+  `eval_relativeCorollary74Circuit` proves exact cancellation only in the corrected
+  ordered `Arel;Bhybrid;adjoint(Arel);Bhybrid` context.
+- **Status:** corrected and proved for the Section 6 diagrams and their Corollary
+  7.4 contextual use.
 
 ## C-010 — Auxiliary-wire contracts are underspecified
 
