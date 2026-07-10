@@ -307,6 +307,88 @@ theorem arbitraryTwoQubit_controlled_eq_none_iff (controls : ℕ) :
 
 end CostModel
 
+namespace Circuit
+
+/-! ## Bridges between accepted literal-syntax cost models -/
+
+/--
+Every circuit accepted by the stricter one-qubit/CNOT model has the same exact
+cost under the later at-most-two-qubit model.
+
+The proof inspects the literal syntax.  The `some` hypothesis rules out every
+primitive kind other than `.oneQubit` and `.cnot`; those two kinds cost one in
+both models.
+-/
+theorem arbitraryTwoQubit_cost_of_oneQubitCNOT_cost {n totalCost : ℕ}
+    {circuit : Circuit n}
+    (hcost : cost CostModel.oneQubitCNOT circuit = some totalCost) :
+    cost CostModel.arbitraryTwoQubit circuit = some totalCost := by
+  induction circuit generalizing totalCost with
+  | nil =>
+      simpa [cost] using hcost
+  | cons primitive circuit ih =>
+      rw [cost_cons] at hcost ⊢
+      cases hkind : primitive.kind with
+      | oneQubit =>
+          cases htail : cost CostModel.oneQubitCNOT circuit with
+          | none => simp [hkind, htail, addCost] at hcost
+          | some tailCost =>
+              have ih' := ih htail
+              simpa [hkind, htail, ih', addCost] using hcost
+      | cnot =>
+          cases htail : cost CostModel.oneQubitCNOT circuit with
+          | none => simp [hkind, htail, addCost] at hcost
+          | some tailCost =>
+              have ih' := ih htail
+              simpa [hkind, htail, ih', addCost] using hcost
+      | toffoli =>
+          simp [hkind, addCost] at hcost
+      | controlledOneQubit controls =>
+          simp [hkind, addCost] at hcost
+      | arbitraryTwoQubit =>
+          simp [hkind, addCost] at hcost
+      | other tag =>
+          simp [hkind, addCost] at hcost
+
+/--
+An accepted one-qubit/CNOT cost is exactly the number of primitive occurrences
+in the circuit syntax.
+-/
+theorem gateCount_eq_of_oneQubitCNOT_cost {n totalCost : ℕ}
+    {circuit : Circuit n}
+    (hcost : cost CostModel.oneQubitCNOT circuit = some totalCost) :
+    gateCount circuit = totalCost := by
+  induction circuit generalizing totalCost with
+  | nil =>
+      simpa [cost, gateCount] using hcost.symm
+  | cons primitive circuit ih =>
+      rw [cost_cons] at hcost
+      cases hkind : primitive.kind with
+      | oneQubit =>
+          cases htail : cost CostModel.oneQubitCNOT circuit with
+          | none => simp [hkind, htail, addCost] at hcost
+          | some tailCost =>
+              have ih' := ih htail
+              simp only [gateCount_cons, ih']
+              simpa [hkind, htail, addCost, Nat.add_comm] using hcost.symm
+      | cnot =>
+          cases htail : cost CostModel.oneQubitCNOT circuit with
+          | none => simp [hkind, htail, addCost] at hcost
+          | some tailCost =>
+              have ih' := ih htail
+              simp only [gateCount_cons, ih']
+              simpa [hkind, htail, addCost, Nat.add_comm] using hcost.symm
+      | toffoli =>
+          simp [hkind, addCost] at hcost
+      | controlledOneQubit controls =>
+          simp [hkind, addCost] at hcost
+      | arbitraryTwoQubit =>
+          simp [hkind, addCost] at hcost
+      | other tag =>
+          simp [hkind, addCost] at hcost
+
+end Circuit
+
 namespace Primitive
 
 @[simp]

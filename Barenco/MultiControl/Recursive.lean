@@ -19,7 +19,10 @@ target.  A genuinely zero-control target gate is exposed separately as a local
 base circuit.
 
 All five nodes are retained as macros.  Consequently their structural count is
-exact, but neither paper cost model accepts the unexpanded circuit.
+exact.  The Sections 3–7 one-qubit+CNOT model rejects the unexpanded circuit.
+The Section 8 at-most-two-qubit model accepts exactly the boundary prefixes
+`prefix = 0` and `prefix = 1`; larger prefixes contain genuine multi-control
+macros and remain unsupported.
 -/
 
 namespace Barenco.MultiControl
@@ -578,15 +581,49 @@ theorem recursiveViaSquareCircuit_oneQubitCNOTCost {p ambientWidth : ℕ}
   simp [recursiveViaSquareCircuit, lastControlledTarget, prefixControlledX,
     prefixControlledTarget, Circuit.cost, Circuit.addCost]
 
-/-- The later at-most-two-qubit model also rejects these unexpanded macros. -/
+/--
+Exact Section 8 partial cost of the five-node macro circuit.
+
+The two final-control nodes always act on two wires.  The other three nodes
+carry `p` controls, so all five nodes are accepted exactly when `p ≤ 1`.
+-/
 @[simp]
 theorem recursiveViaSquareCircuit_arbitraryTwoQubitCost {p ambientWidth : ℕ}
     (layout : OrderedControlLayout (p + 1) ambientWidth)
     (V : QubitUnitary) :
     Circuit.cost CostModel.arbitraryTwoQubit
+      (layout.recursiveViaSquareCircuit V) =
+        if p ≤ 1 then some 5 else none := by
+  by_cases hp : p ≤ 1 <;>
+    simp [recursiveViaSquareCircuit, Circuit.cost, Circuit.addCost, hp]
+
+/-- The one-control circuit (`p = 0`) consists of five at-most-two-wire nodes. -/
+@[simp]
+theorem recursiveViaSquareCircuit_arbitraryTwoQubitCost_zero
+    {ambientWidth : ℕ} (layout : OrderedControlLayout 1 ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+      (layout.recursiveViaSquareCircuit V) = some 5 := by
+  simp
+
+/-- The two-control circuit (`p = 1`) also has exact Section 8 cost five. -/
+@[simp]
+theorem recursiveViaSquareCircuit_arbitraryTwoQubitCost_one
+    {ambientWidth : ℕ} (layout : OrderedControlLayout 2 ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+      (layout.recursiveViaSquareCircuit V) = some 5 := by
+  simp
+
+/-- At least two prefix controls leave an unsupported three-or-more-wire macro. -/
+theorem recursiveViaSquareCircuit_arbitraryTwoQubitCost_of_two_le
+    {p ambientWidth : ℕ} (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (V : QubitUnitary) (hp : 2 ≤ p) :
+    Circuit.cost CostModel.arbitraryTwoQubit
       (layout.recursiveViaSquareCircuit V) = none := by
-  simp [recursiveViaSquareCircuit, lastControlledTarget, prefixControlledX,
-    prefixControlledTarget, Circuit.cost, Circuit.addCost]
+  rw [recursiveViaSquareCircuit_arbitraryTwoQubitCost]
+  have hnot : ¬ p ≤ 1 := by omega
+  simp [hnot]
 
 @[simp]
 theorem zeroControlCircuit_gateCount {ambientWidth : ℕ}

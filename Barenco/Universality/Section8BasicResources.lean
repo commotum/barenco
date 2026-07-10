@@ -69,5 +69,4 @@ theorem fourBitGrayCircuit_arbitraryTwoQubitCost {ambientWidth : ℕ}
 
 end
 
-
 end Barenco.MultiControl
