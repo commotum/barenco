@@ -41,8 +41,8 @@ claim.
 - mathlib: `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
-- Project Lean files below `Barenco/`: 109, plus `Barenco.lean`
-- Maintained kernel axiom checks: 319
+- Project Lean files below `Barenco/`: 115, plus `Barenco.lean`
+- Maintained kernel axiom checks: 348
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -52,6 +52,7 @@ The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 | Area | Main modules | Purpose |
 |---|---|---|
 | Finite semantics | `Basic`, `Semantics`, `Controlled` | qubit bases, certified unitaries, reindexing, local and controlled gates |
+| Ordered two-wire gates | `TwoWire/Layout`, `TwoWire/Semantics`, `TwoWire/ControlledBridges`, `TwoWire/Circuit` | certified arbitrary-`U(4)` embeddings, spectator/orientation laws, trusted syntax, adjoints, and model-specific costs |
 | Circuit syntax | `Circuit`, `Cost` | chronological primitive lists, exact evaluation, support, gate counts, named partial cost models |
 | Equivalence and error | `Equivalence/*` | exact global phase, basis-dependent phase, basis behavior, channel/all-measurement equality, L2 operator distance, event-probability bounds |
 | One-qubit algebra | `OneQubit/*` | row/column convention bridge, Euler forms, Pauli/rotation identities, ABC factors, exact and coherent roots |
@@ -73,6 +74,7 @@ imported by the public root.
 |---|---|
 | `Basis n`, `Gate n`, `UnitaryGate n`, `QubitUnitary` | finite qubit-state and certified-unitary types |
 | `localUnitary`, `positiveControlledUnitary`, `cnotUnitary` | exact embedded gate semantics |
+| `OrderedWirePair`, `twoWireUnitary`, `Primitive.twoQubit` | exact ordered arbitrary-two-wire semantics and trusted literal syntax |
 | `Primitive`, `Circuit`, `Circuit.eval` | trusted primitive metadata and head-first chronological circuit syntax |
 | `Circuit.gateCount`, `Circuit.kindCount`, `Circuit.touchedSupport`, `Circuit.cost` | syntax-derived resources |
 | `CostModel.oneQubitCNOT`, `CostModel.arbitraryTwoQubit` | distinct Sections 3--7 and Section 8 cost conventions |
@@ -244,8 +246,11 @@ families are:
   quantifies over arbitrary matrices/effects and is equivalent to `ChannelEq`;
   the computational-basis rank-one probability relation is a proved consequence,
   not a converse physical-model theorem.
-- No trusted arbitrary-two-qubit smart constructor is currently exported. The
-  Section 8 cost kind is pricing metadata, not a synthesis API.
+- The trusted `Primitive.twoQubit` constructor is now exported and its singleton
+  syntax has proved exact semantics and Section 8 cost one. Existing generic
+  primitives still do not expose recoverable local payloads; optimizer-visible
+  payload retention belongs to the separate fusion IR rather than metadata
+  inspection.
 
 ## Build and Axiom Audit
 
@@ -258,12 +263,19 @@ Stage 12 final verification before this report recorded:
 - no `sorry`, `admit`, `by?`, custom `axiom`, `opaque`, `native_decide`, or
   `bv_decide` in project Lean sources;
 - `git diff --check` clean;
-- 319 maintained `#print axioms` checks.
+- 319 maintained `#print axioms` checks at that Goal 1 release boundary.
 
 The final Stage 13 release audit then ran `lake clean` followed by a build from
 the empty project build tree; the clean build succeeded with 3,593 jobs. Strict
 and trust-zero warning-as-error compilation of both the public root and maintained
 axiom audit passed again afterward.
+
+Goal 2 Stages 2–3 subsequently added certified ordered two-wire embeddings and
+trusted arbitrary-two-qubit syntax. The maintained audit now contains 348 checks;
+the integrated Stage 3 root/audit regression build passed with 3,593 jobs, and all
+new declarations remain within the same standard foundations. Direct strict and
+trust-zero compilation passed for the new public leaves, diagnostic, root, and
+audit; the post-integration full build passed with 3,589 jobs.
 
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic

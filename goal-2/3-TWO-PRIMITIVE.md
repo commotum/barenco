@@ -1,6 +1,6 @@
 # 3-TWO-PRIMITIVE
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-10).
 
 ## Current Facts
 
@@ -143,23 +143,64 @@ syntax.
 
 ## Completion Requirements
 
-- [ ] Trusted `Primitive.twoQubit` compiles with exact kind, two-endpoint structural
+- [x] Trusted `Primitive.twoQubit` compiles with exact kind, two-endpoint structural
   support, support card two, certified denotation, and raw denotation theorems.
-- [ ] Adjoint compatibility, primitive/singleton basis action, exact singleton
+- [x] Adjoint compatibility, primitive/singleton basis action, exact singleton
   evaluator, and spectator-zero consequences compile for arbitrary ambient width.
-- [ ] Literal singleton gate count, kind count, touched support, Section 8 cost one,
+- [x] Literal singleton gate count, kind count, touched support, Section 8 cost one,
   and one-qubit/CNOT rejection theorems compile; generic adjoint costs remain exact.
-- [ ] Width-two, swapped-orientation, and nonadjacent diagnostics exercise semantics,
+- [x] Width-two, swapped-orientation, and nonadjacent diagnostics exercise semantics,
   adjoint, syntax, support, counts, and both model boundaries.
-- [ ] Existing primitive/cost/controlled/Toffoli/lower-bound consumers retain their
+- [x] Existing primitive/cost/controlled/Toffoli/lower-bound consumers retain their
   behavior after the high-fanout edit.
-- [ ] Stable public imports and representative maintained axiom checks are added;
+- [x] Stable public imports and representative maintained axiom checks are added;
   diagnostics remain root-excluded and all new checks use accepted foundations.
-- [ ] Focused, adjacent, full, strict, trust-zero, forbidden/no-cheating, and diff
+- [x] Focused, adjacent, full, strict, trust-zero, forbidden/no-cheating, and diff
   checks pass with exact results recorded.
-- [ ] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
+- [x] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
   folded forward with Stage 3 marked complete and Stage 4 resumable.
 
 ## Stage Results
 
 - Stage file created before any Stage 3 Lean source change.
+- The high-fanout edit to `Barenco/Circuit.lean` is limited to the low
+  `TwoWire.Semantics` import, trusted `Primitive.twoQubit pair U`, and definitional
+  kind/support/denotation plus support-cardinality facts. Its body fixes kind
+  `.arbitraryTwoQubit`, unordered endpoint support, and certified
+  `twoWireUnitary pair U`; callers cannot independently supply any of those fields.
+- Added public proof/resource leaf `Barenco/TwoWire/Circuit.lean`. It proves exact
+  primitive pair reversal with local bit-swap reindexing, exact adjoint as the same
+  pair carrying `U⁻¹`, primitive and singleton basis/four-term/spectator-zero
+  action, singleton evaluation, gate/kind/touched-support results, early-model
+  rejection, Section 8 cost one, and specialized adjoint resource preservation.
+  `Barenco/Cost.lean` required no edit.
+- An initial assumption that whole-record equalities required private-constructor
+  access was disproved by a strict/trust-zero external elimination probe. The
+  swap/adjoint proofs therefore remain in the narrow leaf, preserving the frozen
+  minimal high-fanout boundary. This does not expose a payload extractor or permit
+  construction around `Primitive.mk`.
+- Added root-excluded `Barenco/TwoWireCircuitExamples.lean`: canonical width-two
+  singleton evaluation recovers arbitrary `U(4)`; the same local CNOT on the
+  reversed pair is ambient `1 → 0`; nonadjacent `(4,1)` syntax has exact symbolic
+  action and spectator preservation; adjoints carry inverse payloads; structural
+  support/counts and both model outcomes are checked literally.
+- `Barenco.lean` exports `Barenco.TwoWire.Circuit` but not either diagnostic leaf.
+  Thirteen representative Stage 3 checks raise the maintained audit from 335 to
+  348; every new result uses only `propext`, `Classical.choice`, and `Quot.sound`.
+- Focused builds passed with 2,363 jobs for the core constructor, 2,365 for the
+  proof/resource leaf, and 2,368 for diagnostics. The adjacent cost/controlled/
+  lower-bound/relative-phase build passed with 2,938 jobs; a broader reverse-
+  dependency sweep passed with 3,508. The final integrated public/audit regression
+  passed with 3,593 jobs and the post-integration full `lake build` passed with
+  3,589 jobs.
+- Direct warning-as-error and trust-zero warning-as-error compilation passed for
+  `Circuit.lean`, the public two-wire circuit leaf, diagnostics, public root, and
+  axiom audit. Repository proof-hole/custom-declaration/forbidden-decision scans,
+  scoped constructor/no-fallback/root-exclusion/import-layer scans, and
+  `git diff --check` were clean. The only scoped `Primitive.mk` scan hit is an
+  explanatory docstring, not use of the private constructor.
+- `docs/conventions.md`, `docs/traceability.md`, `docs/axiom-audit.md`, and
+  `docs/final-report.md` now describe the trusted constructor, unordered support
+  versus ordered denotation, literal cost boundaries, 348-check audit, and current
+  build results. Stage 4 remains responsible for a separate payload-preserving IR;
+  no local payload is reconstructed from arbitrary existing primitive metadata.

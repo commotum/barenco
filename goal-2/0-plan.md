@@ -2,8 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–2 are complete; Stage 3 trusted two-wire circuit syntax
-is the first incomplete stage.
+Status: active. Stages 1–3 are complete; Stage 4 payload-preserving fusion IR is
+the first incomplete stage.
 
 ## Big-Picture Objective
 
@@ -134,8 +134,15 @@ collection of hand-simplified paper examples.
   width. Width-two, reversed, and nonadjacent width-five diagnostics are root-
   excluded. The integrated 3,590-job build, strict/trust-zero checks, scans, and
   335-entry maintained axiom audit pass.
+- Stage 3 added trusted `Primitive.twoQubit pair U` at the private-constructor
+  boundary and a narrow `TwoWire.Circuit` proof/resource leaf. Explicit nodes have
+  exact swap/adjoint/basis/evaluator laws, literal endpoint support, gate/kind
+  counts, early-model rejection, and Section 8 cost one. Root-excluded diagnostics,
+  the 3,593-job integrated regression, 3,589-job full build, strict/trust-zero
+  checks, scans, and 348-entry audit pass. `Primitive` still does not retain an
+  optimizer-readable payload; Stage 4's separate IR must do so.
 - The optimizer architecture is a separate payload-preserving IR lowering through
-  trusted smart constructors. `Primitive` remains unchanged except for the future
+  trusted smart constructors. `Primitive` changed only by the completed trusted
   two-wire constructor inside its private-constructor file; no normalizer will
   infer payloads from metadata or decide equality of arbitrary unitary matrices.
 
@@ -188,7 +195,7 @@ The goal is complete only when all of the following hold:
 
 - [x] `1-GUARDRAILS` — freeze architecture, source claims, models, and proof boundaries.
 - [x] `2-TWO-WIRE` — certified ordered-pair semantic embeddings and algebra.
-- [ ] `3-TWO-PRIMITIVE` — trusted circuit constructor, support, adjoint, and costs.
+- [x] `3-TWO-PRIMITIVE` — trusted circuit constructor, support, adjoint, and costs.
 - [ ] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
 - [ ] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
 - [ ] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
@@ -341,6 +348,22 @@ connect it to both named paper cost models.
   the accepted standard foundations.
 - Focused, adjacent, strict, trust-zero, root, audit, and diff checks specified by
   the stage file pass.
+
+### Stage Results
+
+- `Primitive.twoQubit` is the sole trusted generic two-wire smart constructor. It
+  accepts only an `OrderedWirePair` and certified local `U(4)`, fixes kind,
+  unordered endpoint support, and `twoWireUnitary` denotation together, and has
+  exact support-cardinality/projection facts.
+- Public `Barenco.TwoWire.Circuit` proves exact pair-swap, adjoint/inverse,
+  primitive/singleton basis and spectator behavior, singleton evaluation, literal
+  counts/support, early-model rejection, and Section 8 cost one. `Cost.lean` and
+  the `Primitive` representation were otherwise unchanged; optimizer payloads are
+  deliberately deferred to Stage 4.
+- Canonical width-two, reversed-CNOT, and nonadjacent width-five diagnostics pass.
+  Thirteen new checks bring the maintained audit to 348. Focused, adjacent,
+  3,593-job integrated, 3,589-job full, strict/trust-zero, forbidden/no-cheating,
+  root-exclusion, documentation, and diff checks all pass.
 
 ## 4-FUSION-IR
 

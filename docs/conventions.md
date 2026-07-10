@@ -858,8 +858,8 @@ literal singleton `[Primitive.twoQubit pair U]` has gate count and
 arbitrary-two-qubit kind count one, exact endpoint touched support, Section 8 cost
 `some 1`, and one-qubit/CNOT cost `none`. Its adjoint is exactly the same ordered
 pair carrying `U⁻¹`, with both costs preserved. These conclusions come from
-syntax, not from semantic matrix equality. The
-two verified relative-phase circuits each remain seven literal nodes. The paper's
+syntax, not from semantic matrix equality. The two verified relative-phase
+circuits each remain seven literal nodes. The paper's
 three-operation relative-phase count groups neighboring nodes into three general
 two-wire operations; it is not assigned to the seven-node syntax without an
 explicit grouped circuit and evaluator theorem.

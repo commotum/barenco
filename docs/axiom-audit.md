@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 319 `#print axioms` checks, with one
+The maintained audit module currently contains 348 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -369,6 +369,19 @@ row below for each checked declaration.
 | `Barenco.twoWireUnitary_localUnitary_one` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | local bit one embeds as the ambient second-wire gate; no project axiom | 2026-07-10 |
 | `Barenco.twoWireUnitary_positiveControlledUnitary_zero_one` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | canonical local singleton control embeds exactly on arbitrary ambient wires; no project axiom | 2026-07-10 |
 | `Barenco.twoWireUnitary_cnotUnitary_zero_one` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | canonical local CNOT embeds exactly from pair first to pair second; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_support_card` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | the trusted constructor declares exactly two distinct structural endpoints; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_denotation` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | the trusted syntax denotation is exactly the certified ordered-pair embedding; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_swap` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | reversing pair orientation requires the explicit local bit-swap reindexing; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.adjoint_twoQubit` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | primitive adjoint retains the ordered pair and carries the inverse local payload; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_denotation_mulVec_basisKet_eq_zero_of_changed` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | trusted primitive syntax cannot create amplitude across a changed spectator; no project axiom | 2026-07-10 |
+| `Barenco.Circuit.eval_singleton_twoQubit` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | evaluating one trusted node recovers its exact certified embedding; no project axiom | 2026-07-10 |
+| `Barenco.Circuit.eval_singleton_twoQubit_mulVec_basisKet_eq_sum` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | evaluated singleton basis action is the exact four-term local superposition; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_singleton_gateCount` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | the literal singleton has one syntax node; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_singleton_kindCount_of_ne` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | no non-arbitrary-two-qubit kind counts the trusted node; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.twoQubit_singleton_touchedSupport` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | singleton touched support is the literal endpoint finset; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.oneQubitCNOT_cost_twoQubit` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | the early one-qubit/CNOT model rejects a generic undecomposed `U(4)` node; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.arbitraryTwoQubit_cost_twoQubit` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | Section 8 charges one for the literal trusted two-wire singleton; no project axiom | 2026-07-10 |
+| `Barenco.Primitive.arbitraryTwoQubit_cost_adjoint_twoQubit` | `Barenco.TwoWire.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | adjoint preserves the literal singleton's Section 8 cost one; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
 
@@ -438,5 +451,10 @@ row below for each checked declaration.
 | Goal 2 Stage 2 focused/adjacent integration | `lake build Barenco.TwoWire.Semantics Barenco.TwoWire.ControlledBridges Barenco.TwoWireExamples Barenco.AxiomAudit Barenco` | successful, 3,590 jobs; the root-excluded width-two/reversed/nonadjacent diagnostics were rebuilt alongside the public root and audit, 2026-07-10 |
 | Goal 2 Stage 2 strict/trust-zero boundary | direct warning-as-error compilation of `Layout`, `Semantics`, `ControlledBridges`, the diagnostic leaf, `Barenco.lean`, and `AxiomAudit.lean`, with the public leaves/root/audit also compiled under `-t0` | all checks successful; all 335 maintained declarations remain within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
 | Goal 2 Stage 2 hygiene | repository Lean scans for proof holes, custom `axiom`/`opaque` declarations, and forbidden decision shortcuts; scoped no-cheating/root-exclusion scans; `git diff --check` | all clean; two existing prose uses of “opaque” in Gray-expansion comments were classified as documentation rather than declarations, 2026-07-10 |
+| Goal 2 Stage 3 focused and adjacent | `lake build Barenco.Circuit`; `lake build Barenco.TwoWire.Circuit`; `lake build Barenco.TwoWireCircuitExamples`; cost/controlled/lower-bound/relative-phase adjacent sweep | successful with 2,363, 2,365, 2,368, and 2,938 jobs respectively; a broader reverse-dependency sweep also passed with 3,508 jobs, 2026-07-10 |
+| Goal 2 Stage 3 integrated public regression | focused leaves plus `Cost`, controlled/equivalence/multi-control/lower-bound/three-qubit/Section-8/synthesis consumers, `Barenco.AxiomAudit`, and `Barenco` | successful, 3,593 jobs; all thirteen new maintained checks use only `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Goal 2 Stage 3 strict/trust-zero boundary | direct warning-as-error compilation of `Circuit.lean`, `TwoWire/Circuit.lean`, `TwoWireCircuitExamples.lean`, `Barenco.lean`, and `AxiomAudit.lean`, repeated with `-t0` for all public leaves/root/audit and the diagnostic | all checks successful; all 348 maintained declarations remain within the recorded standard foundations, 2026-07-10 |
+| Goal 2 Stage 3 full build | `lake build` after public integration and documentation synchronization | successful, 3,589 jobs, 2026-07-10 |
+| Goal 2 Stage 3 hygiene | repository proof-hole/custom-declaration/forbidden-decision scans; scoped constructor/no-fallback/root-exclusion/import-layer scans; `git diff --check` | all clean; the sole scoped `Primitive.mk` hit is explanatory documentation in the proof leaf, not constructor use, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
