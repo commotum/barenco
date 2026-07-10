@@ -91,8 +91,7 @@ theorem recursivePrimitiveCircuit_oneQubitCount_eq_resource
     (U : QubitUnitary) :
     Circuit.kindCount .oneQubit (recursivePrimitiveCircuit depth layout U) =
       recursivePrimitiveOneQubitCount depth := by
-  simpa [recursivePrimitiveOneQubitCount] using
-    recursivePrimitiveCircuit_oneQubitCount depth layout U
+  exact recursivePrimitiveCircuit_oneQubitCount depth layout U
 
 /-- The numerical CNOT function is exactly the circuit's structural count. -/
 @[simp]
@@ -102,8 +101,7 @@ theorem recursivePrimitiveCircuit_cnotCount_eq_resource
     (U : QubitUnitary) :
     Circuit.kindCount .cnot (recursivePrimitiveCircuit depth layout U) =
       recursivePrimitiveCNOTCount depth := by
-  simpa [recursivePrimitiveCNOTCount] using
-    recursivePrimitiveCircuit_cnotCount depth layout U
+  exact recursivePrimitiveCircuit_cnotCount depth layout U
 
 /-- The numerical total function is exactly the circuit's primitive-node count. -/
 @[simp]
@@ -113,8 +111,7 @@ theorem recursivePrimitiveCircuit_gateCount_eq_resource
     (U : QubitUnitary) :
     Circuit.gateCount (recursivePrimitiveCircuit depth layout U) =
       recursivePrimitiveTotalCount depth := by
-  simpa [recursivePrimitiveTotalCount] using
-    recursivePrimitiveCircuit_gateCount depth layout U
+  exact recursivePrimitiveCircuit_gateCount depth layout U
 
 /-- The same total is accepted exactly by the Sections 3–7 cost model. -/
 @[simp]
@@ -124,8 +121,7 @@ theorem recursivePrimitiveCircuit_oneQubitCNOTCost_eq_resource
     (U : QubitUnitary) :
     Circuit.cost CostModel.oneQubitCNOT (recursivePrimitiveCircuit depth layout U) =
       some (recursivePrimitiveTotalCount depth) := by
-  simpa [recursivePrimitiveTotalCount] using
-    recursivePrimitiveCircuit_oneQubitCNOTCost depth layout U
+  exact recursivePrimitiveCircuit_oneQubitCNOTCost depth layout U
 
 end OrderedControlLayout
 
@@ -199,7 +195,9 @@ theorem recursivePrimitiveOneQubitCountAtWidth_succ (sourceWidth : ℕ)
   have hdepth : sourceWidth + 1 - 7 = (sourceWidth - 7) + 1 := by
     omega
   rw [hdepth, recursivePrimitiveOneQubitCount_succ]
-  congr 1
+  have hincrement : 64 * (sourceWidth - 7) + 232 =
+      64 * sourceWidth - 216 := by
+    omega
   omega
 
 theorem recursivePrimitiveCNOTCountAtWidth_succ (sourceWidth : ℕ)
@@ -211,7 +209,9 @@ theorem recursivePrimitiveCNOTCountAtWidth_succ (sourceWidth : ℕ)
   have hdepth : sourceWidth + 1 - 7 = (sourceWidth - 7) + 1 := by
     omega
   rw [hdepth, recursivePrimitiveCNOTCount_succ]
-  congr 1
+  have hincrement : 48 * (sourceWidth - 7) + 188 =
+      48 * sourceWidth - 148 := by
+    omega
   omega
 
 /-- The exact named construction adds `112n-364` primitives from width `n` to `n+1`. -/
@@ -224,7 +224,9 @@ theorem recursivePrimitiveTotalCountAtWidth_succ (sourceWidth : ℕ)
   have hdepth : sourceWidth + 1 - 7 = (sourceWidth - 7) + 1 := by
     omega
   rw [hdepth, recursivePrimitiveTotalCount_succ]
-  congr 1
+  have hincrement : 112 * (sourceWidth - 7) + 420 =
+      112 * sourceWidth - 364 := by
+    omega
   omega
 
 /-! ## Construction-specific quadratic upper bounds -/

@@ -635,6 +635,12 @@ pivot invariant, not merely Hamming adjacency.
   Strict warning-as-error compilation, a 3,482-job focused build, forbidden scan,
   and `git diff --check` pass; representative axiom checks use only `propext`,
   `Classical.choice`, and `Quot.sound`.
+- Root-excluded `RecursiveExamples.lean` pins the zero-control local base, the
+  one-control Lemma 7.5 macro boundary (two arity-one plus three arity-zero
+  macros), the dirty/target workspace roles of the first primitive step, exact
+  depth-zero/depth-one evaluators, and matching `(252,188,440)` / `(484,376,860)`
+  resource profiles. Strict warning-as-error compilation and its 3,484-job
+  focused build pass.
 - Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
   `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
   proves the source's original `n=9,m=5` split exhausts A's right workspace and
