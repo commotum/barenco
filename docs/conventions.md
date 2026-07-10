@@ -86,10 +86,11 @@ wrapper is `Primitive.unclassified`: it receives kind `.other` and full-register
 support, so later cost models must reject or explicitly price it.
 `Primitive.toffoli` requires three pairwise-distinct wires and packages the
 certified two-control Pauli-X denotation; equal controls therefore cannot be
-mislabeled as a three-wire resource. The arbitrary-two-qubit kind deliberately
-still has no smart constructor at this semantic layer; attaching trusted circuit
-syntax and resource metadata to the certified two-wire embedding is a separate
-construction.
+mislabeled as a three-wire resource. `Primitive.twoQubit pair U` is the trusted
+constructor for the arbitrary-two-qubit kind: callers supply only an ordered
+distinct pair and a certified local `U(4)`, while the constructor fixes the
+endpoint support and `twoWireUnitary pair U` denotation together. Callers cannot
+independently forge its kind, support, or ambient matrix.
 
 ## Wires, Controls, Targets, and Embeddings
 
@@ -135,8 +136,10 @@ on `pair.swap` is embedding the explicitly wire-swapped reindexing of `U` on
 ambient first and second wires and identify canonical local CNOT `0 → 1` with
 ambient CNOT `pair.first → pair.second`. These are exact full-register equalities;
 no global or basis-dependent phase is discarded. Identity and scalar local gates
-remain valid inputs, so a later two-wire structural support declaration is an
-upper bound, not a claim of minimal semantic support.
+remain valid inputs, so the endpoint support declared by `Primitive.twoQubit` is
+an upper bound, not a claim of minimal semantic support. That support is an
+unordered finset; ordered orientation remains in the constructor argument and
+denotation.
 
 ## Unitary Gates
 
@@ -842,14 +845,20 @@ Named cost models:
   certified `.arbitraryTwoQubit` kind, and `.controlledOneQubit controls` when
   `controls <= 1` cost one. A zero-control macro acts on one wire and a one-control
   macro on two; arity at least two, Toffoli, and `.other` remain unsupported. This
-  deliberately changes the earlier ground rules; no arbitrary-two-qubit smart
-  constructor or paper decomposition theorem is thereby supplied.
+  deliberately changes the earlier ground rules. The model classification alone
+  supplies no gate semantics; generic two-wire nodes enter syntax only through
+  the separately trusted `Primitive.twoQubit` constructor.
 - Additional diagnostic models may count one-qubit, CNOT, controlled-one-qubit,
   Toffoli, arbitrary two-qubit gates, swaps, or negative-control conjugations in
   separate coordinates.
 
 Under the repaired Section 8 model, the literal Lemma 6.1 square-root circuit has
 exact cost five and the displayed Lemma 7.1 circuit has exact cost thirteen. The
+literal singleton `[Primitive.twoQubit pair U]` has gate count and
+arbitrary-two-qubit kind count one, exact endpoint touched support, Section 8 cost
+`some 1`, and one-qubit/CNOT cost `none`. Its adjoint is exactly the same ordered
+pair carrying `U⁻¹`, with both costs preserved. These conclusions come from
+syntax, not from semantic matrix equality. The
 two verified relative-phase circuits each remain seven literal nodes. The paper's
 three-operation relative-phase count groups neighboring nodes into three general
 two-wire operations; it is not assigned to the seven-node syntax without an

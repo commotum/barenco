@@ -11,6 +11,7 @@ import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.ControlledDistance
 import Barenco.Equivalence.EventProbability
 import Barenco.Cost
+import Barenco.TwoWire.Circuit
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.ControlledCircuit.Selected

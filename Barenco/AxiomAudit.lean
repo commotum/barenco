@@ -10,6 +10,7 @@ import Barenco.Equivalence.ControlledDistance
 import Barenco.Equivalence.EventProbability
 import Barenco.Equivalence.Phase
 import Barenco.TwoWire.ControlledBridges
+import Barenco.TwoWire.Circuit
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
@@ -92,6 +93,22 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.twoWireUnitary_localUnitary_one
 #print axioms Barenco.twoWireUnitary_positiveControlledUnitary_zero_one
 #print axioms Barenco.twoWireUnitary_cnotUnitary_zero_one
+
+/-! ## Goal 2 Stage 3: trusted arbitrary-two-qubit circuit syntax -/
+
+#print axioms Barenco.Primitive.twoQubit_support_card
+#print axioms Barenco.Primitive.twoQubit_denotation
+#print axioms Barenco.Primitive.twoQubit_swap
+#print axioms Barenco.Primitive.adjoint_twoQubit
+#print axioms Barenco.Primitive.twoQubit_denotation_mulVec_basisKet_eq_zero_of_changed
+#print axioms Barenco.Circuit.eval_singleton_twoQubit
+#print axioms Barenco.Circuit.eval_singleton_twoQubit_mulVec_basisKet_eq_sum
+#print axioms Barenco.Primitive.twoQubit_singleton_gateCount
+#print axioms Barenco.Primitive.twoQubit_singleton_kindCount_of_ne
+#print axioms Barenco.Primitive.twoQubit_singleton_touchedSupport
+#print axioms Barenco.Primitive.oneQubitCNOT_cost_twoQubit
+#print axioms Barenco.Primitive.arbitraryTwoQubit_cost_twoQubit
+#print axioms Barenco.Primitive.arbitraryTwoQubit_cost_adjoint_twoQubit
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose
