@@ -19,7 +19,9 @@ literal circuit of arbitrary one-qubit gates and CNOTs, proves exact evaluator
 equality, and supplies an accepted finite cost. Width one has a direct one-gate
 implementation. Exact width-zero universality is false: the state space is
 one-dimensional and has arbitrary `U(1)` phases, while the restricted circuit
-syntax has no legal primitive and reaches only identity.
+syntax `LowerBounds.BasicCircuit 0` has no legal primitive and reaches only
+identity. General `Circuit 0` permits unclassified semantic nodes, but those are
+outside the one-qubit/CNOT generator language and rejected by its cost model.
 
 For the library's deliberately non-pruning synthesis schedule, writing
 
@@ -78,7 +80,7 @@ imported by the public root.
 | `operatorDistance`, `eventProbability` | L2 induced operator distance and finite computational-basis event probabilities |
 | `unitaryRoot`, `powerTwoRoot` | exact arbitrary roots and a coherent power-of-two root sequence |
 | `controlledU2Circuit`, `doubleControlledRootCircuit`, `grayControlledCircuit` | selected controlled and multi-controlled circuits |
-| `cleanAncillaCircuit`, `expandedCleanAncillaCircuit_oneCleanAncillaContract` | clean-zero subspace construction and restoration/factorization contract |
+| `cleanAncillaCircuit`, `expandedCleanAncillaCircuit_oneCleanAncillaContract`, `eval_expandedCleanAncillaCircuit_factorization` | clean-zero construction, structural one-ancilla contract, and semantic restoration/factorization |
 | `decomposeFiniteUnitary` | arbitrary finite-index exact two-level decomposition with diagonal residual |
 | `twoLevelCircuit`, `diagonalCircuit`, `exactSynthesisCircuit` | literal no-ancilla positive-width synthesis layers |
 | `eval_exactSynthesisCircuit` | exact evaluator equality for the assembled circuit |
@@ -157,15 +159,15 @@ a proved affine X/CNOT endpoint normalization.
 | Lemma 6.1 | exact five-node at-most-two-wire macro cost under Section 8; exact expansion cost 16 under one-qubit/CNOT |
 | Relative-phase Toffoli | both verified unmerged circuits cost 7 under Section 8; the paper's merged cost 3 is unresolved |
 | Four-bit Gray circuit | exact Section 8 cost 13: seven singly controlled roots and six CNOTs |
-| General Gray expansion | exact raw profile for `m` controls: `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8` |
-| Lemma 7.2 dirty ladder | exact `4(m-2)` Toffoli occurrences with explicit capacity and restoration |
-| Corollary 7.4 | exact macro total `8(n-5)`; selected raw expansion `32n-144` one-qubit + `24n-100` CNOT = `56n-244`; printed optimized `48n-204` unresolved |
-| Recursive exact multi-control | with depth offset `d=n-7`: exact total `56d^2+364d+440`; construction-specific `IsBigOWith 56` in width |
+| General Gray expansion | for `m>=1` controls, exact raw profile: `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8` |
+| Lemma 7.2 dirty ladder | for `m>=3` controls with stated ambient capacity, exact `4(m-2)` Toffoli occurrences and restoration |
+| Corollary 7.4 | for logical width `n>=7`, exact macro total `8(n-5)`; selected raw expansion `32n-144` one-qubit + `24n-100` CNOT = `56n-244`; printed optimized `48n-204` unresolved |
+| Recursive exact multi-control | for width `n>=7`, with depth offset `d=n-7`: exact total `56d^2+364d+440`; construction-specific `IsBigOWith 56` in width |
 | Lemma 7.7 lower bound | exact same-register implementation of a nonscalar fully controlled target needs at least `n-1` CNOTs, hence at least that many total accepted gates |
-| Approximate multi-control | exact truncated component formulas, capacity-aware exact fallback, operator/event error at most epsilon, explicit logarithmic-regime upper bound; no optimal `Theta(n log(1/epsilon))` claim |
-| Linear controlled SU(2) | exact width profile `(64n-279, 48n-194, 112n-473)` and construction-specific `O(n)` |
-| One-clean-wire controlled U | exact width profile `(64n-284, 48n-198, 112n-482)` and construction-specific `O(n)` |
-| General exact synthesis | exact factor count `choose(2^n,2)`, exact diagonal-pattern count `2^(n-1)`, finite `2/112` benchmark sandwich, fixed-schedule `Theta(n^2 4^n)` |
+| Approximate multi-control | for width `n>=7` and `epsilon>0`, exact truncated component formulas, capacity-aware exact fallback, and operator/event error at most epsilon; the explicit logarithmic-regime bound assumes `epsilon<=1`; no optimal `Theta(n log(1/epsilon))` claim |
+| Linear controlled SU(2) | for width `n>=7`, exact profile `(64n-279, 48n-194, 112n-473)` and construction-specific `O(n)` |
+| One-clean-wire controlled U | for width `n>=7`, exact profile `(64n-284, 48n-198, 112n-482)` and construction-specific `O(n)` |
+| General exact synthesis | for width `n=k+1>=1`, exact factor count `choose(2^n,2)`, exact diagonal-pattern count `2^(n-1)`, finite `2/112` benchmark sandwich, and fixed-schedule `Theta(B(k))` for `B(k)=(k+1)^2*4^k` |
 | Section 8 numerical minima | excluded: the paper reports numerical evidence, not proofs |
 | Six-`U(4)` and dimension lower claims | unresolved/excluded: no surjectivity or manifold/image-dimension proof |
 
@@ -237,9 +239,11 @@ families are:
 - The paper's smaller post-merger one-qubit count for the general Gray family is
   not realized by the checked raw syntax, and its historical “most efficient
   known” comparison is intentionally excluded.
-- General POVM formalization is outside scope. The approximation result covers
-  every finite computational-basis event, and the separate algebraic channel
-  relation characterizes all rank-one measurement probabilities.
+- A physical POVM API is outside scope. The approximation result covers every
+  finite computational-basis event. Separately, algebraic `AllMeasurementEq`
+  quantifies over arbitrary matrices/effects and is equivalent to `ChannelEq`;
+  rank-one and computational-basis probability relations are proved consequences,
+  not a converse physical-model theorem.
 - No trusted arbitrary-two-qubit smart constructor is currently exported. The
   Section 8 cost kind is pricing metadata, not a synthesis API.
 

@@ -104,8 +104,10 @@ claim or a lower bound on arbitrary implementations of `U`.
 ## Deliberate exclusions and boundaries
 
 - Exact one-qubit/CNOT universality is proved for every positive width. At width
-  zero, the syntax can express only the empty circuit, while the semantic unitary
-  group is `U(1)`; exact width-zero universality is therefore false.
+  zero, the restricted one-qubit/CNOT `BasicCircuit` syntax can express only the
+  empty circuit, while the semantic unitary group is `U(1)`; exact width-zero
+  universality is therefore false. General `Circuit 0` still permits conservative
+  unclassified semantic nodes, which the named cost models reject.
 - The paper's merged three-operation relative-phase Toffoli claim is not promoted
   to a proved cost-3 theorem. The explicit unmerged circuits are represented and
   costed separately.
