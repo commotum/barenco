@@ -188,9 +188,12 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Optimization.cnotCount_normalizeEarly
 #print axioms Barenco.Optimization.oneQubitCount_normalizeEarly_le
 #print axioms Barenco.Optimization.normalizeEarly_oneQubitCNOT_acceptedCostNonincrease
+#print axioms Barenco.Optimization.normalizeEarly_oneQubitCNOT_cost_eq_none_iff
 #print axioms Barenco.Optimization.normalizeEarlyProgram_oneQubitCNOT_acceptedCostNonincrease
+#print axioms Barenco.Optimization.normalizeEarlyProgram_oneQubitCNOT_cost_eq_none_iff
 #print axioms Barenco.Optimization.section8Normalize_arbitraryTwoQubit_acceptedCostNonincrease
 #print axioms Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease
+#print axioms Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_cost_eq_none_iff
 #print axioms Barenco.Optimization.SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease
 
 #print axioms Barenco.GlobalPhaseEq.mul

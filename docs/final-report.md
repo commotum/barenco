@@ -42,7 +42,7 @@ claim.
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
 - Project Lean files below `Barenco/`: 130, plus `Barenco.lean`
-- Maintained kernel axiom checks: 417
+- Maintained kernel axiom checks: 420
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.

@@ -2,8 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–4 are complete; Stage 5 exact normalization is the first
-incomplete stage.
+Status: active. Stages 1–5 are complete; Stage 6 relative-phase Toffoli cost three
+is the first incomplete stage.
 
 ## Big-Picture Objective
 
@@ -154,6 +154,16 @@ collection of hand-simplified paper examples.
   377 maintained axiom checks, the 3,596-job integrated regression, 3,594-job full
   build, strict/trust-zero checks, scans, and documentation synchronization pass.
   No merger or disputed optimized count is claimed at this stage.
+- Stage 5 added a terminating exact normalization engine, constructor-certified
+  local fusion/commutation laws, separate early and Section 8 policies, exact
+  barrier-separated program passes, and honest free-group inverse provenance.
+  The early policy preserves every ordered literal CNOT; Section 8 emits
+  CNOT-free certified U(4) syntax. Visible, mixed, and lowered evaluator theorems,
+  syntax-derived component/cost nonincrease, and full unsupported-cost iff
+  preservation compile. Root-excluded diagnostics include a pairwise-distinct
+  relative-A output with three literal U(4) nodes but intentionally defer the
+  paper-facing classification to Stage 6. The 3,603-job full build, strict and
+  trust-zero checks, hygiene scans, and 420-entry maintained axiom audit pass.
 
 ## Remaining Assumptions to Test
 - The relative-phase A circuit appears to split chronologically into three groups
@@ -475,6 +485,25 @@ output is semantically sound and no more expensive under its declared cost polic
   statement appears without proof.
 - Focused optimizer, representative diagnostics, adjacent consumers, strict,
   trust-zero, audit, full-root-if-needed, and hygiene checks pass.
+
+### Stage Results
+
+- Public `Optimization.NormalizeCore`, `FusionLaws`, `FusionCommutation`,
+  `EarlyNormalize`, `Section8Normalize`, `SymbolicCancellation`, `Normalize`, and
+  `NormalizeResources` provide exact target-independent normalization without
+  matrix equality tests or metadata-derived locality. Mixed programs preserve
+  exact barriers, and model-specific costs are derived from literal output syntax.
+- The early policy preserves the full ordered CNOT trace and never emits U(4);
+  Section 8 emits CNOT-free certified U(4) syntax and is idempotent. Symbolic
+  free-group words provide executable identity/inverse cancellation under every
+  valuation while retaining literal CNOT order.
+- Visible and mixed accepted costs are nonincreasing in their declared models;
+  unsupportedness is preserved by full iff theorems for early visible/mixed and
+  Section 8 mixed syntax. Diagnostics cover all required orientation, phase,
+  provenance, model, paper-input, and barrier boundaries.
+- Stable public integration, 420 maintained axiom checks, strict/trust-zero,
+  3,603-job full build, no-cheating scans, documentation synchronization, and diff
+  checks pass. Exact evidence is recorded in `goal-2/5-NORMALIZE.md`.
 
 ## 6-TOFFOLI-THREE
 

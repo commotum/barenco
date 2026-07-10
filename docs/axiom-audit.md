@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 417 `#print axioms` checks, with one
+The maintained audit module currently contains 420 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -447,9 +447,12 @@ row below for each checked declaration.
 | `Barenco.Optimization.cnotCount_normalizeEarly` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | early normalization preserves literal CNOT count exactly from syntax; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.oneQubitCount_normalizeEarly_le` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | early normalization can only reduce the literal one-qubit component count; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.normalizeEarly_oneQubitCNOT_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | every accepted visible early-model input emits accepted syntax of no larger cost; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.normalizeEarly_oneQubitCNOT_cost_eq_none_iff` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | visible early normalization preserves unsupportedness exactly; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.normalizeEarlyProgram_oneQubitCNOT_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | conditional early-model cost nonincrease extends across exact barriers; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.normalizeEarlyProgram_oneQubitCNOT_cost_eq_none_iff` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | early mixed normalization preserves unsupported visible nodes and barriers exactly at the cost boundary; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.section8Normalize_arbitraryTwoQubit_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | visible Section 8 cost nonincrease is derived from literal normalized gate count; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | conditional Section 8 cost nonincrease preserves unsupported barriers honestly; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_cost_eq_none_iff` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | Section 8 mixed normalization preserves unsupportedness exactly, whose only source is an unsupported barrier; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | erased symbolic output remains accepted and no more expensive in the early model; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
@@ -531,5 +534,10 @@ row below for each checked declaration.
 | Goal 2 Stage 4 strict/trust-zero boundary | direct warning-as-error and `-t0` warning-as-error compilation of both optimization leaves, canonical selected, relative fusion, Gray fusion, diagnostics, public root, and audit | all checks successful, 2026-07-10 |
 | Goal 2 Stage 4 full build | `lake build` after public integration and documentation synchronization | successful, 3,594 jobs, 2026-07-10 |
 | Goal 2 Stage 4 hygiene | repository proof-hole/custom-declaration/forbidden-decision scans; scoped no-forgery/no-opaque-input/root-exclusion scans; audit/table count comparison; `git diff --check` | all clean; both audit source and documentation table contain exactly 377 entries, 2026-07-10 |
+| Goal 2 Stage 5 focused leaves | `lake build` of `NormalizeCore`, `FusionLaws`, `FusionCommutation`, `EarlyNormalize`, `Normalize`, `Section8Normalize`, `SymbolicCancellation`, `NormalizeResources`, and `NormalizeExamples` | successful with 469, 2,366, 2,934, 2,939, 2,370, 2,371, 2,941, and 2,949 jobs in the recorded focused/combined runs, 2026-07-10 |
+| Goal 2 Stage 5 public/audit integration | `lake build Barenco.Optimization.NormalizeResources Barenco.NormalizeExamples Barenco Barenco.AxiomAudit`, followed by final `lake build Barenco Barenco.AxiomAudit` | successful with 3,605 and 3,604 jobs; 43 new checks raise the maintained total to 420, 2026-07-10 |
+| Goal 2 Stage 5 strict/trust-zero boundary | direct warning-as-error and `-t0` warning-as-error compilation of the public root, 420-check audit, normalization leaves, resource leaf, facade, and root-excluded diagnostics | all checks successful; generic engine checks use only `propext`, and all other new checks stay within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Goal 2 Stage 5 full build | final `lake build` after public integration, unsupported-cost iff strengthening, and documentation synchronization | successful, 3,603 jobs, 2026-07-10 |
+| Goal 2 Stage 5 hygiene | repository proof-hole/custom-declaration scans; scoped runtime-decision/no-classical-choice/no-unclassified/no-paper-special-case/root-exclusion scans; audit/table/file counts; `git diff --check` | all clean; no forbidden source hit, diagnostics remain root-excluded, audit source and documentation contain exactly 420 entries, and the project has 130 Lean files below `Barenco/`, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

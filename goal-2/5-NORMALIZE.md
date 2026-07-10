@@ -1,6 +1,6 @@
 # 5-NORMALIZE
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-10).
 
 ## Current Facts
 
@@ -201,24 +201,67 @@ model-specific nonincreasing costs from literal output syntax.
 
 ## Completion Requirements
 
-- [ ] Exact local fusion, pair embedding/absorption, required disjoint commutation,
+- [x] Exact local fusion, pair embedding/absorption, required disjoint commutation,
   and honest identity/inverse-cancellation laws compile for arbitrary ambient width.
-- [ ] Executable deterministic early and Section 8 passes terminate and preserve
+- [x] Executable deterministic early and Section 8 passes terminate and preserve
   exact visible and lowered evaluators, with correct chronological multiplication.
-- [ ] Mixed-program normalization treats every barrier as an exact hard separator
+- [x] Mixed-program normalization treats every barrier as an exact hard separator
   and preserves all-barrier programs definitionally or by an exact round trip.
-- [ ] The output satisfies a precisely stated normal-form/stability predicate;
+- [x] The output satisfies a precisely stated normal-form/stability predicate;
   idempotence is proved only if the implementation establishes it.
-- [ ] Early accepted cost is nonincreasing while CNOT syntax/count is preserved;
+- [x] Early accepted cost is nonincreasing while CNOT syntax/count is preserved;
   Section 8 accepted cost is nonincreasing; partial/unsupported cases remain honest.
-- [ ] Diagnostics cover width-two, nonadjacent, reversed pair, append boundary,
+- [x] Diagnostics cover width-two, nonadjacent, reversed pair, append boundary,
   scalar phase, inverse provenance, model separation, relative A, and barriers.
-- [ ] Stable public imports and representative axiom checks are integrated; focused,
+- [x] Stable public imports and representative axiom checks are integrated; focused,
   adjacent, strict, trust-zero, forbidden/no-cheating, full, and diff checks pass.
-- [ ] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
+- [x] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
   folded forward with Stage 5 marked complete and Stage 6 resumable.
 
 ## Stage Results
 
 - Stage file created after Stage 4's requirement-by-requirement audit and before
   any Stage 5 Lean source change.
+- `NormalizeCore` implements a terminating generic blocked/deleted/fused engine
+  with exact chronological group evaluation, length nonincrease, local stability,
+  fixed points, and idempotence. `FusionLaws` and `FusionCommutation` prove the
+  same-wire, same/swap-oriented-pair, four endpoint-absorption, CNOT-promotion,
+  and required disjoint-swap laws in arbitrary ambient width.
+- `normalizeEarly` exposes mergers only by certified commutations, fuses adjacent
+  same-wire one-qubit payloads, preserves every ordered literal CNOT, and never
+  creates a generic `U(4)`. `section8Normalize` promotes CNOT through its trusted
+  local payload, absorbs compatible one-/two-wire nodes, emits CNOT-free syntax,
+  satisfies its exact local stability predicate, and is idempotent. Both preserve
+  exact visible and lowered evaluators with product order `second * first`.
+- `normalizeEarlyProgram` and `section8NormalizeProgram` normalize maximal visible
+  runs and copy barriers verbatim. Exact evaluator, lowered evaluator, visible-run,
+  leading/all-barrier, ordered barrier-sequence, and early ordered-CNOT-sequence
+  theorems compile. No rewrite crosses a barrier.
+- Raw complex-unitary payloads have no honest computable equality test. Instead of
+  introducing `Classical.decEq`, Stage 5 added `SymbolicCircuit` over decidable
+  free-group atoms. It cancels only syntactically certified identities/inverses,
+  proves exact semantics under every valuation, preserves the complete ordered
+  CNOT trace, and is stable/idempotent.
+- `NormalizeResources` derives component and partial-cost results only from output
+  syntax. Early normalization preserves CNOT and generic-U(4) counts exactly,
+  cannot increase one-qubit count, and has visible/mixed/lowered early-model cost
+  nonincrease. Section 8 has visible/mixed/lowered gate-count/cost nonincrease.
+  Both relevant policies now prove full `cost = none` iff preservation, so copied
+  unsupported barriers and early-model U(4) nodes cannot acquire fabricated cost.
+- Root-excluded `NormalizeExamples` covers width two, nonadjacent width five,
+  reversed orientation, append boundaries, exact scalar phase, free-group inverse
+  provenance, model separation, the generic pairwise-distinct relative-A
+  `(0,0,0,3)` component output with Section 8 cost three, and hard/all-barrier
+  paths. That relative-A check is deliberately not the paper-facing Stage 6
+  classification.
+- Focused builds passed for every leaf (recorded job counts 469, 2,366, 2,934,
+  2,939, 2,370, 2,371, 2,941, and 2,949). Public/root/audit integration passed at
+  3,604 jobs; the final full build passed at 3,603 jobs. Direct warning-as-error
+  and trust-zero checks passed for leaves, diagnostics, root, and audit. Forbidden
+  and no-cheating scans, root exclusion, and `git diff --check` are clean.
+- Forty-three maintained checks raise the audit from 377 to 420. The generic
+  engine checks use only `propext`; all other Stage 5 checks use only `propext`,
+  `Classical.choice`, and `Quot.sound`. The documentation table has exactly 420
+  matching rows, and the repository now has 130 Lean files below `Barenco/`.
+- No paper optimization count is classified in this infrastructure stage. Stage 6
+  is resumable at the explicit three-node relative-phase Toffoli construction.

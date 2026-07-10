@@ -406,6 +406,7 @@ private theorem earlyNormalizeProgramAux_oneQubitCNOT_acceptedCostNonincrease
       | barrier primitive =>
           rw [earlyNormalizeProgramAux, FusionProgram.cost_append,
             FusionProgram.cost_visible, FusionProgram.cost_cons,
+            FusionStep.cost_barrier, FusionProgram.cost_cons,
             FusionStep.cost_barrier]
           have hvis :=
             normalizeEarly_oneQubitCNOT_acceptedCostNonincrease visible
@@ -416,6 +417,39 @@ private theorem earlyNormalizeProgramAux_oneQubitCNOT_acceptedCostNonincrease
               (AcceptedCostNonincrease.refl
                 (CostModel.oneQubitCNOT.primitiveCost primitive.kind))
               htail)
+
+private theorem earlyNormalizeProgramAux_oneQubitCNOT_cost_eq_none_iff
+    {n : ℕ} (visible : FusionCircuit n) (program : FusionProgram n) :
+    FusionProgram.cost CostModel.oneQubitCNOT
+        (earlyNormalizeProgramAux visible program) = none ↔
+      Circuit.addCost
+        (FusionCircuit.cost CostModel.oneQubitCNOT visible)
+        (FusionProgram.cost CostModel.oneQubitCNOT program) = none := by
+  induction program generalizing visible with
+  | nil =>
+      rw [earlyNormalizeProgramAux, FusionProgram.cost_visible,
+        FusionProgram.cost_nil, addCost_zero_right]
+      exact normalizeEarly_oneQubitCNOT_cost_eq_none_iff visible
+  | cons step program ih =>
+      cases step with
+      | gate gate =>
+          rw [earlyNormalizeProgramAux]
+          have h := ih (FusionCircuit.append visible [gate])
+          rw [FusionCircuit.cost_append, FusionCircuit.cost_cons,
+            FusionCircuit.cost_nil, addCost_zero_right] at h
+          rw [FusionProgram.cost_cons, FusionStep.cost_gate,
+            Circuit.addCost_assoc]
+          exact h
+      | barrier primitive =>
+          rw [earlyNormalizeProgramAux, FusionProgram.cost_append,
+            FusionProgram.cost_visible, FusionProgram.cost_cons,
+            FusionStep.cost_barrier, FusionProgram.cost_cons,
+            FusionStep.cost_barrier]
+          have hvis := normalizeEarly_oneQubitCNOT_cost_eq_none_iff visible
+          have htail := ih ([] : FusionCircuit n)
+          rw [FusionCircuit.cost_nil, addCost_zero_left] at htail
+          simp only [addCost_eq_none_iff]
+          rw [hvis, htail]
 
 /--
 If an early-model mixed program is accepted, normalization preserves acceptance
@@ -433,6 +467,20 @@ theorem normalizeEarlyProgram_oneQubitCNOT_acceptedCostNonincrease {n : ℕ}
   rw [FusionCircuit.cost_nil, addCost_zero_left] at h
   exact h
 
+/--
+Early mixed-program normalization preserves unsupportedness exactly. Visible
+generic `U(4)` nodes persist, and every barrier remains the same primitive.
+-/
+theorem normalizeEarlyProgram_oneQubitCNOT_cost_eq_none_iff {n : ℕ}
+    (program : FusionProgram n) :
+    FusionProgram.cost CostModel.oneQubitCNOT
+        (normalizeEarlyProgram program) = none ↔
+      FusionProgram.cost CostModel.oneQubitCNOT program = none := by
+  have h := earlyNormalizeProgramAux_oneQubitCNOT_cost_eq_none_iff
+    ([] : FusionCircuit n) program
+  rw [FusionCircuit.cost_nil, addCost_zero_left] at h
+  exact h
+
 /-- The early mixed-program cost theorem after exact lowering. -/
 theorem normalizeEarlyProgram_lower_oneQubitCNOT_acceptedCostNonincrease
     {n : ℕ} (program : FusionProgram n) :
@@ -442,6 +490,15 @@ theorem normalizeEarlyProgram_lower_oneQubitCNOT_acceptedCostNonincrease
         (normalizeEarlyProgram program).lower) := by
   simpa only [FusionProgram.cost_lower] using
     normalizeEarlyProgram_oneQubitCNOT_acceptedCostNonincrease program
+
+/-- Exact early mixed-program unsupportedness preservation after lowering. -/
+theorem normalizeEarlyProgram_lower_oneQubitCNOT_cost_eq_none_iff
+    {n : ℕ} (program : FusionProgram n) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (normalizeEarlyProgram program).lower = none ↔
+      Circuit.cost CostModel.oneQubitCNOT program.lower = none := by
+  simpa only [FusionProgram.cost_lower] using
+    normalizeEarlyProgram_oneQubitCNOT_cost_eq_none_iff program
 
 /-! ## Barrier-separated Section 8 program resources -/
 
@@ -523,6 +580,48 @@ private theorem section8ProgramInsert_arbitraryTwoQubit_acceptedCostNonincrease
                     (FusionProgram.cost CostModel.arbitraryTwoQubit program)))
                 h
 
+@[simp]
+private theorem arbitraryTwoQubit_gateStep_cost {n : ℕ}
+    (gate : FusionPrimitive n) :
+    FusionStep.cost CostModel.arbitraryTwoQubit (.gate gate) = some 1 := by
+  rw [FusionStep.cost_gate]
+  exact FusionPrimitive.arbitraryTwoQubit_cost gate
+
+private theorem section8ProgramInsert_arbitraryTwoQubit_cost_eq_none_iff
+    {n : ℕ} (gate : FusionPrimitive n) (program : FusionProgram n) :
+    FusionProgram.cost CostModel.arbitraryTwoQubit
+        (section8ProgramInsert gate program) = none ↔
+      FusionProgram.cost CostModel.arbitraryTwoQubit program = none := by
+  induction program generalizing gate with
+  | nil =>
+      simp only [section8ProgramInsert, FusionProgram.cost_cons,
+        arbitraryTwoQubit_gateStep_cost, FusionProgram.cost_nil,
+        addCost_eq_none_iff, Option.some_ne_none, false_or]
+  | cons step program ih =>
+      cases step with
+      | barrier primitive =>
+          simp only [section8ProgramInsert, FusionProgram.cost_cons,
+            arbitraryTwoQubit_gateStep_cost, addCost_eq_none_iff,
+            Option.some_ne_none, false_or]
+      | gate next =>
+          rw [section8ProgramInsert]
+          generalize hresult : section8Combine gate next = result
+          cases result with
+          | blocked =>
+              simp only [FusionProgram.cost_cons,
+                arbitraryTwoQubit_gateStep_cost, addCost_eq_none_iff,
+                Option.some_ne_none, false_or]
+          | deleted =>
+              simp only [FusionProgram.cost_cons,
+                arbitraryTwoQubit_gateStep_cost, addCost_eq_none_iff,
+                Option.some_ne_none, false_or]
+          | fused fused =>
+              have h := ih fused
+              simp only [FusionProgram.cost_cons,
+                arbitraryTwoQubit_gateStep_cost, addCost_eq_none_iff,
+                Option.some_ne_none, false_or] at h ⊢
+              exact h
+
 /--
 If a Section 8 mixed program is accepted, normalizing its visible runs preserves
 acceptance and cannot increase cost. Unsupported barriers remain unsupported.
@@ -560,6 +659,31 @@ theorem section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease
             (section8ProgramInsert_arbitraryTwoQubit_acceptedCostNonincrease
               (promoteCNOT gate) (section8NormalizeProgram program))
 
+/--
+Section 8 mixed-program normalization preserves unsupportedness exactly. Every
+visible node is supported by this model, while exact barriers are copied and
+therefore remain the sole possible source of `none`.
+-/
+theorem section8NormalizeProgram_arbitraryTwoQubit_cost_eq_none_iff
+    {n : ℕ} (program : FusionProgram n) :
+    FusionProgram.cost CostModel.arbitraryTwoQubit
+        (section8NormalizeProgram program) = none ↔
+      FusionProgram.cost CostModel.arbitraryTwoQubit program = none := by
+  induction program with
+  | nil => simp [section8NormalizeProgram, FusionProgram.cost]
+  | cons step program ih =>
+      cases step with
+      | barrier primitive =>
+          rw [section8NormalizeProgram]
+          simp only [FusionProgram.cost_cons, FusionStep.cost_barrier,
+            addCost_eq_none_iff, ih]
+      | gate gate =>
+          rw [section8NormalizeProgram,
+            section8ProgramInsert_arbitraryTwoQubit_cost_eq_none_iff, ih]
+          simp only [FusionProgram.cost_cons,
+            arbitraryTwoQubit_gateStep_cost, addCost_eq_none_iff,
+            Option.some_ne_none, false_or]
+
 /-- The Section 8 mixed-program cost theorem after exact lowering. -/
 theorem section8NormalizeProgram_lower_arbitraryTwoQubit_acceptedCostNonincrease
     {n : ℕ} (program : FusionProgram n) :
@@ -569,5 +693,14 @@ theorem section8NormalizeProgram_lower_arbitraryTwoQubit_acceptedCostNonincrease
         (section8NormalizeProgram program).lower) := by
   simpa only [FusionProgram.cost_lower] using
     section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease program
+
+/-- Exact Section 8 mixed-program unsupportedness preservation after lowering. -/
+theorem section8NormalizeProgram_lower_arbitraryTwoQubit_cost_eq_none_iff
+    {n : ℕ} (program : FusionProgram n) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        (section8NormalizeProgram program).lower = none ↔
+      Circuit.cost CostModel.arbitraryTwoQubit program.lower = none := by
+  simpa only [FusionProgram.cost_lower] using
+    section8NormalizeProgram_arbitraryTwoQubit_cost_eq_none_iff program
 
 end Barenco.Optimization
