@@ -77,6 +77,29 @@ def BasisStepAt {n : ℕ} (wire : Fin n) (first last : Basis n) : Prop :=
 def BasisAdjacent {n : ℕ} (first last : Basis n) : Prop :=
   ∃ wire, BasisStepAt wire first last
 
+theorem BasisStepAt.ne {n : ℕ} {wire : Fin n} {first last : Basis n}
+    (hstep : BasisStepAt wire first last) : first ≠ last := by
+  intro heq
+  exact hstep.1 (congrFun heq wire)
+
+theorem BasisStepAt.hammingDist_eq_one {n : ℕ} {wire : Fin n}
+    {first last : Basis n} (hstep : BasisStepAt wire first last) :
+    hammingDist first last = 1 := by
+  rw [hammingDist]
+  have hfilter :
+      Finset.univ.filter (fun query => first query ≠ last query) = {wire} := by
+    ext query
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and,
+      Finset.mem_singleton]
+    constructor
+    · intro hdiff
+      by_contra hquery
+      exact hdiff (hstep.2 query hquery)
+    · rintro rfl
+      exact hstep.1
+  rw [hfilter]
+  simp
+
 private theorem foldl_setDestinationWire_apply {n : ℕ} (first last : Basis n)
     (wires : List (Fin n)) (query : Fin n) :
     (wires.foldl (setDestinationWire last) first) query =
@@ -137,6 +160,17 @@ theorem length_basisPath_le {n : ℕ} (first last : Basis n) :
     (by simpa using hammingDist_le_card_fintype (x := first) (y := last)) 1
 
 @[simp]
+theorem length_basisPath_sub_one {n : ℕ} (first last : Basis n) :
+    (basisPath first last).length - 1 = hammingDist first last := by
+  rw [length_basisPath]
+  omega
+
+theorem length_basisPath_eq_labels_add_one {n : ℕ} (first last : Basis n) :
+    (basisPath first last).length =
+      (differingWireList first last).length + 1 := by
+  rw [length_basisPath, length_differingWireList]
+
+@[simp]
 theorem head?_basisPath {n : ℕ} (first last : Basis n) :
     (basisPath first last).head? = some first := by
   exact List.head?_scanl
@@ -160,9 +194,10 @@ theorem getLast?_basisPath {n : ℕ} (first last : Basis n) :
 theorem basisPath_getLast {n : ℕ} (first last : Basis n) :
     (basisPath first last).getLast (basisPath_ne_nil first last) = last := by
   have hlast := List.getLast?_eq_some_getLast (basisPath_ne_nil first last)
-  exact Option.some.inj ((getLast?_basisPath first last).symm.trans hlast)
+  exact Option.some.inj (hlast.symm.trans (getLast?_basisPath first last))
 
-private theorem basisPath_getElem_succ_eq_update {n : ℕ}
+/-- The exact destination-directed update performed by the edge at `index`. -/
+theorem basisPath_getElem_succ_eq_update {n : ℕ}
     (first last : Basis n) (index : ℕ)
     (hindex : index < (differingWireList first last).length) :
     (basisPath first last)[index + 1]'(by
@@ -175,7 +210,7 @@ private theorem basisPath_getElem_succ_eq_update {n : ℕ}
         ((differingWireList first last)[index])
         (last ((differingWireList first last)[index])) := by
   simp only [basisPath, List.getElem_scanl]
-  rw [List.take_succ, List.getElem?_eq_getElem hindex, List.foldl_append]
+  rw [List.take_add_one, List.getElem?_eq_getElem hindex, List.foldl_append]
   simp [setDestinationWire]
 
 /-- The edge at `index` changes exactly the correspondingly indexed wire label. -/
@@ -183,7 +218,9 @@ theorem basisPath_stepAt_getElem {n : ℕ} (first last : Basis n)
     (index : ℕ) (hindex : index < (differingWireList first last).length) :
     BasisStepAt
       ((differingWireList first last)[index])
-      ((basisPath first last)[index]'(by simp; omega))
+      ((basisPath first last)[index]'(by
+        rw [length_basisPath, ← length_differingWireList]
+        omega))
       ((basisPath first last)[index + 1]'(by
         rw [length_basisPath, ← length_differingWireList]
         omega)) := by
@@ -216,24 +253,8 @@ theorem basisPath_edge_hammingDist {n : ℕ} (first last : Basis n)
       ((basisPath first last)[index + 1]'(by
         rw [length_basisPath, ← length_differingWireList]
         omega)) = 1 := by
-  let wire := (differingWireList first last)[index]
   have hstep := basisPath_stepAt_getElem first last index hindex
-  rw [hammingDist]
-  have hfilter :
-      Finset.univ.filter (fun query =>
-        ((basisPath first last)[index]'(by
-          rw [length_basisPath, ← length_differingWireList]
-          omega)) query ≠
-          ((basisPath first last)[index + 1]'(by
-            rw [length_basisPath, ← length_differingWireList]
-            omega)) query) = {wire} := by
-    ext query
-    by_cases hquery : query = wire
-    · subst query
-      simp [hstep.1]
-    · simp [hquery, hstep.2 query hquery]
-  rw [hfilter]
-  simp
+  exact hstep.hammingDist_eq_one
 
 /-- Every consecutive pair in the canonical path is hypercube-adjacent. -/
 theorem basisPath_isChain {n : ℕ} (first last : Basis n) :

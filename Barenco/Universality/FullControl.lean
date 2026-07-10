@@ -19,11 +19,12 @@ The accepted-cost theorem is syntax-derived.  It is not inferred from the
 semantic equality.
 -/
 
-namespace Barenco.MultiControl
+namespace Barenco.Universality
 
 noncomputable section
 
-open OrderedControlLayout
+open Barenco.MultiControl
+open Barenco.MultiControl.OrderedControlLayout
 
 /-! ## Canonical all-other-wires layout -/
 
@@ -178,4 +179,4 @@ theorem exists_fullControlCircuit_oneQubitCNOTCost (controlCount : ℕ)
 
 end
 
-end Barenco.MultiControl
+end Barenco.Universality
