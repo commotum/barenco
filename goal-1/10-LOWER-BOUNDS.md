@@ -1,12 +1,12 @@
 # 10-LOWER-BOUNDS
 
-Status: in progress (the core Lemma 7.7 theorem stack is implemented; boundary
-examples, public-root integration, maintained axiom entries, and final full builds
-remain before the stage is complete).
+Status: complete (2026-07-10). The corrected Lemma 7.7 theorem stack, boundary
+examples, public-root integration, maintained axiom entries, and all required
+build and audit checks are complete.
 
 ## Current Facts
 
-- The only proved lower-bound argument in the paper's Sections 3--7 is Lemma 7.7.
+- The only proved lower-bound argument in the paper's Sections 3–7 is Lemma 7.7.
   It concerns exact simulation of a fully controlled nonscalar one-qubit unitary
   by arbitrary one-qubit gates and CNOTs. Although the statement says at least
   `n-1` "basic operations," the proof actually establishes the stronger claim
@@ -97,19 +97,20 @@ remain before the stage is complete).
 - `Barenco/LowerBounds/Lemma77.lean`: connectedness forced by exact evaluation,
   the `n-1` CNOT lower bound, the weaker total-gate result, the paper-facing
   scalar-phase formulation, and the named-cost corollary.
-- A root-excluded examples leaf may check widths one, two, and three after the
-  general theorem is stable.
+- `Barenco/LowerBounds/LowerBoundExamples.lean`: root-excluded checks at widths
+  one, two, and three, an exact width-two witness attaining the bound, and the
+  scalar-identity counter-boundary showing why nonscalarity is necessary.
 
 ## Detailed Implementation Plan
 
 1. The source/API audit, restricted syntax, interaction graph, arbitrary-cut
-   factorization, scalar obstruction, and exact Lemma 7.7 resource theorems are
+   factorization, scalar obstruction, and exact Lemma 7.7 resource theorems were
    implemented in separate reusable modules.
-2. Add the root-excluded width-one/two/three boundary examples and expose the
-   stable lower-bound modules from the public root.
-3. Add maintained axiom checks, finish corrections/traceability/convention
-   review, and run forbidden-token, diff, strict/trust-zero, focused, and two full
-   build checks before closing the stage.
+2. The root-excluded width-one/two/three and scalar-boundary examples were added,
+   and the five stable lower-bound modules were exposed from the public root.
+3. Maintained axiom checks and corrections/traceability/convention documentation
+   were updated; forbidden-token, diff, strict/trust-zero, focused, and two full
+   build checks all passed.
 
 ## Boundary and No-Cheating Checks
 
@@ -135,20 +136,20 @@ remain before the stage is complete).
 
 ## Completion Requirements
 
-- [ ] The restricted one-qubit/CNOT syntax has exact evaluator and resource
+- [x] The restricted one-qubit/CNOT syntax has exact evaluator and resource
   bridges to the existing library.
-- [ ] The interaction-graph occurrence bound and disconnected-partition theorem
+- [x] The interaction-graph occurrence bound and disconnected-partition theorem
   compile for every finite register, with width-zero/one cases explicit.
-- [ ] Partition factorization is proved on arbitrary-width registers and is
+- [x] Partition factorization is proved on arbitrary-width registers and is
   preserved by chronological composition.
-- [ ] A fully controlled nonscalar target is proved nonfactorable across every
+- [x] A fully controlled nonscalar target is proved nonfactorable across every
   proper target-containing wire partition, which is the orientation supplied by
   the disconnected target component.
-- [ ] Lemma 7.7 is exported with an explicit primitive set, exact target relation,
+- [x] Lemma 7.7 is exported with an explicit primitive set, exact target relation,
   CNOT count, total count, and cost-model corollary.
-- [ ] Section 5/6 topology and Section 8 heuristic/minimality claims are correctly
+- [x] Section 5/6 topology and Section 8 heuristic/minimality claims are correctly
   scoped in corrections, traceability, and conventions.
-- [ ] Boundary examples, public-root imports, maintained axiom entries, strict/
+- [x] Boundary examples, public-root imports, maintained axiom entries, strict/
   trust-zero, forbidden/diff, focused, and two full-build checks pass and are
   recorded.
 
@@ -158,8 +159,22 @@ remain before the stage is complete).
   Lemma 7.7 as the rigorous lower-bound target, strengthens its intended count to
   CNOT occurrences, separates graph/factorization/nonfactorization/resource
   layers, and quarantines Section 8 dimension counting.
-- The core implementation now supplies proof-carrying syntax, a duplicate-safe
+- The completed implementation supplies proof-carrying syntax, a duplicate-safe
   interaction graph, arbitrary-cut Kronecker semantics, the separated-control
-  scalar obstruction, and exact no-ancilla CNOT/total/cost lower bounds. Stage 10
-  remains open for examples, public integration, axiom maintenance, and final
-  verification; the completion boxes intentionally remain unchecked.
+  scalar obstruction, and exact no-ancilla CNOT/total/cost lower bounds.
+- Root-excluded examples verify the zero lower bound at width one, the exact
+  one-CNOT width-two witness, the width-three lower bound, and the scalar identity
+  boundary. The five stable modules are imported from `Barenco.lean`; the examples
+  leaf remains diagnostic.
+- Strict and trust-zero compilation of both `Barenco.lean` and
+  `Barenco/AxiomAudit.lean` passed. The maintained audit now has 253 entries; all
+  18 Stage 10 additions print exactly `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- The focused lower-bound/examples/root/audit build passed with 3,563 jobs. Two
+  consecutive full builds passed with 3,561 jobs each. Forbidden-token and
+  project-axiom scans, root-exclusion inspection, and `git diff --check` passed.
+- Independent review found no mathematical or Lean-API defect after checking
+  duplicate edges, width-zero/one behavior, reindex orientation, chronological
+  Kronecker multiplication, scalar cancellation, exact phase equivalence, and
+  count/cost bridges. Its only wording finding—the orientation of the proper
+  target-containing cuts—was corrected before completion.

@@ -173,7 +173,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
 - [x] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
 - [x] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
-- [ ] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
+- [x] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
 - [ ] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
 - [ ] `12-RESOURCES` — recurrences, asymptotics, and cost-model separation.
 - [ ] `13-AUDIT` — coverage closure, examples, build/axiom audit, final report.
@@ -604,9 +604,9 @@ heuristic parameter counts.
 - Retain the proved target-component factorization and separated-control scalar
   obstruction, which combine into the stronger `n-1` CNOT-occurrence theorem and
   its weaker total-gate and named-cost corollaries.
-- Add boundary examples, public-root imports, maintained axiom entries, and the
-  required strict/trust-zero, forbidden-token, diff, focused, and full-build
-  checks before marking the stage complete.
+- Retain the completed boundary examples, public-root imports, and 253-entry
+  maintained axiom audit. Strict/trust-zero, forbidden-token, diff, focused, and
+  two consecutive full-build checks all passed.
 - Preserve the Section 5/6 named-topology classifications and constructive counts
   without promoting them to global minimum claims. Preserve Section 8 dimension
   counting as excluded evidence unless a future manifold/image theorem supplies
@@ -619,8 +619,21 @@ heuristic parameter counts.
 - The arbitrary-cut tensor convention, exact/no-ancilla scope, nonscalar
   hypothesis, and width-one/zero boundaries are documented explicitly.
 - Heuristic/excluded bounds have exact obstruction and no theorem-shaped claim.
-- Examples, public imports, axiom audit, and all required builds/checks pass before
-  the Stage Index box is checked.
+- Examples, public imports, axiom audit, and all required builds/checks passed;
+  the focused build covered 3,563 jobs and both full builds covered 3,561 jobs.
+
+### Stage Results
+
+- Stage 10 is complete. `BasicCircuit` restricts the primitive language to
+  arbitrary one-qubit gates and CNOTs while preserving exact generic semantics
+  and counts. Its CNOT interaction graph, arbitrary-cut Kronecker factorization,
+  and scalar obstruction prove `n - 1 <= cnotCount` for exact same-register
+  implementations of fully controlled nonscalar one-qubit gates.
+- Total-gate and accepted one-qubit/CNOT-cost corollaries recover the source-facing
+  claim. Boundary examples, public integration, all 253 maintained axiom checks,
+  strict/trust-zero compilation, forbidden scans, the focused build, and two full
+  builds passed. The Section 8 dimension-counting suggestion remains excluded as
+  an unproved heuristic.
 
 ## 11-UNIVERSALITY
 
@@ -644,12 +657,14 @@ finite-dimensional synthesis, without bundling approximation or efficiency.
 
 ### Completion Requirements
 
-- A headline theorem constructs a circuit for every finite-qubit unitary and proves
-  exact evaluator equality under arbitrary one-qubit plus CNOT primitives.
+- A headline theorem constructs a circuit for every positive-width finite-qubit
+  unitary and proves exact evaluator equality under arbitrary one-qubit plus CNOT
+  primitives. Width zero is characterized separately: the allowed syntax reaches
+  only identity although its one-dimensional unitary group contains all phases.
 - A reusable algebraic theorem decomposes arbitrary finite-dimensional complex
   unitary matrices independently of the qubit specialization.
-- Two-level decomposition, Gray path, diagonal handling, and `n = 0/1` boundaries
-  are individually tested.
+- Two-level decomposition, Gray path, diagonal handling, the `n = 1` direct case,
+  and the `n = 0` obstruction are individually tested.
 - Exact generation, dense generation, and efficiency appear as distinct APIs.
 
 ## 12-RESOURCES

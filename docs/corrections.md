@@ -775,5 +775,6 @@ statement. “Open” means the repair is identified but not yet machine checked
   strengthened headline theorem; `fullyControlled_gateCount_lowerBound` and
   `fullyControlled_oneQubitCNOTCost_lowerBound` recover the paper-facing total and
   named-cost forms.
-- **Status:** corrected and proved in the core lower-bound modules; Stage 10
-  integration and audit checks remain open.
+- **Status:** corrected and proved. Public integration, boundary examples, all 18
+  new maintained axiom checks, strict/trust-zero compilation, the focused build,
+  and two full builds passed with Stage 10.
