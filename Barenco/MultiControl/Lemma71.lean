@@ -238,6 +238,16 @@ theorem runEmbeddedCNOTUpdates_nil {controlCount ambientWidth : ℕ}
     (input : Basis ambientWidth) :
     runEmbeddedCNOTUpdates layout [] input = input := rfl
 
+/-- Embedded logical CNOT updates execute sequentially across list concatenation. -/
+theorem runEmbeddedCNOTUpdates_append {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (first second : List (Fin controlCount × Fin controlCount))
+    (input : Basis ambientWidth) :
+    runEmbeddedCNOTUpdates layout (first ++ second) input =
+      runEmbeddedCNOTUpdates layout second
+        (runEmbeddedCNOTUpdates layout first input) := by
+  simp [runEmbeddedCNOTUpdates, List.foldl_append]
+
 /-- Restriction commutes exactly with executing any ordered logical CNOT edge list. -/
 theorem restrictControls_runEmbeddedCNOTUpdates {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth)
@@ -382,5 +392,196 @@ theorem eval_grayCNOTCircuit_mulVec_basisKet {controlCount ambientWidth : ℕ}
       basisKet input := by
   rw [grayCNOTCircuit, eval_cnotEdgeCircuit_mulVec_basisKet,
     controlEdgePairs_certifiedGrayCNOTEdges, runEmbedded_grayCNOTEdges_eq_self]
+
+/-! ## The interleaved controlled-root circuit -/
+
+/-- Signed exponent contributed by the first `count` Gray masks. -/
+def grayExponentPrefix (controlCount count : ℕ) (bits : Fin controlCount → Bool) : ℤ :=
+  (((grayCode controlCount).take count).map
+    (fun mask => signedParityContribution mask bits)).sum
+
+@[simp]
+theorem grayExponentPrefix_zero (controlCount : ℕ) (bits : Fin controlCount → Bool) :
+    grayExponentPrefix controlCount 0 bits = 0 := by
+  simp [grayExponentPrefix]
+
+/-- Appending one indexed mask adds exactly its signed parity contribution. -/
+theorem grayExponentPrefix_succ {controlCount index : ℕ}
+    (hindex : index < (grayCode controlCount).length)
+    (bits : Fin controlCount → Bool) :
+    grayExponentPrefix controlCount (index + 1) bits =
+      grayExponentPrefix controlCount index bits +
+        signedParityContribution ((grayCode controlCount)[index]'hindex) bits := by
+  unfold grayExponentPrefix
+  rw [List.take_succ_eq_append_getElem hindex]
+  simp only [List.map_append, List.map_singleton, List.sum_append,
+    List.sum_singleton]
+
+/-- Taking every Gray mask recovers the previously defined total exponent. -/
+theorem grayExponentPrefix_length (controlCount : ℕ)
+    (bits : Fin controlCount → Bool) :
+    grayExponentPrefix controlCount (grayCode controlCount).length bits =
+      grayExponentSum controlCount bits := by
+  unfold grayExponentPrefix grayExponentSum
+  rw [List.take_length]
+
+private theorem grayPivot_index_lt_of_mask {controlCount index : ℕ}
+    (hindex : index < (grayCode controlCount).length) :
+    index < (grayPivots controlCount).length := by
+  rw [length_grayPivots_eq_grayCode]
+  exact hindex
+
+/-- The controlled signed-root node associated to one indexed Gray mask. -/
+def grayRootPrimitiveAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    Primitive ambientWidth :=
+  layout.controlledTargetPrimitive
+    ((grayPivots controlCount)[index]'(grayPivot_index_lt_of_mask hindex))
+    (signedGrayRoot ((grayCode controlCount)[index]'hindex) V)
+
+private theorem grayMask_index_lt_of_edge {controlCount index : ℕ}
+    (hindex : index < (grayCNOTEdges controlCount).length) :
+    index < (grayCode controlCount).length := by
+  rw [length_grayCNOTEdges] at hindex
+  rw [length_grayCode]
+  omega
+
+/--
+One chronological root/CNOT pair: apply the root for mask `index`, then advance
+the parity accumulator to the next mask.
+-/
+def grayTransitionPair {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    Circuit ambientWidth :=
+  let edge := (grayCNOTEdges controlCount)[index]'hindex
+  [grayRootPrimitiveAt layout V index (grayMask_index_lt_of_edge hindex),
+    layout.cnotPrimitive edge.1 edge.2 (grayCNOTEdges_getElem_ne hindex)]
+
+/--
+The first `count` root/CNOT pairs, with the bound carried in the constructor so
+every indexed primitive is certified by construction.
+-/
+def grayTransitionPrefixCircuit {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary) :
+    (count : ℕ) → count ≤ (grayCNOTEdges controlCount).length → Circuit ambientWidth
+  | 0, _ => []
+  | count + 1, hcount =>
+      Circuit.append
+        (grayTransitionPrefixCircuit layout V count (by omega))
+        (grayTransitionPair layout V count (by omega))
+
+private theorem grayFinalMask_index_lt (tail : ℕ) :
+    (grayCNOTEdges (tail + 1)).length < (grayCode (tail + 1)).length := by
+  rw [length_grayCNOTEdges, length_grayCode]
+  have hpow : 0 < 2 ^ (tail + 1) := pow_pos (by omega) _
+  omega
+
+/--
+The complete chronological Gray construction for `tail + 1` controls: every
+nonfinal root is followed by its generated CNOT, and the last root stands alone.
+
+The positive-control indexing makes the useful boundary explicit. `tail = 0`
+is the ordinary one-control construction; the zero-control local-gate case is a
+different base circuit.
+-/
+def grayControlledViaRootCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) (V : QubitUnitary) :
+    Circuit ambientWidth :=
+  Circuit.append
+    (grayTransitionPrefixCircuit layout V
+      (grayCNOTEdges (tail + 1)).length le_rfl)
+    [grayRootPrimitiveAt layout V (grayCNOTEdges (tail + 1)).length
+      (grayFinalMask_index_lt tail)]
+
+/-- Ambient basis assignment after the first `count` generated Gray CNOTs. -/
+def embeddedGrayPrefixState {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (count : ℕ) (input : Basis ambientWidth) : Basis ambientWidth :=
+  runEmbeddedCNOTUpdates layout ((grayCNOTEdges controlCount).take count) input
+
+/--
+Before root node `index`, its pivot control wire contains exactly the XOR parity
+of the indexed Gray mask in the original control assignment.
+-/
+theorem embeddedGrayPrefixState_apply_pivot {tail ambientWidth index : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (input : Basis ambientWidth)
+    (hindex : index < (grayCode (tail + 1)).length) :
+    embeddedGrayPrefixState layout index input
+        (layout.controlWire
+          ((grayPivots (tail + 1))[index]'
+            (grayPivot_index_lt_of_mask hindex))) =
+      xorParity ((grayCode (tail + 1))[index]'hindex)
+        (layout.restrictControls input) := by
+  let pivot :=
+    (grayPivots (tail + 1))[index]'(grayPivot_index_lt_of_mask hindex)
+  have hrestrict := congrFun
+    (restrictControls_runEmbeddedCNOTUpdates layout
+      ((grayCNOTEdges (tail + 1)).take index) input) pivot
+  have hinvariant := runXorEdges_take_grayCNOTEdges
+    (width := tail + 1) (count := index) (by omega) hindex
+    (layout.restrictControls input)
+  rw [hinvariant] at hrestrict
+  simpa [embeddedGrayPrefixState, pivot] using hrestrict
+
+/--
+One indexed controlled root left-multiplies the accumulated target power by its
+signed parity contribution. The hypothesis exposes exactly the classical
+control fact supplied by the Gray prefix invariant.
+-/
+theorem grayRootPrimitiveAt_mulVec_zpow_basisKet
+    {controlCount ambientWidth index : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) (V : QubitUnitary)
+    (hindex : index < (grayCode controlCount).length)
+    (bits : Fin controlCount → Bool) (exponent : ℤ)
+    (input : Basis ambientWidth)
+    (hcontrol :
+      input
+          (layout.controlWire
+            ((grayPivots controlCount)[index]'
+              (grayPivot_index_lt_of_mask hindex))) =
+        xorParity ((grayCode controlCount)[index]'hindex) bits) :
+    ((grayRootPrimitiveAt layout V index hindex).denotation : Gate ambientWidth) *ᵥ
+        (localRaw layout.targetWire
+            ((V ^ exponent : QubitUnitary) : QubitMatrix) *ᵥ basisKet input) =
+      localRaw layout.targetWire
+          (((V ^
+              (signedParityContribution
+                ((grayCode controlCount)[index]'hindex) bits + exponent) :
+              QubitUnitary) : QubitMatrix)) *ᵥ basisKet input := by
+  rw [grayRootPrimitiveAt,
+    controlledTargetPrimitive_mulVec_localRaw_basisKet, hcontrol]
+  let mask := (grayCode controlCount)[index]'hindex
+  let contribution := signedParityContribution mask bits
+  have hfactor :
+      (if xorParity mask bits then
+          (signedGrayRoot mask V : QubitMatrix) else 1) =
+        ((V ^ contribution : QubitUnitary) : QubitMatrix) := by
+    simpa [mask, contribution] using congrArg
+      (fun W : QubitUnitary => (W : QubitMatrix))
+      (signedGrayRoot_factor mask V bits)
+  have hpowers :
+      ((V ^ contribution : QubitUnitary) : QubitMatrix) *
+          ((V ^ exponent : QubitUnitary) : QubitMatrix) =
+        ((V ^ (contribution + exponent) : QubitUnitary) : QubitMatrix) := by
+    exact congrArg Subtype.val (zpow_add V contribution exponent).symm
+  rw [hfactor, hpowers]
+
+/-- One more generated edge advances the ambient prefix state definitionally. -/
+theorem embeddedGrayPrefixState_succ {controlCount ambientWidth index : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (input : Basis ambientWidth)
+    (hindex : index < (grayCNOTEdges controlCount).length) :
+    embeddedGrayPrefixState layout (index + 1) input =
+      embeddedCNOTUpdate layout
+        ((grayCNOTEdges controlCount)[index]'hindex).1
+        ((grayCNOTEdges controlCount)[index]'hindex).2
+        (embeddedGrayPrefixState layout index input) := by
+  rw [embeddedGrayPrefixState, embeddedGrayPrefixState,
+    List.take_succ_eq_append_getElem hindex,
+    runEmbeddedCNOTUpdates_append]
+  rfl
 
 end Barenco.MultiControl
