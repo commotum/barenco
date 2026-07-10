@@ -497,6 +497,18 @@ theorem pivotRank_liftGrayMaskWithLast {width : ℕ} (mask : GrayMask width) :
   rw [pivotRank_liftGrayMask]
   exact max_eq_left (pivotRank_le_width mask |>.trans (Nat.le_succ width))
 
+/-- On a nonempty mask, the total rank is one plus the value of its maximum. -/
+theorem pivotRank_eq_max'_add_one {width : ℕ} (mask : GrayMask width)
+    (hmask : mask.Nonempty) :
+    pivotRank mask = (mask.max' hmask).val + 1 := by
+  rw [pivotRank]
+  apply le_antisymm
+  · exact Finset.sup_le fun wire hwire => by
+      have hwireLe : wire ≤ mask.max' hmask := Finset.le_max' mask wire hwire
+      exact Nat.succ_le_succ hwireLe
+  · exact Finset.le_sup (f := fun wire : Fin width => wire.val + 1)
+      (Finset.max'_mem mask hmask)
+
 /--
 The schedule-specific progress relation between consecutive masks.
 

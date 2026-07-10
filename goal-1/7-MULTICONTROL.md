@@ -1,6 +1,6 @@
 # 7-MULTICONTROL
 
-Status: in progress (source audit complete; no Lean implementation yet).
+Status: in progress (source audit and first Gray/parity implementation slice complete).
 
 ## Current Facts
 
@@ -36,6 +36,21 @@ Status: in progress (source audit complete; no Lean implementation yet).
   full-register denotation from syntax resources. Exact dirty-wire restoration
   should be stated as evaluator equality; a classical truth table is diagnostic
   evidence only.
+- `Barenco.MultiControl.Parity` now proves the representation-independent signed
+  nonempty-subset XOR identity, including empty and singleton boundaries and the
+  symmetric-difference update law needed by Gray transitions.
+- `Barenco.MultiControl.GrayCode` constructs the exact bit-reversed reflected
+  order, proves coverage/no duplicates/length/one-bit adjacency, pairs every mask
+  with its maximum pivot, and proves that a strict pivot-rank rise can occur only
+  after a singleton mask.
+- `Barenco.MultiControl.GrayAccumulator` defines the generated CNOT edges and
+  their Boolean action, proves the fixed-pivot and pivot-transfer update laws,
+  and reconstructs the six CNOT edges of the displayed four-bit circuit. The
+  remaining obligation is a general pointwise alignment/restoration theorem for
+  the generated schedule before the edges enter quantum circuit syntax.
+- `Barenco.MultiControl.Layout` packages an ordered injective control embedding
+  disjoint from an arbitrary ambient target and bridges it to `ControlSet`, CNOT,
+  and singly controlled target primitives.
 
 ## Source Claim Audit
 
@@ -164,7 +179,7 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
 
 ## Detailed Implementation Plan
 
-1. Add a pure Gray/parity leaf. Define nonempty finite masks, Boolean XOR parity,
+1. Add pure parity and Gray leaves. Define nonempty finite masks, Boolean XOR parity,
    the signed parity exponent, and the bit-reversed reflected Gray schedule with
    its pivot/update information. Prove nonemptiness, no duplicates, coverage of
    every nonempty mask, length `2^m−1`, consecutive one-bit transitions, pivot
@@ -175,6 +190,8 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
    `2^(m−1)` exactly when every input bit is true and zero otherwise. The cleanest
    proof pairs subsets differing by a false input; the all-true case counts odd
    subsets. This independently checks the paper's inclusion-exclusion identity.
+   **Implemented:** `parityInclusionExclusionSum_formula` and its all-true,
+   false-witness, singleton, and finite-type specializations compile.
 3. Define the alternating Gray controlled-root circuit and prove the exact n=4
    diagram first. Generalize to Lemma 7.1 using the pivot invariant and signed
    parity identity, then add the selected power-of-two-root wrapper. Prove macro
@@ -218,9 +235,17 @@ pivot invariant, not merely Hamming adjacency.
 
 ## Build Structure
 
+- `Barenco/MultiControl/Parity.lean`: representation-independent XOR parity,
+  symmetric-difference bridges, signed subset contributions, and the exact
+  inclusion-exclusion closed form.
 - `Barenco/MultiControl/GrayCode.lean`: low-dependency runtime/public mask and
   schedule definitions plus proof-side/public coverage, adjacency, pivot, and
-  signed-parity theorems. Avoid importing circuit semantics.
+  pivot theorems. Avoid importing circuit semantics.
+- `Barenco/MultiControl/GrayAccumulator.lean`: pure Boolean CNOT schedules,
+  accumulator states, local fixed-pivot/transfer update laws, and eventual full
+  schedule restoration. It imports `Parity` and `GrayCode`, but no circuit layer.
+- `Barenco/MultiControl/Layout.lean`: ordered control embeddings and the narrow
+  bridges to existing `ControlSet` and primitive syntax.
 - `Barenco/MultiControl/Lemma71.lean`: runtime/public Gray circuit constructors
   and proof-side/public four-bit/general evaluators, root wrapper, and macro
   counts. Import `GrayCode`, narrow controlled circuit semantics, roots, and cost.
@@ -328,3 +353,32 @@ pivot invariant, not merely Hamming adjacency.
 - Open source issues carried into implementation are Corollary 7.4's contextual
   phases/basic count, Lemma 7.5's omitted width boundary, Corollary 7.10's index
   mismatch, and every clean/dirty auxiliary contract described above.
+- `Parity.lean` exports `xorParity`, `xorParity_symmDiff`,
+  `xorParity_eq_add_of_symmDiff_eq_singleton`, `signedParityContribution`,
+  `nonemptySubsets`, `parityInclusionExclusionSum`, and
+  `parityInclusionExclusionSum_formula`. The proof is order-independent and gives
+  exactly `2^(card-1)` on the all-true branch and zero otherwise.
+- `GrayCode.lean` exports `fullGrayCode`, `grayCode`, `fullGrayToggles`,
+  `grayToggles`, `grayPivots`, exact length/coverage/no-duplicate laws,
+  `fullGrayCode_isChain`, `grayCode_isChain`, `grayCode_pivots`,
+  `grayPivots_isChain`, and
+  `grayCode_previous_singleton_of_pivotRank_lt`. The executable width-three
+  schedule is exactly `100,110,010,011,111,101,001`.
+- `GrayAccumulator.lean` exports `grayCNOTEdges`, `xorWireUpdate`,
+  `parityAccumulatorState`, the two local accumulator transition theorems, and
+  exact edge count `2^width-2`; the raw edge-choice helper is private until a
+  general generated-schedule validity theorem is proved.
+- `Layout.lean` exports `OrderedControlLayout`, its exact-cardinality `controlSet`,
+  ordered restriction, and certified embedded CNOT/controlled-target primitives.
+  `MultiControlExamples.lean` checks the source's three-control signed identity,
+  masks/toggles/pivots/CNOT chronology, and restoration on all eight inputs.
+- Direct warning-as-error checks passed for all four public leaves and the
+  diagnostic module. The combined focused build
+  `lake build Barenco.MultiControl.Parity Barenco.MultiControl.GrayCode
+  Barenco.MultiControl.GrayAccumulator Barenco.MultiControl.Layout
+  Barenco.MultiControlExamples` passed with 3,060 jobs. Eight representative
+  axiom checks use only `propext`, `Classical.choice`, and `Quot.sound`; the
+  transfer theorem needs only `propext` and `Quot.sound`. The forbidden-shortcut
+  scan and `git diff --check` passed.
+- Corrections C-022 and C-023 now record Corollary 7.10's control-count mismatch
+  and Lemma 7.5's omitted recursive boundary/base cases.

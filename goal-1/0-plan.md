@@ -389,6 +389,19 @@ Toffoli behavior.
 Formalize the exact multi-control constructions and their Gray-code semantics from
 Section 7, including their dirty/borrowed workspace contracts.
 
+Current implementation facts:
+
+- The source/diagram audit is complete in `goal-1/7-MULTICONTROL.md`, including
+  exact chronologies, C-003–C-010, and new corrections C-022–C-023.
+- `MultiControl.Parity` proves the exact alternating subset-XOR exponent identity.
+  `MultiControl.GrayCode` proves reflected coverage, uniqueness, adjacency, pivot
+  alignment, and singleton-before-strict-pivot-rise. `GrayAccumulator` proves the
+  two local CNOT accumulator update rules and exact `2^m-2` edge count; the full
+  generated-schedule restoration theorem is next.
+- `OrderedControlLayout` supplies the ordered ambient-wire embedding needed before
+  building the quantum Lemma 7.1 circuit. The first five-module focused build
+  passed with 3,060 jobs under direct warning-as-error checks.
+
 ### Detailed Implementation Plan
 
 - Define Gray codes/parity schedules suitable for Lemma 7.1 and prove their

@@ -463,3 +463,51 @@ statement. “Open” means the repair is identified but not yet machine checked
   the distinct phase predicates.
 - **Status:** corrected and proved with exact arbitrary-width signed actions; the
   Markdown wording is correct, while the original PDF is not.
+
+## C-022 — Corollary 7.10 drops one control in its printed statement
+
+- **Source:** Lemma 7.9 and Corollary 7.10, manuscript p. 24; Markdown lines
+  854–875; image `lemma-7-9-linear-su2-control.png`.
+- **Issue:** Lemma 7.9 states and diagrams a fully controlled
+  `∧_{n−1}(W)` gate, and its construction is meant to combine with the linear
+  one-fewer-control Toffoli dependency from Corollary 7.4. Corollary 7.10 instead
+  prints `∧_{n−2}(W)`. The following example then describes a transformation
+  congruent to the n-bit Toffoli `∧_{n−1}(X)`, which again requires the fully
+  controlled interpretation. These surrounding dependencies do not support the
+  weaker printed subscript as the intended conclusion.
+- **Repair:** treat `∧_{n−2}(W)` as a likely subscript typo, but do not silently
+  replace it in a theorem. In Stage 8, reconstruct the Lemma 7.9 circuit and prove
+  the intended stronger linear upper bound for `∧_{n−1}(W)` on an n-bit register,
+  with all width hypotheses and the Sections 3–7 cost model explicit.
+- **Dependent impact:** Corollary 7.10, its phase-relaxed n-bit Toffoli example,
+  and later synthesis/resource estimates that use a linear special-unitary
+  multi-control construction.
+- **Formal evidence:** planned Stage 8 circuit syntax, exact evaluator theorem,
+  and syntax-derived linear resource bound; no corrected Corollary 7.10 theorem
+  is currently exported.
+- **Status:** open.
+
+## C-023 — Lemma 7.5 omits its recursive width and base cases
+
+- **Source:** Lemma 7.5 and Corollary 7.6, manuscript pp. 21–22; Markdown lines
+  716–746; image `lemma-7-5-quadratic-general-control.png`.
+- **Issue:** Lemma 7.5 quantifies `n` without a lower bound, although its displayed
+  recursive step must select a last control, separate the remaining control
+  prefix, and invoke gates indexed by `n−2`. That syntax is not meaningful at
+  every natural-number boundary, and the one-line proof supplies neither a legal
+  recursive domain nor terminating base circuits. The following cost recurrence
+  likewise omits the small-width cases and the separate threshold needed before
+  Corollary 7.4 can price its multi-controlled-X subcircuits.
+- **Repair:** index the semantic recursive step by a width carrying the required
+  last-control/prefix decomposition (equivalently, prove the exact minimum width),
+  and state explicit local/controlled base cases before recursion. Treat an empty
+  residual prefix only through a proved boundary theorem. State the resource
+  recurrence separately from its finite base range and from Corollary 7.4's
+  applicability threshold.
+- **Dependent impact:** Corollaries 7.6 and 7.8, every recursive fully controlled
+  circuit constructor, and downstream Section 8 estimates that charge the
+  quadratic exact construction.
+- **Formal evidence:** planned width-indexed recursive syntax, base/step evaluator
+  theorems, termination proof, and syntax-derived recurrence with explicit base
+  costs; the existing square-root API alone does not establish these obligations.
+- **Status:** open.
