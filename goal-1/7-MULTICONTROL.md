@@ -397,6 +397,9 @@ pivot invariant, not merely Hamming adjacency.
 - `Barenco/MultiControl/Resources.lean`: construction-specific recurrences and
   exact component/total closed forms and cast-to-real `O(n²)` only after all
   counted syntax exists.
+- `Barenco/MultiControl/RecursiveExamples.lean`: root-excluded diagnostics for
+  the one-control semantic boundary and the depth-zero/depth-one primitive
+  recurrence, including evaluator and exact component-cost specializations.
 - `Barenco/MultiControlExamples.lean`: diagnostic exhaustive cases, excluded from
   the public root and axiom surface.
 - Existing high-fanout `Basic`, `Controlled`, `Circuit`, and `Cost` modules remain

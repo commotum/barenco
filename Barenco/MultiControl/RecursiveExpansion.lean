@@ -151,10 +151,31 @@ private theorem balancedLayout_dataControlWire_eq_cast
     (FourBlockLayout.balancedLayout (p + 2) hwidth).dataLayout.controlWire control =
       (Fin.cast (balancedLayout_dataCount_eq p hwidth) control).castSucc.castSucc := by
   apply Fin.ext
-  simp [FourBlockLayout.dataLayout, FourBlockLayout.dataControlEmbedding,
-    FourBlockLayout.dataControlSlotEmbedding,
-    FourBlockLayout.dataControlSumEmbedding, FourBlockLayout.balancedLayout,
-    FourBlockLayout.consecutiveSlotEmbedding, FourBlockLayout.logicalWidth]
+  cases hcontrol : (@finSumFinEquiv
+      (FourBlockLayout.balancedLeftTail (p + 2) + 1 + 2)
+      (FourBlockLayout.balancedRightTail (p + 2) + 1 + 1)).symm control with
+  | inl left =>
+      simp [FourBlockLayout.dataLayout, FourBlockLayout.dataControlEmbedding,
+        FourBlockLayout.dataControlSlotEmbedding,
+        FourBlockLayout.dataControlSumEmbedding, FourBlockLayout.balancedLayout,
+        FourBlockLayout.consecutiveSlotEmbedding, FourBlockLayout.logicalWidth,
+        hcontrol]
+      have hforward := congrArg
+        (@finSumFinEquiv
+          (FourBlockLayout.balancedLeftTail (p + 2) + 1 + 2)
+          (FourBlockLayout.balancedRightTail (p + 2) + 1 + 1)) hcontrol
+      simpa using congrArg Fin.val hforward.symm
+  | inr right =>
+      simp [FourBlockLayout.dataLayout, FourBlockLayout.dataControlEmbedding,
+        FourBlockLayout.dataControlSlotEmbedding,
+        FourBlockLayout.dataControlSumEmbedding, FourBlockLayout.balancedLayout,
+        FourBlockLayout.consecutiveSlotEmbedding, FourBlockLayout.logicalWidth,
+        hcontrol]
+      have hforward := congrArg
+        (@finSumFinEquiv
+          (FourBlockLayout.balancedLeftTail (p + 2) + 1 + 2)
+          (FourBlockLayout.balancedRightTail (p + 2) + 1 + 1)) hcontrol
+      simpa using congrArg Fin.val hforward.symm
 
 theorem recursivePrefixFourBlockLayout_dataControlWire {p ambientWidth : ℕ}
     (layout : OrderedControlLayout (p + 1) ambientWidth)
@@ -192,6 +213,97 @@ theorem recursivePrefixFourBlockLayout_dirtyWire {p ambientWidth : ℕ}
       (FourBlockLayout.balancedLayout (p + 2) hwidth).dirtyWire = _
   rw [balancedLayout_dirtyWire_eq_penultimate]
   exact layout.recursivePrefixWorkspaceEmbedding_dirty
+
+/-- Reindex the transported four-block data controls by the original prefix type. -/
+def recursivePrefixReindexedDataLayout {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) : OrderedControlLayout p ambientWidth where
+  controlWire :=
+    { toFun := fun control =>
+        (layout.recursivePrefixFourBlockLayout hwidth).dataLayout.controlWire
+          (Fin.cast (balancedLayout_dataCount_eq p hwidth).symm control)
+      inj' := by
+        intro first second heq
+        have hcast :=
+          (layout.recursivePrefixFourBlockLayout hwidth).dataLayout.controlWire.injective
+            heq
+        apply Fin.ext
+        exact congrArg Fin.val hcast }
+  targetWire := (layout.recursivePrefixFourBlockLayout hwidth).targetWire
+  control_ne_target := fun control =>
+    (layout.recursivePrefixFourBlockLayout hwidth).dataLayout.control_ne_target
+      (Fin.cast (balancedLayout_dataCount_eq p hwidth).symm control)
+
+/-- The reindexed four-block data layout is exactly the recursive prefix layout. -/
+theorem recursivePrefixReindexedDataLayout_eq_prefixToLastLayout
+    {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) :
+    layout.recursivePrefixReindexedDataLayout hwidth =
+      layout.prefixToLastLayout := by
+  ext control
+  · change
+      (layout.recursivePrefixFourBlockLayout hwidth).dataLayout.controlWire
+          (Fin.cast (balancedLayout_dataCount_eq p hwidth).symm control) =
+        layout.controlWire control.castSucc
+    rw [recursivePrefixFourBlockLayout_dataControlWire]
+    congr 2
+    apply Fin.ext
+    rfl
+  · exact layout.recursivePrefixFourBlockLayout_targetWire hwidth
+
+/-- Reindexing the complete finite family of data controls preserves its set. -/
+theorem recursivePrefixReindexedDataLayout_controlSet
+    {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) :
+    (layout.recursivePrefixReindexedDataLayout hwidth).controlSet =
+      (layout.recursivePrefixFourBlockLayout hwidth).dataLayout.controlSet := by
+  apply Finset.ext
+  intro wire
+  rw [OrderedControlLayout.mem_controlSet_iff,
+    OrderedControlLayout.mem_controlSet_iff]
+  constructor
+  · rintro ⟨control, hcontrol⟩
+    refine ⟨Fin.cast (balancedLayout_dataCount_eq p hwidth).symm control, ?_⟩
+    apply Subtype.ext
+    exact congrArg Subtype.val hcontrol
+  · rintro ⟨control, hcontrol⟩
+    refine ⟨Fin.cast (balancedLayout_dataCount_eq p hwidth) control, ?_⟩
+    apply Subtype.ext
+    simpa [recursivePrefixReindexedDataLayout,
+      OrderedControlLayout.controlComplement] using congrArg Subtype.val hcontrol
+
+/-! ## Fully primitive expansion of the recursive prefix-controlled X -/
+
+/--
+Literal corrected Corollary 7.4 expansion of the prefix-controlled X macro.
+The ambient unitary target is the construction's dirty wire and is restored.
+-/
+def expandedRecursivePrefixXCircuit {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) : Circuit ambientWidth :=
+  let fourBlock := layout.recursivePrefixFourBlockLayout hwidth
+  fourBlock.expandedRelativeCorollary74Circuit
+    (FourBlockLayout.balancedLeftCapacity hwidth)
+    (FourBlockLayout.balancedRightCapacity hwidth)
+
+@[simp]
+theorem eval_expandedRecursivePrefixXCircuit {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) :
+    Circuit.eval (layout.expandedRecursivePrefixXCircuit hwidth) =
+      layout.prefixControlledX.denotation := by
+  rw [expandedRecursivePrefixXCircuit,
+    FourBlockLayout.eval_expandedRelativeCorollary74Circuit]
+  · rw [← recursivePrefixReindexedDataLayout_controlSet layout hwidth]
+    change positiveControlledUnitary
+        (layout.recursivePrefixReindexedDataLayout hwidth).targetWire
+          (layout.recursivePrefixReindexedDataLayout hwidth).controlSet pauliX =
+        layout.prefixControlledX.denotation
+    rw [recursivePrefixReindexedDataLayout_eq_prefixToLastLayout]
+    rfl
+  · exact FourBlockLayout.balancedLeftTail_le_right_add_one hwidth
 
 end OrderedControlLayout
 
