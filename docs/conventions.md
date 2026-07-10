@@ -145,15 +145,24 @@ translation:
 - `phaseShift δ = fromPaper (paperPhase δ) = paperPhase δ`;
 - `sigmaX = fromPaper paperX = paperX`.
 
-Only `Ry` changes its displayed entries under transposition. `sigmaX` is also proved
-equal, as a certified unitary, to the Boolean-permutation `pauliX`; their
+`Barenco.OneQubit.Pauli` adds the manuscript's later Pauli-Y display and its
+certificate:
+
+- `paperY = [[0,-i],[i,0]]` in the paper's row-action convention;
+- `sigmaY = fromPaper paperY = -paperY` in semantic column convention.
+
+Thus `Ry` changes its angle sign under transposition, while the antisymmetric
+Pauli-Y display changes its matrix sign. `Rz`, scalar phase, and Pauli-X are
+symmetric. `sigmaX` is also proved equal, as a certified unitary, to the
+Boolean-permutation `pauliX`; their
 `localUnitary` embeddings agree on every target. This bridge is still a semantic
 matrix equality, not a `Primitive` or `Circuit` construction.
 
 `QubitSpecialUnitary` abbreviates
 `Matrix.specialUnitaryGroup Bool ℂ`. The Y and Z rotations are packaged both as
-ordinary certified unitaries and as special unitaries. Scalar phase and Pauli-X are
-packaged as unitaries; their determinants are respectively `cis (2 * δ)` and `-1`.
+ordinary certified unitaries and as special unitaries. Scalar phase, Pauli-X, and
+Pauli-Y are packaged as unitaries; their determinants are respectively
+`cis (2 * δ)`, `-1`, and `-1`.
 
 All six identities in Lemma 4.2 are proved both for the raw paper displays and for
 the semantic matrices: addition of Y angles, addition of Z angles, addition of
@@ -213,6 +222,15 @@ For every finite index type `ι`, positive natural `k`, and
 `unitaryRoot_pow_two_pow`. The implementation applies principal-argument scalar
 roots to the finite spectrum using continuous functional calculus. Correctness is
 asserted only for `0 < k`; the total definition at `k=0` is not a zeroth-root theorem.
+
+At register width zero, `Basis 0` is a singleton and the Hilbert space is
+one-dimensional, not zero-dimensional. Consequently `UnitaryGate 0` contains all
+one-by-one unitary scalars (`U(1)`), not only the identity. The empty elementary
+circuit denotes the identity member. Exact generation of every such phase from the
+paper's one-qubit/CNOT primitives would require a zero-arity scalar-phase primitive;
+alternatively a theorem can explicitly quotient by global phase. The generic
+`Primitive.unclassified` wrapper can carry such a semantic unitary, but deliberately
+makes no elementary-synthesis or accepted-cost claim.
 
 The selected scalar branch is noncanonical and is not globally continuous as the
 matrix varies. More importantly for Lemma 7.8, the current API proves each
@@ -338,7 +356,11 @@ bits `00`, `01`, `10`, and `11` are respectively `I`, `I`, `Z`, and `X`.
 `eval_relativePhaseToffoliACircuit_eq_BCircuit` therefore proves exact equality of
 the two diagrams, stronger than phase-relaxed equality. Their Toffoli permutation
 has a negative input-column phase exactly on `101`. The separately discussed
-doubly controlled paper matrix `W`, translated to `wMatrix = ry pi`, instead has
+doubly controlled paper matrix satisfies the displayed row-convention identity
+`paperW = paperPhase (pi/2) * paperY`. Transposition reverses this product, giving
+`wMatrix = sigmaY * phaseShift (pi/2)`; scalar-phase commutativity also proves the
+source-ordered semantic form `wMatrix = phaseShift (pi/2) * sigmaY` and the
+corresponding certified-unitary identity. This same `wMatrix` is `ry pi` and has
 its negative Toffoli-relative phase exactly on `111`. These are distinct exact
 operators and neither relation is promoted to global-phase or all-measurement
 equality.

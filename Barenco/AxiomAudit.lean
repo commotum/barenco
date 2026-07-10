@@ -7,6 +7,7 @@ import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.Phase
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
+import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.Roots
 import Barenco.OneQubit.U2Euler
 import Barenco.ThreeQubit.Expansion
@@ -65,6 +66,8 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.OneQubit.unitaryRoot_pow
 #print axioms Barenco.OneQubit.unitaryRoot_pow_two_pow
 #print axioms Barenco.OneQubit.sigmaXUnitary_eq_pauliX
+#print axioms Barenco.OneQubit.paperY_mem_unitaryGroup
+#print axioms Barenco.OneQubit.sigmaY_mem_unitaryGroup
 #print axioms Barenco.ControlledCircuit.targetBlockRaw_mul
 #print axioms Barenco.ControlledCircuit.eval_controlledABCCircuit_eq_iff
 #print axioms Barenco.ControlledCircuit.controlledSU2Circuit_correct_iff
@@ -89,6 +92,8 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.ThreeQubit.eval_doubleControlledExpansion20Circuit_eq_16
 #print axioms Barenco.ThreeQubit.doubleControlledUnitary_has_sixteenPrimitiveCircuit
 #print axioms Barenco.ThreeQubit.wMatrix_eq_ry_pi
+#print axioms Barenco.ThreeQubit.paperW_eq_paperPhase_mul_paperY
+#print axioms Barenco.ThreeQubit.wUnitary_eq_phaseShift_mul_sigmaY
 #print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliACircuit
 #print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliBCircuit
 #print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliACircuit_eq_BCircuit

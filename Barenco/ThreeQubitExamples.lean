@@ -83,6 +83,16 @@ example (U : QubitUnitary) :
   exact eval_doubleControlledRootCircuit (4 : Fin 5) (0 : Fin 5) (2 : Fin 5)
     fin5_four_ne_zero fin5_four_ne_two fin5_zero_ne_two U
 
+/-! ## Paper-W convention checks -/
+
+/-- The source's displayed row-action factorization of `W` is exact. -/
+example : paperW = paperPhase (Real.pi / 2) * paperY :=
+  paperW_eq_paperPhase_mul_paperY
+
+/-- Its standard-column translation retains the phase-times-Pauli-Y identity. -/
+example : wMatrix = phaseShift (Real.pi / 2) * sigmaY :=
+  wMatrix_eq_phaseShift_mul_sigmaY
+
 /--
 The selected-root Lemma 6.1 construction for `U=X` has the complete eight-input
 Toffoli truth table. This is diagnostic; the public evaluator theorem is stronger.

@@ -1,6 +1,7 @@
 import Barenco.ThreeQubit.Lemma61
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.Equivalence.Phase
+import Barenco.OneQubit.Pauli
 
 /-!
 # Section 6.2: exact relative-phase Toffoli constructions
@@ -35,8 +36,36 @@ noncomputable section
 /-- The matrix `W` exactly as displayed under the paper's row-action convention. -/
 def paperW : QubitMatrix := matrix2 0 1 (-1) 0
 
+/-- The source's displayed identity `W = Ph(pi/2) * sigma_y` in row convention. -/
+theorem paperW_eq_paperPhase_mul_paperY :
+    paperW = paperPhase (Real.pi / 2) * paperY := by
+  have hcis : cis (Real.pi / 2) = Complex.I := by
+    simpa only [cis, Complex.ofReal_div, Complex.ofReal_ofNat] using
+      Complex.exp_pi_div_two_mul_I
+  rw [paperW, paperPhase, paperY, matrix2_mul, hcis]
+  norm_num
+
 /-- Standard-column translation of the paper's displayed `W`. -/
 def wMatrix : QubitMatrix := fromPaper paperW
+
+/--
+Transposing the source identity reverses its product: semantic Pauli-Y is
+followed algebraically by the scalar phase.
+-/
+theorem wMatrix_eq_sigmaY_mul_phaseShift :
+    wMatrix = sigmaY * phaseShift (Real.pi / 2) := by
+  calc
+    wMatrix = fromPaper (paperPhase (Real.pi / 2) * paperY) := by
+      rw [wMatrix, paperW_eq_paperPhase_mul_paperY]
+    _ = sigmaY * phaseShift (Real.pi / 2) := by
+      rw [fromPaper_mul]
+      rfl
+
+/-- Scalarity restores the paper's displayed factor order in column convention. -/
+theorem wMatrix_eq_phaseShift_mul_sigmaY :
+    wMatrix = phaseShift (Real.pi / 2) * sigmaY := by
+  rw [wMatrix_eq_sigmaY_mul_phaseShift,
+    ← phaseShift_mul_comm (Real.pi / 2) sigmaY]
 
 /-- The translated `W` is the semantic Y rotation through `pi`. -/
 theorem wMatrix_eq_ry_pi : wMatrix = ry Real.pi := by
@@ -53,6 +82,12 @@ def wUnitary : QubitUnitary := ryUnitary Real.pi
 theorem coe_wUnitary : (wUnitary : QubitMatrix) = wMatrix := by
   rw [wMatrix_eq_ry_pi]
   rfl
+
+/-- Certified semantic form of the source identity `W = Ph(pi/2) * sigma_y`. -/
+theorem wUnitary_eq_phaseShift_mul_sigmaY :
+    wUnitary = phaseShiftUnitary (Real.pi / 2) * sigmaYUnitary := by
+  apply Subtype.ext
+  simpa using wMatrix_eq_phaseShift_mul_sigmaY
 
 /-! ## Shared target-block semantics -/
 

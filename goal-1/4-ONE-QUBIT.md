@@ -184,12 +184,13 @@ required by later controlled-gate stages.
   using finite-spectrum continuous functional calculus. For `0 < k`,
   `unitaryRoot_pow` proves `(unitaryRoot k U)^k = U`; square and iterated
   power-of-two corollaries are exported. The construction is exact and certified,
-  including zero-width matrices, but it does not supply a continuous choice or a
-  coherent root sequence with Section 7 approximation bounds.
+  including the one-dimensional Hilbert space of a zero-qubit register, but it does
+  not supply a continuous choice or a coherent root sequence with Section 7
+  approximation bounds.
 - `Barenco/OneQubit/CircuitBridge.lean` proves the semantic Pauli-X names and local
   embeddings coincide with the earlier circuit core. `Barenco/OneQubitExamples.lean`
   is diagnostic only and checks `pi` signs, Pauli-X, zero-angle A/B/C order,
-  square/iterated roots, zero-width root behavior, and the outer-angle reversal.
+  square/iterated roots, zero-qubit root behavior, and the outer-angle reversal.
 - Declaration classification: matrices/certified gates/factor and root constructors
   are runtime/public; algebra, Euler, determinant, decomposition, and power laws
   are proof-side/public; `OneQubitExamples` is diagnostic and is excluded from the

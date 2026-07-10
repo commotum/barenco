@@ -9,6 +9,7 @@ import Barenco.Cost
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.OneQubit.Lemma43
+import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.U2Euler
 import Barenco.OneQubit.Roots
 import Barenco.OneQubit.CircuitBridge
