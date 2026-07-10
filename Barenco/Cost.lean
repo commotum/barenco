@@ -359,7 +359,7 @@ theorem arbitraryTwoQubit_cost_positiveControlled_singleton {n : ℕ}
     Circuit.cost CostModel.arbitraryTwoQubit
         [Primitive.positiveControlled target ({control} : ControlSet target) U] =
       some 1 := by
-  simp
+  simp [Circuit.cost, Circuit.addCost]
 
 /-- Two or more controls make the macro a gate on at least three wires. -/
 theorem arbitraryTwoQubit_rejects_positiveControlled_of_two_le {n : ℕ}
@@ -368,8 +368,8 @@ theorem arbitraryTwoQubit_rejects_positiveControlled_of_two_le {n : ℕ}
     Circuit.cost CostModel.arbitraryTwoQubit
         [Primitive.positiveControlled target controls U] = none := by
   rw [arbitraryTwoQubit_cost_positiveControlled]
-  simp only [if_neg]
-  omega
+  have hnot : ¬ controls.card ≤ 1 := by omega
+  simp [hnot]
 
 @[simp]
 theorem namedModels_reject_unclassified {n : ℕ} (tag : String) (U : UnitaryGate n) :
