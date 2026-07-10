@@ -145,6 +145,11 @@ are in progress; the optimized source count remains unresolved).
   is `IsBigOWith 860` of `d²` at `atTop`, using the eventual threshold `d≥1`.
   No global pointwise comparison is possible at `d=0`, where the circuit cost is
   440 but `d²=0`.
+- A second strict scratch proof checked the source-width form. For `n≥7`, the
+  Nat-safe identity is `cost(n−7)=56n²+636−420n`; it implies the sharper
+  eventual bound `cost(n−7)≤56n²` and hence `IsBigOWith 56` after casting to
+  `ℝ`. The proof obtains `n=7+d` before ring normalization, so it never treats
+  truncated natural subtraction as ordinary subtraction.
 
 ## Source Claim Audit
 
