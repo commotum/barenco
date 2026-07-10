@@ -6,13 +6,16 @@ import Barenco.ThreeQubit.Lemma61
 /-!
 # Gray-code circuit semantics for Lemma 7.1
 
-This file begins the semantic bridge from the pure Boolean Gray accumulator to
-certified arbitrary-width quantum circuits.  The first layer identifies the
-ambient basis update of an embedded logical CNOT and proves that restricting it
-back to the ordered controls is exactly `xorWireUpdate`.
+This file bridges the pure Boolean Gray accumulator to certified arbitrary-width
+quantum circuits. It proves the ambient action and restoration of the generated
+CNOT schedule, defines the chronological interleaving of signed controlled roots,
+maintains a target-local-state prefix invariant, and concludes exact Lemma 7.1
+semantics with syntax-derived macro counts.
 
-The full interleaved controlled-root circuit and its evaluator are added only
-after the generated Gray edge schedule has a general validity/restoration proof.
+The public theorem uses `tail + 1` controls. This includes the valid one-control
+boundary and deliberately excludes the distinct zero-control local-gate base case.
+The source's displayed three-control circuit is reconstructed as an exact 13-node
+list rather than treated as a diagrammatic proof.
 -/
 
 namespace Barenco.MultiControl

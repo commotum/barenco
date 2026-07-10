@@ -32,6 +32,8 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.positiveControlledRaw_truthTable
 #print axioms Barenco.cnotRaw_mulVec_basisKet
 #print axioms Barenco.Primitive.positiveControlled_support_card
+#print axioms Barenco.Primitive.toffoli_support_card
+#print axioms Barenco.Primitive.toffoli_denotation_mulVec_basisKet
 #print axioms Barenco.Circuit.eval_append
 #print axioms Barenco.Circuit.eval_adjoint
 #print axioms Barenco.GlobalPhaseEq.mul

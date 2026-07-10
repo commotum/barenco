@@ -58,13 +58,12 @@ Status: in progress (Lemma 7.1 and the displayed Gray circuit complete; Lemma 7.
   for every positive control count; the zero-control local-gate case is kept
   separate. Exact root/CNOT/total macro counts are syntax-derived, while the
   unexpanded circuit correctly has no `oneQubitCNOT` cost.
-- Lemma 7.2 needs a resource-honest Toffoli macro. `PrimitiveKind.toffoli`
-  already exists, but the private primitive constructor currently exposes no
-  trusted smart constructor. Add `Primitive.toffoli` with three pairwise-distinct
-  wires and the certified two-positive-control Pauli-X denotation before defining
-  the ladder; otherwise an equal-control CNOT could be mislabeled as a Toffoli.
-  The ladder will count Toffoli macros and retain `none` under the early-basic
-  cost model until those macros are explicitly expanded.
+- Lemma 7.2 now has a resource-honest `Primitive.toffoli` smart constructor with
+  three pairwise-distinct wires, exact three-wire support, the certified
+  two-positive-control Pauli-X denotation, and a full-register basis-action
+  theorem. Thus an equal-control CNOT cannot be mislabeled as a Toffoli. Both
+  named paper cost models reject the unexpanded macro; the ladder will count
+  Toffolis structurally and retain `none` until explicit expansion.
 
 ## Source Claim Audit
 

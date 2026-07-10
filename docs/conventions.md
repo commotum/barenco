@@ -79,9 +79,11 @@ created by trusted smart constructors (`Primitive.oneQubit`,
 `Primitive.positiveControlled`, and `Primitive.cnot`) whose kind, exact support,
 support cardinality, and certified denotation are fixed together. The only generic
 wrapper is `Primitive.unclassified`: it receives kind `.other` and full-register
-support, so later cost models must reject or explicitly price it. Toffoli and
-arbitrary-two-qubit kinds deliberately have no smart constructor until their
-certified semantics exists.
+support, so later cost models must reject or explicitly price it.
+`Primitive.toffoli` requires three pairwise-distinct wires and packages the
+certified two-control Pauli-X denotation; equal controls therefore cannot be
+mislabeled as a three-wire resource. The arbitrary-two-qubit kind deliberately
+has no smart constructor until its certified semantics exists.
 
 ## Wires, Controls, Targets, and Embeddings
 

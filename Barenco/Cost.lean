@@ -293,6 +293,19 @@ theorem oneQubitCNOT_cost_cnot {n : ℕ} (control target : Fin n)
     Circuit.cost CostModel.oneQubitCNOT [Primitive.cnot control target h] = some 1 := by
   simp [Circuit.cost, Circuit.addCost]
 
+/-- Neither named paper cost model treats an unexpanded Toffoli macro as basic. -/
+@[simp]
+theorem namedModels_reject_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    Circuit.cost CostModel.oneQubitCNOT
+          [Primitive.toffoli first second target hfirstSecond
+            hfirstTarget hsecondTarget] = none ∧
+      Circuit.cost CostModel.arbitraryTwoQubit
+          [Primitive.toffoli first second target hfirstSecond
+            hfirstTarget hsecondTarget] = none := by
+  simp [Circuit.cost, Circuit.addCost]
+
 @[simp]
 theorem oneQubitCNOT_rejects_positiveControlled {n : ℕ} (target : Fin n)
     (controls : ControlSet target) (U : QubitUnitary) :

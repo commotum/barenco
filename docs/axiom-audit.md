@@ -42,6 +42,8 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.positiveControlledRaw_truthTable` | `Barenco.Controlled` | `propext`, `Classical.choice`, `Quot.sound` | general multi-control basis action; no project axiom | 2026-07-09 |
 | `Barenco.cnotRaw_mulVec_basisKet` | `Barenco.Controlled` | `propext`, `Classical.choice`, `Quot.sound` | full-register CNOT basis action; no project axiom | 2026-07-09 |
 | `Barenco.Primitive.positiveControlled_support_card` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | structural support count; no project axiom | 2026-07-09 |
+| `Barenco.Primitive.toffoli_support_card` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | three-distinct-wire Toffoli support count; no project axiom | 2026-07-09 |
+| `Barenco.Primitive.toffoli_denotation_mulVec_basisKet` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | trusted Toffoli full-register basis action; no project axiom | 2026-07-09 |
 | `Barenco.Circuit.eval_append` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | chronological evaluator composition; no project axiom | 2026-07-09 |
 | `Barenco.Circuit.eval_adjoint` | `Barenco.Circuit` | `propext`, `Classical.choice`, `Quot.sound` | inverse evaluator; no project axiom | 2026-07-09 |
 | `Barenco.GlobalPhaseEq.mul` | `Barenco.Equivalence.Phase` | `propext`, `Classical.choice`, `Quot.sound` | global-phase composition; no project axiom | 2026-07-09 |
