@@ -116,11 +116,18 @@ that named construction realizes the paper's `48n-204` count.
   sixteen-node generic double-controlled-`U` expansion, exact lowering/evaluator
   bridge, and literal resource facts. This declaration belongs beside Corollary
   6.2 rather than inside a Corollary 7.4-specific namespace.
-- Add `Barenco/MultiControl/Corollary74Mergers.lean` for the relative-ladder
-  fusion/symbolic builders, named normalized family, exact evaluator bridges, and
-  general Corollary resource theorems. It may import the existing Corollary
-  expansion, the new exact-expansion fusion leaf, fusion resources, early
-  normalizer, and symbolic exposure, but must not edit the `Primitive`/`Circuit`
+- Add `Barenco/MultiControl/RelativeHalfFusion.lean` for the transparent relative
+  base, outer, half-ladder, and inward-ladder Fusion builders with exact lowering
+  bridges. This keeps reusable ladder reification independent of Corollary 7.4.
+- Add `Barenco/MultiControl/Corollary74Fusion.lean` for the transparent raw
+  corrected `A;B;A†;B` Fusion tree and its exact semantic bridge. Its trusted
+  lowering is a new explicit circuit surface because literal equality to the old
+  opaque whole-circuit choices is impossible; evaluator equality connects the two.
+- Add `Barenco/MultiControl/Corollary74Mergers.lean` only for the coherent mixed
+  exact-gate orientations, symbolic builders, executable merger, named normalized
+  family, exact evaluator bridges, and general resource theorems. It may import
+  the existing Corollary expansion for baseline comparison plus the new raw
+  fusion leaves and symbolic exposure, but must not edit the `Primitive`/`Circuit`
   trust core.
 - Keep width-seven/eight/nine traces and alternative-orientation probes in the
   root-excluded diagnostic leaf
