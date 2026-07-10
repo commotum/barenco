@@ -60,7 +60,7 @@ theorem localRaw_mulVec_basisKet_eq_pair {n : ℕ} (target : Fin n)
         simp [hrow] at this
       simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, basisKet_apply]
       rw [if_pos heq, if_neg hne]
-      simp [hrow]
+      simp
     · have heq : row = setTarget target input true :=
         (eq_setTarget_iff target input row true).2 ⟨hagree, hrow⟩
       have hne : row ≠ setTarget target input false := by
@@ -69,7 +69,7 @@ theorem localRaw_mulVec_basisKet_eq_pair {n : ℕ} (target : Fin n)
         simp [hrow] at this
       simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, basisKet_apply]
       rw [if_neg hne, if_pos heq]
-      simp [hrow]
+      simp
   · rw [if_neg hagree]
     have hfalse : row ≠ setTarget target input false := by
       intro hrow
@@ -90,8 +90,8 @@ theorem BasisStepAt.second_target_eq_not {n : ℕ} {target : Fin n}
     second target = !first target := by
   cases hfirst : first target <;> cases hsecond : second target
   · exact (hstep.1 (hfirst.trans hsecond.symm)).elim
-  · simp [hfirst, hsecond]
-  · simp [hfirst, hsecond]
+  · simp
+  · simp
   · exact (hstep.1 (hfirst.trans hsecond.symm)).elim
 
 /-- The second endpoint is obtained by flipping the unique changed wire. -/
@@ -145,13 +145,13 @@ theorem local_endpointOriented_mulVec_first {n : ℕ} (target : Fin n)
     have hsetTrue : setTarget target first true = second := by
       simpa [hfirst] using hsecond.symm
     rw [hsetFalse, hsetTrue]
-    simp [hfirst]
+    simp
   · have hsetTrue : setTarget target first true = first := by
       simpa [hfirst] using hself
     have hsetFalse : setTarget target first false = second := by
       simpa [hfirst] using hsecond.symm
     rw [hsetFalse, hsetTrue]
-    simp [hfirst, add_comm]
+    simp [add_comm]
 
 /-- Exact target-local action on the second ordered endpoint. -/
 theorem local_endpointOriented_mulVec_second {n : ℕ} (target : Fin n)
@@ -170,6 +170,7 @@ theorem local_endpointOriented_mulVec_second {n : ℕ} (target : Fin n)
     rw [hsecond, setTarget_setTarget, setTarget_setTarget,
       hsetFalse, hsetTrue]
     simp [hfirst]
+    exact congrArg (fun state => U true true • basisKet state) hsetTrue.symm
   · have hsetTrue : setTarget target first true = first := by
       simpa [hfirst] using hself
     have hsetFalse : setTarget target first false = second := by
@@ -177,6 +178,7 @@ theorem local_endpointOriented_mulVec_second {n : ℕ} (target : Fin n)
     rw [hsecond, setTarget_setTarget, setTarget_setTarget,
       hsetTrue, hsetFalse]
     simp [hfirst, add_comm]
+    exact congrArg (fun state => U true true • basisKet state) hsetFalse.symm
 
 /-- Literal circuit for an adjacent ordered two-level unitary. -/
 def adjacentTwoLevelCircuit (controlCount : ℕ)
