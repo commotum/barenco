@@ -135,6 +135,260 @@ theorem controlProduct_succ {b n : ℕ}
   rw [controlProduct, Fin.prod_univ_castSucc]
   rfl
 
+/-! ## Structural half-ladder invariants -/
+
+@[simp]
+theorem baseUpdate_apply_target {n : ℕ} (layout : InwardLadderLayout 0 n)
+    (input : Basis n) :
+    baseUpdate layout input layout.targetWire =
+      input layout.targetWire +
+        input (layout.controlWire 0) * input (layout.controlWire 1) := by
+  simp [baseUpdate]
+
+@[simp]
+theorem outerUpdate_apply_target {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    outerUpdate layout input layout.targetWire =
+      input layout.targetWire +
+        input (layout.controlWire (Fin.last (b + 2))) *
+          input (layout.borrowedWire (Fin.last b)) := by
+  simp [outerUpdate]
+
+@[simp]
+theorem outerUpdate_apply_of_ne {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n)
+    (wire : Fin n) (hwire : wire ≠ layout.targetWire) :
+    outerUpdate layout input wire = input wire := by
+  simp [outerUpdate, hwire]
+
+/-- Every half ladder changes only its work-register wires. -/
+theorem halfLadderUpdate_apply_of_not_work {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) (wire : Fin n)
+    (hwork : ∀ work, wire ≠ layout.workWire work) :
+    halfLadderUpdate b layout input wire = input wire := by
+  revert layout input
+  induction b with
+  | zero =>
+      intro layout input hwork
+      exact toffoliXorUpdate_apply_of_ne _ _ _ _ wire (hwork (Fin.last 0))
+  | succ b ih =>
+      intro layout input hwork
+      have htarget : wire ≠ layout.targetWire := hwork (Fin.last (b + 1))
+      rw [halfLadderUpdate, outerUpdate_apply_of_ne layout _ wire htarget]
+      rw [ih layout.smaller (outerUpdate layout input)]
+      · exact outerUpdate_apply_of_ne layout input wire htarget
+      · intro work
+        simpa using hwork work.castSucc
+
+/-- In particular, a half ladder preserves every logical control. -/
+@[simp]
+theorem halfLadderUpdate_apply_controlWire {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n)
+    (control : Fin (b + 2)) :
+    halfLadderUpdate b layout input (layout.controlWire control) =
+      input (layout.controlWire control) := by
+  apply halfLadderUpdate_apply_of_not_work
+  exact fun work => layout.controlWire_ne_workWire control work
+
+/-- Consequently, the conjunction of the controls is invariant under a half ladder. -/
+@[simp]
+theorem controlProduct_halfLadderUpdate {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    controlProduct layout (halfLadderUpdate b layout input) =
+      controlProduct layout input := by
+  apply Finset.prod_congr rfl
+  intro control _
+  exact halfLadderUpdate_apply_controlWire layout input control
+
+/-- An outer update preserves the conjunction of the controls of its smaller layout. -/
+@[simp]
+theorem smaller_controlProduct_outerUpdate {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    controlProduct layout.smaller (outerUpdate layout input) =
+      controlProduct layout.smaller input := by
+  apply Finset.prod_congr rfl
+  intro control _
+  rw [smaller_controlWire]
+  exact outerUpdate_apply_of_ne layout input _
+    (layout.controlWire_ne_targetWire control.castSucc)
+
+/-- The base half ladder is an involution. -/
+theorem baseUpdate_involutive {n : ℕ} (layout : InwardLadderLayout 0 n) :
+    Function.Involutive (baseUpdate layout) := by
+  exact toffoliXorUpdate_involutive _ _ _
+    (layout.controlWire_ne_targetWire 0)
+    (layout.controlWire_ne_targetWire 1)
+
+/-- Every outer Toffoli update is an involution. -/
+theorem outerUpdate_involutive {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    Function.Involutive (outerUpdate layout) := by
+  exact toffoliXorUpdate_involutive _ _ _
+    (layout.controlWire_ne_targetWire _)
+    (layout.borrowedWire_ne_targetWire _)
+
+/-- The recursive palindrome is self-inverse on the full ambient assignment. -/
+theorem halfLadderUpdate_involutive {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    Function.Involutive (halfLadderUpdate b layout) := by
+  revert layout
+  induction b with
+  | zero =>
+      intro layout
+      exact baseUpdate_involutive layout
+  | succ b ih =>
+      intro layout input
+      simp only [halfLadderUpdate]
+      rw [outerUpdate_involutive layout]
+      rw [ih layout.smaller]
+      rw [outerUpdate_involutive layout]
+
+/--
+A half ladder commutes with replacement of any ambient wire outside all of its
+logical controls and work wires.
+-/
+theorem halfLadderUpdate_update_of_outside {b n : ℕ}
+    (layout : InwardLadderLayout b n) (outside : Fin n)
+    (hcontrol : ∀ control, outside ≠ layout.controlWire control)
+    (hwork : ∀ work, outside ≠ layout.workWire work)
+    (input : Basis n) (bit : Bool) :
+    halfLadderUpdate b layout (Function.update input outside bit) =
+      Function.update (halfLadderUpdate b layout input) outside bit := by
+  revert layout input
+  induction b with
+  | zero =>
+      intro layout hcontrol hwork input
+      exact toffoliXorUpdate_update _ _ _ outside
+        (hcontrol 0) (hcontrol 1) (hwork (Fin.last 0)) input bit
+  | succ b ih =>
+      intro layout hcontrol hwork input
+      have houter : ∀ state : Basis n,
+          outerUpdate layout (Function.update state outside bit) =
+            Function.update (outerUpdate layout state) outside bit := by
+        intro state
+        exact toffoliXorUpdate_update _ _ _ outside
+          (hcontrol (Fin.last (b + 2)))
+          (hwork (Fin.last b).castSucc)
+          (hwork (Fin.last (b + 1))) state bit
+      have hsmallControl : ∀ control,
+          outside ≠ layout.smaller.controlWire control := by
+        intro control
+        simpa using hcontrol control.castSucc
+      have hsmallWork : ∀ work,
+          outside ≠ layout.smaller.workWire work := by
+        intro work
+        simpa using hwork work.castSucc
+      simp only [halfLadderUpdate]
+      rw [houter input]
+      rw [ih layout.smaller hsmallControl hsmallWork (outerUpdate layout input)]
+      rw [houter (halfLadderUpdate b layout.smaller (outerUpdate layout input))]
+
+@[simp]
+theorem controlProduct_zero {n : ℕ} (layout : InwardLadderLayout 0 n)
+    (input : Basis n) :
+    controlProduct layout input =
+      input (layout.controlWire 0) * input (layout.controlWire 1) := by
+  rw [controlProduct, Fin.prod_univ_two]
+
+/-- The larger target is disjoint from every control of the prefix layout. -/
+theorem targetWire_ne_smaller_controlWire {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (control : Fin (b + 2)) :
+    layout.targetWire ≠ layout.smaller.controlWire control := by
+  simpa using (layout.controlWire_ne_targetWire control.castSucc).symm
+
+/-- The larger target is disjoint from every work wire of the prefix layout. -/
+theorem targetWire_ne_smaller_workWire {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (work : Fin (b + 1)) :
+    layout.targetWire ≠ layout.smaller.workWire work := by
+  change layout.workWire (Fin.last (b + 1)) ≠ layout.workWire work.castSucc
+  exact (layout.workWire_ne work.castSucc_ne_last).symm
+
+/-- The outer Toffoli is literally a single update of the larger target. -/
+theorem outerUpdate_eq_update {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    outerUpdate layout input =
+      Function.update input layout.targetWire
+        (input layout.targetWire +
+          input (layout.controlWire (Fin.last (b + 2))) *
+            input (layout.borrowedWire (Fin.last b))) := by
+  rfl
+
+/--
+The half ladder flips its target by the conjunction of all its controls.  It may
+also change borrowed wires; their exact intermediate values are intentionally
+not part of this invariant.
+-/
+@[simp]
+theorem halfLadderUpdate_apply_target {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    halfLadderUpdate b layout input layout.targetWire =
+      input layout.targetWire + controlProduct layout input := by
+  revert layout input
+  induction b with
+  | zero =>
+      intro layout input
+      simp [halfLadderUpdate]
+  | succ b ih =>
+      intro layout input
+      let firstOuter := outerUpdate layout input
+      let smallerHalf := halfLadderUpdate b layout.smaller firstOuter
+      have hlargeTarget : smallerHalf layout.targetWire =
+          firstOuter layout.targetWire := by
+        apply halfLadderUpdate_apply_of_not_work
+        exact targetWire_ne_smaller_workWire layout
+      have hlastControl :
+          smallerHalf (layout.controlWire (Fin.last (b + 2))) =
+            input (layout.controlWire (Fin.last (b + 2))) := by
+        calc
+          smallerHalf (layout.controlWire (Fin.last (b + 2))) =
+              firstOuter (layout.controlWire (Fin.last (b + 2))) := by
+                apply halfLadderUpdate_apply_of_not_work
+                intro work
+                exact layout.controlWire_ne_workWire _ work.castSucc
+          _ = input (layout.controlWire (Fin.last (b + 2))) := by
+                apply outerUpdate_apply_of_ne
+                exact layout.controlWire_ne_targetWire _
+      have hsmallerTarget :
+          smallerHalf (layout.borrowedWire (Fin.last b)) =
+            input (layout.borrowedWire (Fin.last b)) +
+              controlProduct layout.smaller input := by
+        change halfLadderUpdate b layout.smaller firstOuter
+            layout.smaller.targetWire =
+          input layout.smaller.targetWire + controlProduct layout.smaller input
+        rw [ih layout.smaller firstOuter]
+        rw [smaller_controlProduct_outerUpdate]
+        dsimp [firstOuter]
+        rw [outerUpdate_apply_of_ne]
+        exact layout.borrowedWire_ne_targetWire _
+      change outerUpdate layout smallerHalf layout.targetWire = _
+      rw [outerUpdate_apply_target, hlargeTarget, hlastControl, hsmallerTarget]
+      dsimp [firstOuter]
+      rw [outerUpdate_apply_target]
+      rw [controlProduct_succ]
+      rw [mul_add]
+      calc
+        (input layout.targetWire +
+              input (layout.controlWire (Fin.last (b + 2))) *
+                input (layout.borrowedWire (Fin.last b))) +
+            (input (layout.controlWire (Fin.last (b + 2))) *
+                input (layout.borrowedWire (Fin.last b)) +
+              input (layout.controlWire (Fin.last (b + 2))) *
+                controlProduct layout.smaller input) =
+            input layout.targetWire +
+                (input (layout.controlWire (Fin.last (b + 2))) *
+                    input (layout.borrowedWire (Fin.last b)) +
+                  input (layout.controlWire (Fin.last (b + 2))) *
+                    input (layout.borrowedWire (Fin.last b))) +
+              input (layout.controlWire (Fin.last (b + 2))) *
+                controlProduct layout.smaller input := by abel
+        _ = input layout.targetWire +
+              input (layout.controlWire (Fin.last (b + 2))) *
+                controlProduct layout.smaller input := by simp
+        _ = input layout.targetWire +
+              controlProduct layout.smaller input *
+                input (layout.controlWire (Fin.last (b + 2))) := by
+              rw [mul_comm]
+
 end InwardLadderLayout
 
 end Barenco.MultiControl
