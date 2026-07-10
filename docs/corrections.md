@@ -800,8 +800,10 @@ statement. “Open” means the repair is identified but not yet machine checked
   zero-width theorem.
 - **Formal evidence:** `basicCircuit_zero_eq_nil`, `basicCircuit_zero_eval`,
   `zeroWidthNegUnitary_ne_one`, and `no_basicCircuit_zero_realizes_neg` in
-  `Barenco/Universality/ZeroWidth.lean`; positive-width synthesis remains in
-  progress.
+  `Barenco/Universality/ZeroWidth.lean`; `eval_widthOneCircuit` and
+  `widthOneCircuit_oneQubitCNOTCost` prove the direct width-one boundary in
+  `Barenco/Universality/WidthOne.lean`; general positive-width synthesis remains
+  in progress.
 - **Status:** zero-width obstruction corrected and proved; positive-width
   headline in progress.
 

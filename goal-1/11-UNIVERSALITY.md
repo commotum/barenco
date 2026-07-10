@@ -246,6 +246,15 @@ formal reconstruction of the paper's Gray-path reasoning.
   width zero is literally empty, evaluates to identity, and has gate count zero.
   Its explicit certified scalar `-1` unitary proves the exact headline cannot be
   extended to zero wires; this is not hidden by global-phase relaxation.
+- `WidthOne.lean` separately proves the positive boundary without invoking
+  elimination: `Basis 1` is explicitly equivalent to `Bool`, every certified
+  width-one unitary reindexes to one arbitrary qubit primitive, and the singleton
+  circuit has exact evaluator equality, gate count one, and accepted cost one.
+- `CircuitProduct.lean` isolates chronological order from algebraic order. Given
+  component circuits in conventional left-to-right matrix-product order, it
+  executes them right-to-left and proves that the evaluator is exactly the
+  `List.prod` of their evaluators, with additive gate-count and accepted-cost
+  theorems derived from syntax.
 - A smaller affine implementation was discovered after the path layer compiled:
   X gates translate the first endpoint to zero and pivot-controlled CNOTs reduce
   the second endpoint's difference mask to one bit. This improves the construction

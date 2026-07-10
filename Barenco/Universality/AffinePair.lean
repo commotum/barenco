@@ -458,24 +458,74 @@ theorem affinePairCircuit_gateCount {controlCount : ℕ}
   simp [affinePairGateCount, affinePairCNOTCount,
     trueBitCount, xCircuit, pivotClearCircuit, Circuit.gateCount]
 
-private theorem xCircuit_kindCounts {n : ℕ} (wires : List (Fin n)) :
-    Circuit.kindCount .oneQubit (xCircuit wires) = wires.length ∧
-      Circuit.kindCount .cnot (xCircuit wires) = 0 := by
-  induction wires with
-  | nil => rfl
-  | cons wire wires ih =>
-      rcases ih with ⟨hone, hcnot⟩
-      simp [xCircuit_cons, Circuit.kindCount, hone, hcnot]
+private theorem xCircuit_oneQubitKindCount {n : ℕ} :
+    ∀ wires : List (Fin n),
+      Circuit.kindCount PrimitiveKind.oneQubit (xCircuit wires) = wires.length
+  | [] => rfl
+  | wire :: wires => by
+      have ih : List.countP (fun primitive =>
+          decide (primitive.kind = PrimitiveKind.oneQubit)) (xCircuit wires) =
+          wires.length := by
+        simpa only [Circuit.kindCount] using xCircuit_oneQubitKindCount wires
+      rw [xCircuit_cons]
+      change List.countP (fun primitive =>
+        decide (primitive.kind = PrimitiveKind.oneQubit))
+          (Primitive.oneQubit wire pauliX :: xCircuit wires) = _
+      rw [List.countP_cons]
+      simp [ih]
 
-private theorem pivotClearCircuit_kindCounts {n : ℕ} (pivot : Fin n)
-    (targets : List (PivotComplement pivot)) :
-    Circuit.kindCount .oneQubit (pivotClearCircuit pivot targets) = 0 ∧
-      Circuit.kindCount .cnot (pivotClearCircuit pivot targets) = targets.length := by
-  induction targets with
-  | nil => rfl
-  | cons target targets ih =>
-      rcases ih with ⟨hone, hcnot⟩
-      simp [pivotClearCircuit_cons, Circuit.kindCount, hone, hcnot]
+private theorem xCircuit_cnotKindCount {n : ℕ} :
+    ∀ wires : List (Fin n),
+      Circuit.kindCount PrimitiveKind.cnot (xCircuit wires) = 0
+  | [] => rfl
+  | wire :: wires => by
+      have ih : List.countP (fun primitive =>
+          decide (primitive.kind = PrimitiveKind.cnot)) (xCircuit wires) = 0 := by
+        simpa only [Circuit.kindCount] using xCircuit_cnotKindCount wires
+      rw [xCircuit_cons]
+      change List.countP (fun primitive =>
+        decide (primitive.kind = PrimitiveKind.cnot))
+          (Primitive.oneQubit wire pauliX :: xCircuit wires) = 0
+      rw [List.countP_cons]
+      simp [ih]
+
+private theorem pivotClearCircuit_oneQubitKindCount {n : ℕ} (pivot : Fin n) :
+    ∀ targets : List (PivotComplement pivot),
+      Circuit.kindCount PrimitiveKind.oneQubit
+        (pivotClearCircuit pivot targets) = 0
+  | [] => rfl
+  | target :: targets => by
+      have ih : List.countP (fun primitive =>
+          decide (primitive.kind = PrimitiveKind.oneQubit))
+          (pivotClearCircuit pivot targets) = 0 := by
+        simpa only [Circuit.kindCount] using
+          pivotClearCircuit_oneQubitKindCount pivot targets
+      rw [pivotClearCircuit_cons]
+      change List.countP (fun primitive =>
+        decide (primitive.kind = PrimitiveKind.oneQubit))
+          (Primitive.cnot pivot target (Ne.symm target.property) ::
+            pivotClearCircuit pivot targets) = 0
+      rw [List.countP_cons]
+      simp [ih]
+
+private theorem pivotClearCircuit_cnotKindCount {n : ℕ} (pivot : Fin n) :
+    ∀ targets : List (PivotComplement pivot),
+      Circuit.kindCount PrimitiveKind.cnot (pivotClearCircuit pivot targets) =
+        targets.length
+  | [] => rfl
+  | target :: targets => by
+      have ih : List.countP (fun primitive =>
+          decide (primitive.kind = PrimitiveKind.cnot))
+          (pivotClearCircuit pivot targets) = targets.length := by
+        simpa only [Circuit.kindCount] using
+          pivotClearCircuit_cnotKindCount pivot targets
+      rw [pivotClearCircuit_cons]
+      change List.countP (fun primitive =>
+        decide (primitive.kind = PrimitiveKind.cnot))
+          (Primitive.cnot pivot target (Ne.symm target.property) ::
+            pivotClearCircuit pivot targets) = _
+      rw [List.countP_cons]
+      simp [ih]
 
 /-- Exact number of one-qubit primitive occurrences in the literal transport. -/
 @[simp]
@@ -485,10 +535,10 @@ theorem affinePairCircuit_oneQubitCount {controlCount : ℕ}
     Circuit.kindCount .oneQubit (affinePairCircuit first second hfirstSecond) =
       trueBitCount first := by
   rw [affinePairCircuit, Circuit.kindCount_append,
-    (xCircuit_kindCounts (trueWireList first)).1,
-    (pivotClearCircuit_kindCounts
+    xCircuit_oneQubitKindCount,
+    pivotClearCircuit_oneQubitKindCount
       (differingPivot first second hfirstSecond)
-      (otherDifferenceTargets first second hfirstSecond)).1]
+      (otherDifferenceTargets first second hfirstSecond)]
   simp [trueBitCount]
 
 /-- Exact number of CNOT primitive occurrences in the literal transport. -/
@@ -499,10 +549,10 @@ theorem affinePairCircuit_cnotCount {controlCount : ℕ}
     Circuit.kindCount .cnot (affinePairCircuit first second hfirstSecond) =
       hammingDist first second - 1 := by
   rw [affinePairCircuit, Circuit.kindCount_append,
-    (xCircuit_kindCounts (trueWireList first)).2,
-    (pivotClearCircuit_kindCounts
+    xCircuit_cnotKindCount,
+    pivotClearCircuit_cnotKindCount
       (differingPivot first second hfirstSecond)
-      (otherDifferenceTargets first second hfirstSecond)).2,
+      (otherDifferenceTargets first second hfirstSecond),
     length_otherDifferenceTargets]
   simp
 
