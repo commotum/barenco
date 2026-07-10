@@ -53,6 +53,36 @@ arbitrary-wire one-qubit gates, positive multi-controls, and chronological circu
 Expected files include `Barenco/Semantics.lean`, `Barenco/Controlled.lean`,
 `Barenco/Circuit.lean`, root imports, this stage file, and documentation updates.
 
+## Build Structure
+
+- `Barenco.Basic` is the high-fanout core and owns only basis/state/matrix aliases,
+  the source transpose bridge, and cheap chronology/cardinality facts. Further
+  experimental semantics should not accumulate there.
+- `Barenco.Semantics` is a generic proof leaf for basis kets and certified reindex,
+  block-diagonal, and Kronecker constructors.
+- `Barenco.Controlled` imports `Semantics` and owns target/complement splits plus
+  local/controlled/X/CNOT constructors and their domain-specific proofs.
+- `Barenco.Circuit` owns syntax/evaluation/adjoint and structural metadata without
+  importing paper-specific theorem leaves.
+- `Barenco.SemanticsExamples` is diagnostic/audit-only and contains boundary and
+  low-dimensional checks, not public runtime definitions.
+- `Barenco.lean` is the thin public re-export surface; internal leaves import their
+  narrow dependencies, never the root module.
+- Runtime/public API: `Basic`, `Semantics`, `Controlled`, `Circuit`. Proof-side:
+  their theorem sections. Diagnostic: `ApiSmoke`, `AxiomAudit`, and
+  `SemanticsExamples`. No fallback or temporary public declarations are planned.
+- Focused builds: `lake build Barenco.Semantics`, `Barenco.Controlled`, and
+  `Barenco.Circuit`. Adjacent consumers: `Barenco.SemanticsExamples` and root
+  `Barenco`. Full builds are required here because the root/high-fanout core and
+  public imports change and the stage completion criteria demand two full checks.
+
+## Boundary Checks
+
+- Runtime definitions stay in narrow foundational modules; exhaustive examples and
+  negative probes stay in `SemanticsExamples`/audit modules.
+- Public syntax metadata must either be correct by construction or accompanied by
+  a checked well-formedness predicate before any resource theorem consumes it.
+
 ## No-Cheating Checks
 
 - Unitarity is proved from exact matrix algebra; no finite test substitutes for the
@@ -83,4 +113,3 @@ Expected files include `Barenco/Semantics.lean`, `Barenco/Controlled.lean`,
 ## Stage Results
 
 - In progress.
-

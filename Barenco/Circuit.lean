@@ -9,7 +9,12 @@ denotations multiply on the left during evaluation.
 
 Primitive kinds and supports are structural metadata. They are deliberately kept
 independent of the certified unitary denotation so later cost models can inspect
-syntax without attempting to recover a circuit from its matrix.
+syntax without attempting to recover a circuit from its matrix. The raw primitive
+constructor is private: otherwise an arbitrary global unitary could be mislabeled
+as one CNOT and make a later resource theorem meaningless. This module exposes
+only a conservative unclassified constructor; standard-gate smart constructors
+must be added together with proofs that their denotations and supports match their
+structural labels.
 -/
 
 namespace Barenco
@@ -40,11 +45,37 @@ certified unitary, so every circuit made from primitives evaluates to a unitary
 without a separate post-hoc proof.
 -/
 structure Primitive (n : ℕ) where
+  private mk ::
   kind : PrimitiveKind
   support : Finset (Fin n)
   denotation : UnitaryGate n
 
 namespace Primitive
+
+/--
+Conservatively wrap an arbitrary certified unitary as an unclassified primitive.
+
+Its support is the full register and its `other` kind is intentionally outside the
+paper's basic-gate classes. A resource model must reject or explicitly price such
+tags rather than treating them as one-qubit, CNOT, Toffoli, or arbitrary two-qubit
+gates.
+-/
+def unclassified {n : ℕ} (tag : String) (denotation : UnitaryGate n) : Primitive n where
+  kind := .other tag
+  support := Finset.univ
+  denotation := denotation
+
+@[simp]
+theorem unclassified_kind {n : ℕ} (tag : String) (denotation : UnitaryGate n) :
+    (unclassified tag denotation).kind = .other tag := rfl
+
+@[simp]
+theorem unclassified_support {n : ℕ} (tag : String) (denotation : UnitaryGate n) :
+    (unclassified tag denotation).support = Finset.univ := rfl
+
+@[simp]
+theorem unclassified_denotation {n : ℕ} (tag : String) (denotation : UnitaryGate n) :
+    (unclassified tag denotation).denotation = denotation := rfl
 
 /-- The adjoint primitive preserves its structural class and wire support. -/
 def adjoint {n : ℕ} (p : Primitive n) : Primitive n where

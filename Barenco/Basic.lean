@@ -31,6 +31,10 @@ abbrev QubitMatrix := Matrix Bool Bool ℂ
 /-- A certified one-qubit unitary in the `false,true` computational order. -/
 abbrev QubitUnitary := Matrix.unitaryGroup Bool ℂ
 
+/-- An `n`-qubit register has exactly `2^n` computational basis assignments. -/
+theorem card_basis (n : ℕ) : Fintype.card (Basis n) = 2 ^ n := by
+  simp [Basis]
+
 /--
 The natural-number index of a bit assignment in the paper's big-endian
 lexicographic order. This bridge is descriptive; core gate semantics do not depend

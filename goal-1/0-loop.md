@@ -5,7 +5,8 @@ but actual files, compiled results, and source evidence override stale prose.
 
 ## Repeatable Loop
 
-1. Sync current state with actual files and tests.
+1. Sync current state with actual files and tests. Read `BUILD-PLAN.md`, this loop,
+   the active plan, the previous completed stage, and the first incomplete stage.
 2. Update `goal-1/0-plan.md` with current facts before starting the next stage.
 3. Select the first incomplete stage.
 4. Create or refresh `goal-1/[INDEX]-[SHORTHAND].md` from the stage template.
@@ -38,6 +39,12 @@ but actual files, compiled results, and source evidence override stale prose.
   certify a linear operator identity without an extensionality argument.
 - Update traceability and corrections in the same stage as the corresponding
   mathematical decision.
+- Follow `BUILD-PLAN.md` for all Lean edits: decide module ownership/dependency
+  layer first; classify declarations as runtime, public API, proof-side,
+  diagnostic, fallback, or temporary; prefer a narrow leaf; and record focused plus
+  adjacent-consumer build commands in the stage file.
+- Do not treat a green build of an unused abstraction as completion. Evidence must
+  cover the actual stage requirements.
 
 ## Verification Layers
 
@@ -88,9 +95,23 @@ Do not promote completion at one layer into a claim about a later layer.
 - Files expected to change.
 - New tests or commands required.
 
+## Build Structure
+
+- New or touched Lean modules and why they own these declarations.
+- High-fanout modules intentionally avoided.
+- Declaration classifications: runtime, public API, proof-side, diagnostic,
+  fallback, or temporary scaffolding.
+- Focused build command and adjacent consumer builds.
+
+## Boundary Checks
+
+- Runtime/API/proof-side boundaries relevant to this stage.
+- Goal-specific structural boundaries and how they will be inspected.
+
 ## No-Cheating Checks
 
-- Explicit checks proving the implementation does not route through forbidden fallback paths.
+- Explicit checks proving the implementation does not route through forbidden
+  fallback paths or other goal-specific shortcuts.
 
 ## Completion Requirements
 
@@ -105,4 +126,3 @@ Do not promote completion at one layer into a claim about a later layer.
 - Include what was learned.
 - Include what should change in `0-plan.md` before the next stage.
 ```
-

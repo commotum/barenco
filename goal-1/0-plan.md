@@ -17,6 +17,10 @@ extra assumption, omission, or unresolved obstruction.
 
 ## Non-Negotiable Constraints and No-Cheating Rules
 
+- `BUILD-PLAN.md` is an authoritative execution requirement for every Lean-changing
+  stage, alongside this plan and `goal-1/0-loop.md`. Each such stage records module
+  ownership/layers, focused and adjacent builds, declaration classifications, and
+  boundary checks before implementation.
 - Completed public modules contain no `sorry`, `admit`, `by?`, or unexplained
   project-specific axioms. Any deliberately conditional theorem exposes its
   assumptions in its type and traceability entry.
@@ -50,6 +54,9 @@ extra assumption, omission, or unresolved obstruction.
   impact in the correction/traceability documentation.
 - Work proceeds in small compiling increments. Existing unrelated user files and
   changes are preserved.
+- Prefer narrow leaf modules and focused builds; avoid high-fanout/umbrella imports,
+  experimental declarations in shared cores, and broad global simp/instance changes.
+  A green build of an unused abstraction is not evidence that a stage goal is met.
 
 ## Current Facts
 
@@ -61,6 +68,8 @@ extra assumption, omission, or unresolved obstruction.
   resolved manifest, root/smoke modules, documentation, and this `goal-1` scaffold.
 - Git started on `master` with an unrelated untracked `.DS_Store`; it remains
   preserved. Generated `.lake/` and PDF-render scratch are ignored.
+- `BUILD-PLAN.md` is the repository-wide Lean build protocol. It remains generic;
+  goal-specific ownership, commands, and evidence live in each stage file.
 - The paper's main numbered chain is Lemmas 4.1–4.3; Lemmas/Corollaries 5.1–5.6;
   Lemmas/Corollaries 6.1–6.2; Lemmas/Corollaries 7.1–7.12; and the general
   synthesis/resource discussion in Section 8.
@@ -88,6 +97,9 @@ extra assumption, omission, or unresolved obstruction.
 ## Success Metrics and Final Verification
 
 - `lake build` succeeds from a clean checkout using only pinned versions.
+- Every Lean-changing stage follows `BUILD-PLAN.md`: narrow dependency layers,
+  smallest sufficient focused builds, adjacent-consumer builds when APIs move, and
+  broader builds only when required by fanout or explicit completion criteria.
 - Focused tests cover basis action, execution order, control/target indexing,
   embeddings, phase relations, ancilla behavior, and representative 1–4 qubit
   examples.
