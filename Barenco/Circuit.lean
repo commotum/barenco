@@ -198,6 +198,77 @@ theorem cnot_denotation_val {n : ℕ} (control target : Fin n) (h : control ≠ 
     ((cnot control target h).denotation : Gate n) = cnotRaw control target h := by
   exact coe_cnotUnitary control target h
 
+/--
+Package a certified three-wire Toffoli gate.
+
+All three wires are required to be pairwise distinct. This prevents a collapsed
+equal-control `ControlSet` from being mislabeled and counted as a three-qubit
+Toffoli primitive.
+-/
+def toffoli {n : ℕ} (first second target : Fin n)
+    (_hfirstSecond : first ≠ second) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) : Primitive n where
+  kind := .toffoli
+  support := {first, second, target}
+  denotation := positiveControlledUnitary target
+    ({⟨first, hfirstTarget⟩, ⟨second, hsecondTarget⟩} : ControlSet target) pauliX
+
+@[simp]
+theorem toffoli_kind {n : ℕ} (first second target : Fin n)
+    (hfirstSecond : first ≠ second) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    (toffoli first second target hfirstSecond hfirstTarget hsecondTarget).kind =
+      .toffoli := rfl
+
+@[simp]
+theorem toffoli_support {n : ℕ} (first second target : Fin n)
+    (hfirstSecond : first ≠ second) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    (toffoli first second target hfirstSecond hfirstTarget hsecondTarget).support =
+      {first, second, target} := rfl
+
+@[simp]
+theorem toffoli_support_card {n : ℕ} (first second target : Fin n)
+    (hfirstSecond : first ≠ second) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    (toffoli first second target hfirstSecond hfirstTarget hsecondTarget).support.card =
+      3 := by
+  simp [hfirstSecond, hfirstTarget, hsecondTarget]
+
+@[simp]
+theorem toffoli_denotation {n : ℕ} (first second target : Fin n)
+    (hfirstSecond : first ≠ second) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    (toffoli first second target hfirstSecond hfirstTarget hsecondTarget).denotation =
+      positiveControlledUnitary target
+        ({⟨first, hfirstTarget⟩, ⟨second, hsecondTarget⟩} : ControlSet target)
+        pauliX := rfl
+
+/-- Computational-basis update performed by a three-wire Toffoli gate. -/
+def toffoliBasisUpdate {n : ℕ} (first second target : Fin n)
+    (input : Basis n) : Basis n :=
+  if input first && input second then
+    setTarget target input (!input target)
+  else input
+
+/-- Exact full-register basis action of the trusted Toffoli primitive. -/
+@[simp]
+theorem toffoli_denotation_mulVec_basisKet {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) (input : Basis n) :
+    ((toffoli first second target hfirstSecond hfirstTarget hsecondTarget).denotation :
+        Gate n) *ᵥ basisKet input =
+      basisKet (toffoliBasisUpdate first second target input) := by
+  rw [toffoli_denotation, coe_positiveControlledUnitary,
+    positiveControlledRaw_truthTable]
+  cases hfirst : input first <;> cases hsecond : input second
+  · simp [toffoliBasisUpdate, hfirst, hsecond]
+  · simp [toffoliBasisUpdate, hfirst, hsecond]
+  · simp [toffoliBasisUpdate, hfirst, hsecond]
+  · simpa [toffoliBasisUpdate, hfirst, hsecond, xRaw] using
+      xRaw_mulVec_basisKet target input
+
 /-- The adjoint primitive preserves its structural class and wire support. -/
 def adjoint {n : ℕ} (p : Primitive n) : Primitive n where
   kind := p.kind

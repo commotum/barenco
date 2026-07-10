@@ -115,7 +115,18 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.ThreeQubit.controlledWUnitary_basisPhaseEq_toffoli` | `Barenco.ThreeQubit.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | explicit basis-phase relation between controlled-`W` and Toffoli; no project axiom | 2026-07-09 |
 | `Barenco.ThreeQubit.relativePhaseToffoliACircuit_oneQubitCNOTCost` | `Barenco.ThreeQubit.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived four-one-qubit/three-CNOT cost of seven; no project axiom | 2026-07-09 |
 | `Barenco.ThreeQubit.relativePhaseToffoliBCircuit_oneQubitCNOTCost` | `Barenco.ThreeQubit.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | partial cost correctly rejects the B circuit's controlled-Z macros; no project axiom | 2026-07-09 |
-| multi-control construction headline | planned | pending | Stages 7–9 | — |
+| `Barenco.ControlledCircuit.targetBlockRaw_mulVec_basisKet` | `Barenco.ControlledCircuit.Block` | `propext`, `Classical.choice`, `Quot.sound` | selected target-block basis-column action used by Gray circuits; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.parityInclusionExclusionSum_formula` | `Barenco.MultiControl.Parity` | `propext`, `Classical.choice`, `Quot.sound` | exact signed subset-XOR identity; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.grayCode_isChain` | `Barenco.MultiControl.GrayCode` | `propext`, `Classical.choice`, `Quot.sound` | reflected Gray adjacency proof; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.nodup_grayCode` | `Barenco.MultiControl.GrayCode` | `propext`, `Quot.sound` | exact mask uniqueness without choice; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.runXorEdges_grayCNOTEdges` | `Barenco.MultiControl.GrayAccumulator` | `propext`, `Classical.choice`, `Quot.sound` | complete generated CNOT restoration; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.OrderedControlLayout.all_controls_iff` | `Barenco.MultiControl.Layout` | `propext`, `Classical.choice`, `Quot.sound` | ordered/unordered all-controls bridge; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.grayRootProduct_selectedRoot_formula` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | exact selected-root branch product; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.eval_grayCNOTCircuit_mulVec_basisKet` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-width generated CNOT restoration action; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.eval_grayControlledViaRootCircuit` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | exact arbitrary-width interleaved Lemma 7.1 evaluator; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.eval_grayControlledCircuit` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | selected exact root implements controlled U; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.grayControlledViaRootCircuit_kindCounts` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived root/CNOT macro counts; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.eval_fourBitGrayCircuit` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | exact displayed four-bit circuit evaluator; no project axiom | 2026-07-09 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 
@@ -139,5 +150,8 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 6 warning-as-error root/audit | `lake env lean -DwarningAsError=true Barenco.lean`; `lake env lean -DwarningAsError=true Barenco/AxiomAudit.lean` | both successful; the audit printed 84 declarations, including all 20 new Stage 6 checks, and every result is exactly `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-09 |
 | Stage 6 focused/diagnostic/root/audit build | `lake build Barenco.OneQubit.Pauli Barenco.ThreeQubit.Lemma61 Barenco.ThreeQubit.Expansion Barenco.ThreeQubit.RelativePhase Barenco.ThreeQubitExamples Barenco.AxiomAudit Barenco` | successful, 2,948 jobs, 2026-07-09 |
 | Stage 6 full builds | two consecutive `lake build` runs after the final public-root integration | both successful, 2,946 jobs each, 2026-07-09 |
+| Stage 7 Lemma 7.1 warning-as-error/root/audit | direct strict compilation of `Parity`, `GrayCode`, `GrayAccumulator`, `Layout`, `Lemma71`, `MultiControlExamples`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the audit printed 96 declarations and every result is within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-09 |
+| Stage 7 Lemma 7.1 focused/root/audit build | `lake build Barenco.MultiControl.Parity Barenco.MultiControl.GrayCode Barenco.MultiControl.GrayAccumulator Barenco.MultiControl.Layout Barenco.MultiControl.Lemma71 Barenco.MultiControlExamples Barenco.AxiomAudit Barenco` | successful after retrying one transient parallel output-file race, 3,482 jobs, 2026-07-09 |
+| Stage 7 Lemma 7.1 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,480 jobs each, 2026-07-09 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

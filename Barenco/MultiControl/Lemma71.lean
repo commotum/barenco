@@ -224,7 +224,13 @@ theorem embeddedCNOTUpdate_apply_targetWire {controlCount ambientWidth : ℕ}
   apply embeddedCNOTUpdate_apply_of_ne
   exact Ne.symm (layout.control_ne_target target)
 
-/-- Execute a list of logical-control CNOT edges inside the ambient register. -/
+/--
+Execute the Boolean ambient updates of a raw logical endpoint list.
+
+This semantic fold intentionally accepts unchecked pairs, including equal
+endpoints. Circuit construction goes through `ControlEdge` and
+`cnotEdgeCircuit`, which require the distinctness proof for every actual CNOT.
+-/
 def runEmbeddedCNOTUpdates {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth)
     (edges : List (Fin controlCount × Fin controlCount))

@@ -105,8 +105,9 @@ extra assumption, omission, or unresolved obstruction.
 
 - The selected semantic core is `Fin n → Bool` indexed complex matrices, with raw
   algebraic gates and certified unitaries separated; circuit syntax is a later layer.
-- `basisIndex` fixes the paper's big-endian lexicographic bridge, while `BitVec`
-  remains a later Gray-code bridge rather than the core basis.
+- `basisIndex` fixes the paper's big-endian lexicographic bridge. The implemented
+  Gray layer uses finite masks and Boolean functions directly; `BitVec` remains
+  optional diagnostic/interchange infrastructure rather than the core basis.
 - The pinned matrix, unitary-group, Kronecker, reindexing, permutation, wire-split,
   and L² operator-norm APIs compile in `Barenco/ApiSmoke.lean`.
 - `AllMeasurementEq` intentionally quantifies arbitrary matrices/effects and is
@@ -392,15 +393,22 @@ Section 7, including their dirty/borrowed workspace contracts.
 Current implementation facts:
 
 - The source/diagram audit is complete in `goal-1/7-MULTICONTROL.md`, including
-  exact chronologies, C-003–C-010, and new corrections C-022–C-023.
+  exact chronologies, C-003–C-010, and new corrections C-022–C-024.
 - `MultiControl.Parity` proves the exact alternating subset-XOR exponent identity.
   `MultiControl.GrayCode` proves reflected coverage, uniqueness, adjacency, pivot
   alignment, and singleton-before-strict-pivot-rise. `GrayAccumulator` proves the
-  two local CNOT accumulator update rules and exact `2^m-2` edge count; the full
-  generated-schedule restoration theorem is next.
-- `OrderedControlLayout` supplies the ordered ambient-wire embedding needed before
-  building the quantum Lemma 7.1 circuit. The first five-module focused build
-  passed with 3,060 jobs under direct warning-as-error checks.
+  two local CNOT accumulator update rules, exact `2^m-2` edge count, every-edge
+  validity, the prefix invariant, and exact full restoration at all widths.
+- `OrderedControlLayout` supplies arbitrary nonadjacent ambient embeddings.
+  `grayControlledViaRootCircuit` now interleaves the signed roots with the
+  certified CNOT schedule and proves exact full-register Lemma 7.1 semantics.
+  `grayControlledCircuit` selects the exact root. The theorem includes one
+  positive control, keeps zero controls as a separate local base, and derives
+  exact controlled-root/CNOT/total macro counts from syntax.
+- `fourBitGrayCircuit` is proved exactly equal to the generated width-three
+  syntax and reconstructs the source's seven-root/six-CNOT chronology. Strict
+  checks, a 3,482-job focused root/audit build, two 3,480-job full builds, and 96
+  maintained axiom prints pass. Lemma 7.2's dirty borrowed-wire ladder is next.
 
 ### Detailed Implementation Plan
 

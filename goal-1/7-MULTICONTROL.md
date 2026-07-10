@@ -27,11 +27,10 @@ Status: in progress (Lemma 7.1 and the displayed Gray circuit complete; Lemma 7.
 - `OneQubit.unitaryRoot (2^m) U` and `unitaryRoot_pow_two_pow` provide the exact
   positive power-of-two root required by Lemma 7.1. This is a semantic root
   choice, not a circuit synthesis or a resource theorem.
-- No Gray-code API exists in the project or the pinned mathlib. Batteries exposes
-  `BitVec.ofFnLE`/`ofFnBE` and their indexing laws, but the library's semantic
-  basis remains `Fin n → Bool`. The first combinatorial layer should therefore
-  use finite masks/Boolean assignments and add a `BitVec` bridge only when it
-  simplifies executable diagnostics.
+- No suitable Gray-code API existed in the initial project or pinned mathlib.
+  The implemented combinatorial layer therefore uses finite masks and Boolean
+  assignments over the semantic basis `Fin n → Bool`; a `BitVec` bridge remains
+  optional diagnostic/interchange infrastructure rather than a dependency.
 - `Circuit.eval`, `gateCount`, `kindCount`, and partial `cost` already separate
   full-register denotation from syntax resources. Exact dirty-wire restoration
   should be stated as evaluator equality; a classical truth table is diagnostic
@@ -59,6 +58,13 @@ Status: in progress (Lemma 7.1 and the displayed Gray circuit complete; Lemma 7.
   for every positive control count; the zero-control local-gate case is kept
   separate. Exact root/CNOT/total macro counts are syntax-derived, while the
   unexpanded circuit correctly has no `oneQubitCNOT` cost.
+- Lemma 7.2 needs a resource-honest Toffoli macro. `PrimitiveKind.toffoli`
+  already exists, but the private primitive constructor currently exposes no
+  trusted smart constructor. Add `Primitive.toffoli` with three pairwise-distinct
+  wires and the certified two-positive-control Pauli-X denotation before defining
+  the ladder; otherwise an equal-control CNOT could be mislabeled as a Toffoli.
+  The ladder will count Toffoli macros and retain `none` under the early-basic
+  cost model until those macros are explicitly expanded.
 
 ## Source Claim Audit
 
