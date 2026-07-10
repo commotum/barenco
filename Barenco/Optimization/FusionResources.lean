@@ -218,6 +218,23 @@ theorem kindCount_append {n : ℕ} (kind : PrimitiveKind)
     kindCount_lower, kindCount_lower]
 
 @[simp]
+theorem oneQubitCount_append {n : ℕ} (first second : FusionCircuit n) :
+    oneQubitCount (append first second) =
+      oneQubitCount first + oneQubitCount second :=
+  kindCount_append .oneQubit first second
+
+@[simp]
+theorem cnotCount_append {n : ℕ} (first second : FusionCircuit n) :
+    cnotCount (append first second) = cnotCount first + cnotCount second :=
+  kindCount_append .cnot first second
+
+@[simp]
+theorem twoQubitCount_append {n : ℕ} (first second : FusionCircuit n) :
+    twoQubitCount (append first second) =
+      twoQubitCount first + twoQubitCount second :=
+  kindCount_append .arbitraryTwoQubit first second
+
+@[simp]
 theorem cost_append {n : ℕ} (model : CostModel)
     (first second : FusionCircuit n) :
     cost model (append first second) =
