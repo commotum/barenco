@@ -439,8 +439,11 @@ statement. “Open” means the repair is identified but not yet machine checked
   possible confusion is that the two following seven-node diagrams do not equal
   controlled-`W`: their basis-dependent minus sign is on input `|101⟩`, whereas
   controlled-`W` has it on `|111⟩`.
-- **Repair:** translate the paper matrix `W=[[0,1],[-1,0]]` to the standard-column
-  matrix `Wᵀ=Ry(pi)`, prove its exact controlled basis action, and keep it distinct
+- **Repair:** define and certify the paper-row and semantic-column Pauli-Y matrices,
+  prove the displayed identity `paperW = paperPhase (pi/2) * paperY`, translate it
+  exactly to `wMatrix = phaseShift (pi/2) * sigmaY` (accounting for transpose
+  reversal and the antisymmetric Pauli-Y sign), and also identify the result with
+  `Wᵀ=Ry(pi)`. Prove its exact controlled basis action and keep it distinct
   from the exact common evaluator of the A/CNOT and B/controlled-Z diagrams.
   Relate each operator to exact Toffoli through its own explicit input-column
   phase witness; do not use global-phase equality.
@@ -448,7 +451,10 @@ statement. “Open” means the repair is identified but not yet machine checked
   actual `|101⟩` witness of the displayed circuits, not the `|111⟩` witness of
   controlled-`W`. Claims about paired occurrences require an ordered basis-path
   calculation when intervening gates are present.
-- **Formal evidence:** `wMatrix_eq_ry_pi`, `coe_wUnitary`,
+- **Formal evidence:** `paperY_mem_unitaryGroup`, `sigmaY_mem_unitaryGroup`,
+  `paperW_eq_paperPhase_mul_paperY`, `wMatrix_eq_sigmaY_mul_phaseShift`,
+  `wMatrix_eq_phaseShift_mul_sigmaY`, `wUnitary_eq_phaseShift_mul_sigmaY`,
+  `wMatrix_eq_ry_pi`, `coe_wUnitary`,
   `controlledWUnitary_mulVec_basisKet`,
   `relativePhaseToffoliACircuit_mulVec_basisKet`,
   `relativePhaseToffoliBCircuit_mulVec_basisKet`, and

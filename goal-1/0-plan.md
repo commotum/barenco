@@ -359,8 +359,8 @@ Toffoli behavior.
   `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq` consequences.
   `lemma61Toffoli_threeBit_truthTable` and the A, B, and controlled-W diagnostics
   exhaust all eight concrete inputs without replacing the public operator proofs.
-- Stage 6 is complete under `BUILD-PLAN.md`. Its combined 2,947-job build, two
-  consecutive 2,945-job full builds, warning-as-error checks, 80-declaration axiom
+- Stage 6 is complete under `BUILD-PLAN.md`. Its combined 2,948-job build, two
+  consecutive 2,946-job full builds, warning-as-error checks, 84-declaration axiom
   audit, forbidden-shortcut scan, and documentation synchronization are recorded
   in `goal-1/6-THREE-QUBIT.md` and the maintained docs. The only related pending
   obligation is Stage 7's contextual Corollary 7.4 phase-cancellation theorem;
