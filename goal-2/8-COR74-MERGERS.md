@@ -134,6 +134,10 @@ that named construction realizes the paper's `48n-204` count.
   literal formal adjoint of a generated symbolic ladder. It may only reverse
   syntax, invert free-group words, preserve CNOTs, and prove exact erasure/
   evaluation laws; it must not contain paper-specific atoms or rewrites.
+- Add `Barenco/Optimization/SymbolicSweep.lean` for applying
+  `normalizeAtWire` over an explicit wire schedule. It owns only the executable
+  fold and exact evaluator/CNOT-trace/nonincrease lifts; the Corollary module owns
+  the schedule choice and every paper-facing output/count theorem.
 - Keep width-seven/eight/nine traces and alternative-orientation probes in the
   root-excluded diagnostic leaf
   `Barenco/MultiControl/Corollary74MergerExamples.lean`.
