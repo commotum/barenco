@@ -370,3 +370,60 @@ statement. “Open” means the repair is identified but not yet machine checked
   paper's construction chain.
 - **Status:** corrected as an expository discrete scalar exception; the general Rx
   non-membership theorem is intentionally not needed by the paper's main chain.
+
+## C-019 — Lemma 6.1 suppresses root existence and one inverse-order case
+
+- **Source:** Lemma 6.1, manuscript pp. 14–15; Markdown lines 526–544; image
+  `lemma-6-1-controlled-controlled-u.png`.
+- **Issue:** the proof says only to choose a unitary `V` with `V²=U`, without
+  proving that every unitary `U` has such a unitary square root. Its inactive-case
+  prose mentions `V*V†=I`, but input controls `10` instead produce
+  `V†*V=I`. The arithmetic explanation also silently uses that `V†=V⁻¹`
+  commutes with `V`. Finally, the diagram requires three pairwise distinct wires,
+  which the prose does not state as a boundary condition.
+- **Repair:** use the proved finite-spectrum `unitarySquareRoot U` and its exact
+  equation, retain a stronger parameterized theorem for every certified witness
+  `V²=U`, and prove all four control cases after explicitly conjugating the middle
+  controlled gate through CNOT. Quantify arbitrary ambient width and three
+  pairwise distinct named wires.
+- **Dependent impact:** Corollary 6.2 and every recursive root/Gray-code
+  construction in Sections 7 and 9 must use the certified root theorem and the
+  exact full-register circuit result, not the source's unproved choice.
+- **Formal evidence:** `doubleControlledViaSquareCircuit`,
+  `eval_doubleControlledViaSquareCircuit_pow_two`,
+  `eval_doubleControlledViaSquareCircuit_of_sq_eq`,
+  `doubleControlledRootCircuit`, `eval_doubleControlledRootCircuit`, and
+  `doubleControlledViaSquareCircuit_exists` compile. The proof uses both
+  directions of the unitary identities and proves equality of arbitrary-width
+  matrices, which includes restoration of the second control and all spectators.
+- **Status:** corrected and proved exactly.
+
+## C-020 — Corollary 6.2's “adjacent” cancellations require commutation and shared witnesses
+
+- **Source:** paragraph before Corollary 6.2, manuscript p. 15; Markdown lines
+  545–550.
+- **Issue:** independently expanding the three controlled gates gives twenty
+  primitives, not sixteen. The claimed inverse pairs are not literally adjacent
+  in the serialized circuit: `C` and `C†` are separated by the control-to-control
+  CNOT, while `A†` and `A` are separated by two control-wire phase gates and that
+  CNOT. They cancel only after proving disjoint-wire commutation. Moreover, the
+  controlled-`V†` implementation must be the exact adjoint of the same chosen
+  controlled-`V` factorization; independent existential Section 5 witnesses do
+  not justify the cancellations.
+- **Repair:** construct the coordinated twenty-node circuit
+  `S(second); K; S(second)†; K; S(first)`, prove its exact evaluator, commute the
+  two target-local inverse pairs across the intervening control-only gates, and
+  name the resulting sixteen-node syntax. Choose the Section 5 factors once and
+  reuse them on both controls.
+- **Dependent impact:** the printed upper bound is valid, but only for the
+  coordinated construction. Later resource recurrences may use sixteen only by
+  citing this explicit syntax/cost theorem.
+- **Formal evidence:** `cnotRaw_commute_localRaw`,
+  `localRaw_commute_of_ne`, `doubleControlledExpansion20Circuit`,
+  `eval_doubleControlledExpansion20Circuit_eq_16`,
+  `doubleControlledExpansion16Circuit`,
+  `eval_doubleControlledExpansion16Circuit_of_products`, and
+  `doubleControlledUnitary_has_sixteenPrimitiveCircuit` compile. The final
+  circuit has exactly eight `.oneQubit` and eight `.cnot` nodes and cost
+  `some 16` under `CostModel.oneQubitCNOT`.
+- **Status:** clarified and proved as an exact constructed upper bound.

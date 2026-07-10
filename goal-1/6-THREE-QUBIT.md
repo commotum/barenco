@@ -191,12 +191,12 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
 
 ## Completion Requirements
 
-- [ ] Lemma 6.1 has a named five-node circuit, a parameterized exact evaluator
+- [x] Lemma 6.1 has a named five-node circuit, a parameterized exact evaluator
   theorem from `V^2=U`, a selected-root exact theorem, structural macro counts,
   and arbitrary-width/pairwise-distinct wire quantification.
 - [ ] Full-register equality covers all spectator wires and exact restoration of
   the second control; representative `Fin 3` and wider-register cases compile.
-- [ ] Corollary 6.2 has a named explicit expansion, evaluator equality, exactly
+- [x] Corollary 6.2 has a named explicit expansion, evaluator equality, exactly
   eight one-qubit and eight CNOT nodes, and `some 16` cost under
   `CostModel.oneQubitCNOT`.
 - [ ] Paper `W` versus Toffoli and both Section 6.2 diagrams have complete exact
@@ -214,5 +214,36 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
 
 ## Stage Results
 
-- In progress. Source chronology and module ownership are fixed; implementation
-  begins with the exact Lemma 6.1 macro and its full-register evaluator theorem.
+- `Barenco/ThreeQubit/Lemma61.lean` now defines the exact five-node chronological
+  macro `doubleControlledViaSquareCircuit`, selected-root wrapper
+  `doubleControlledRootCircuit`, and arbitrary-width evaluator theorems
+  `eval_doubleControlledViaSquareCircuit_pow_two`,
+  `eval_doubleControlledViaSquareCircuit_of_sq_eq`, and
+  `eval_doubleControlledRootCircuit`. The proof conjugates a complementary-wire
+  CNOT through target blocks and checks all four control cases; it is not an
+  eight-by-eight sample.
+- The same leaf exports the genuinely reused disjoint-wire laws
+  `cnotRaw_commute_localRaw`, `cnotUnitary_commute_localUnitary`,
+  `localRaw_commute_of_ne`, and `localUnitary_commute_of_ne`. Macro resources are
+  exactly three singleton-controlled nodes plus two CNOTs, gate count five, with
+  `oneQubitCNOT` cost deliberately `none`.
+- `Barenco/ThreeQubit/Expansion.lean` defines the coordinated twenty-node circuit
+  `S(second); K; S(second)†; K; S(first)` and the reduced explicit sixteen-node
+  syntax. `eval_doubleControlledExpansion20Circuit_eq_16` proves the two source
+  cancellation groups by commuting them across control-only gates; the gates are
+  not treated as syntactically adjacent.
+- `eval_doubleControlledExpansion16Circuit_of_products` reuses one shared Section
+  5 factorization, `doubleControlledExpansion16Circuit_exists` selects the exact
+  square root once, and `doubleControlledUnitary_has_sixteenPrimitiveCircuit`
+  proves Corollary 6.2 as an exact existence/resource theorem. The final syntax
+  has gate count sixteen, exactly eight one-qubit plus eight CNOT nodes, and cost
+  `some 16`; the unmerged syntax has twelve plus eight and cost `some 20`.
+- Focused builds `lake build Barenco.ThreeQubit.Lemma61` and
+  `lake build Barenco.ThreeQubit.Lemma61 Barenco.ThreeQubit.Expansion` succeeded
+  with 2,928 and 2,929 jobs respectively. Direct warning-as-error compilation of
+  both leaves succeeded. A temporary seven-theorem axiom audit reports only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- Correction entries C-019 and C-020 record the source's unproved root choice,
+  omitted `V†*V` branch, implicit commutation, and coordinated-witness requirement.
+  Relative-phase circuits, diagnostics, public-root integration, documentation,
+  and final Stage 6 verification remain in progress.
