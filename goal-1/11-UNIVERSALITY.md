@@ -1,7 +1,8 @@
 # 11-UNIVERSALITY
 
-Status: in progress (constructive algebraic decomposition and the local/full-control
-circuit layers compile; affine two-level transport and final assembly remain).
+Status: in progress (the exact positive-width synthesis and finite accepted-cost
+theorems compile; public integration, diagnostics, documentation, and the final
+stage audit remain).
 
 ## Current Facts
 
@@ -117,11 +118,11 @@ formal reconstruction of the paper's Gray-path reasoning.
    reversing the X/CNOT transport. Prove evaluator equality using the general
    certified-unitary transport theorem. The shorter Hamming path remains a proved
    alternative/source model rather than the assembly dependency.
-7. **In progress.** Map every algebraic factor to its circuit and concatenate chronologically with
+7. **Complete.** Map every algebraic factor to its circuit and concatenate chronologically with
    the order required by `Circuit.eval_append`. Prove exact universality for
    positive register width, the direct one-qubit specialization, and the exact
    zero-wire identity-only obstruction.
-8. Add root-excluded examples in dimensions one, two, and four, public imports,
+8. **In progress.** Add root-excluded examples in dimensions one, two, and four, public imports,
    traceability/correction/convention updates, maintained axiom checks, and focused
    plus full verification. Leave structural/asymptotic aggregation to Stage 12.
 
@@ -193,7 +194,7 @@ formal reconstruction of the paper's Gray-path reasoning.
 - [x] Pattern controls, source-path combinatorics, adjacent endpoint orientation,
   affine forward/adjoint restoration, and exact action on the complete register
   are all machine checked.
-- [ ] The headline theorem returns a circuit containing only arbitrary one-qubit
+- [x] The headline theorem returns a circuit containing only arbitrary one-qubit
   and CNOT primitives and proves exact evaluator equality for every positive `n`,
   with a direct width-one case and a separate exact width-zero obstruction theorem.
 - [ ] Exact generation is not conflated with approximation, fixed-set dense
@@ -270,3 +271,11 @@ formal reconstruction of the paper's Gray-path reasoning.
   `P; Q; P†` is independently audited to evaluate as `P⁻¹ * Q * P`; the general
   unitary transport theorem then proves exact equality to every algebraic
   two-level factor on the full register.
+- `ExactSynthesis.lean` now completes the corrected Section 8 assembly. Its
+  component list is the conventional-order two-level factors followed by the
+  diagonal residual; `orderedCircuitProduct` executes that list right-to-left,
+  so evaluation is exactly `finiteFactorProduct factors * residual`. The
+  successor-width headline constructs literal accepted syntax for every unitary,
+  proves exact evaluator equality, and returns the exact finite cost consisting
+  of all factor-circuit costs plus the diagonal schedule cost. It makes no
+  asymptotic or optimality claim.

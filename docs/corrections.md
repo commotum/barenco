@@ -376,10 +376,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   each ordered factor through exact affine conjugation; `orderedCircuitProduct`
   supplies the explicit bridge from mathematical factor order to chronological
   syntax; `ZeroWidth.lean` and `WidthOne.lean` prove the sharp boundary cases.
-  Exact factor and diagonal costs are syntax-derived. Final positive-width assembly
-  and Stage 12 aggregate/asymptotic theorems remain in progress.
-- **Status:** partially corrected and proved; final assembly and aggregate resource
-  bounds remain.
+  Exact factor and diagonal costs are syntax-derived, and
+  `eval_exactSynthesisCircuit` plus
+  `exactSynthesisCircuit_oneQubitCNOTCost` assemble them in the proved product
+  order. Stage 12 aggregate/asymptotic theorems remain in progress.
+- **Status:** exact synthesis corrected and proved; aggregate resource bounds
+  remain.
 
 ## C-015 — Algebraic all-measurement equality is not yet a physical measurement model
 
@@ -816,10 +818,10 @@ statement. “Open” means the repair is identified but not yet machine checked
   `zeroWidthNegUnitary_ne_one`, and `no_basicCircuit_zero_realizes_neg` in
   `Barenco/Universality/ZeroWidth.lean`; `eval_widthOneCircuit` and
   `widthOneCircuit_oneQubitCNOTCost` prove the direct width-one boundary in
-  `Barenco/Universality/WidthOne.lean`; general positive-width synthesis remains
-  in progress.
-- **Status:** zero-width obstruction corrected and proved; positive-width
-  headline in progress.
+  `Barenco/Universality/WidthOne.lean`; `exact_oneQubitCNOT_universality` proves
+  exact accepted synthesis at every successor width.
+- **Status:** corrected and proved with sharp zero-, one-, and positive-width
+  statements.
 
 ## C-029 — The final Gray edge may reverse the two-level block orientation
 

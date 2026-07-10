@@ -48,6 +48,9 @@ import Barenco.MultiControl.LinearSpecialUnitaryPhase
 import Barenco.MultiControl.CleanAncilla
 import Barenco.MultiControl.CleanAncillaExpansion
 import Barenco.MultiControl.LinearResources
+import Barenco.Universality.ExactSynthesis
+import Barenco.Universality.WidthOne
+import Barenco.Universality.ZeroWidth
 
 /-!
 # Barenco

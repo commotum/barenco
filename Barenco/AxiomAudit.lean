@@ -41,6 +41,9 @@ import Barenco.LowerBounds.Lemma77
 import Barenco.MultiControl.LinearSpecialUnitaryPhase
 import Barenco.MultiControl.CleanAncillaExpansion
 import Barenco.MultiControl.LinearResources
+import Barenco.Universality.ExactSynthesis
+import Barenco.Universality.WidthOne
+import Barenco.Universality.ZeroWidth
 
 /-!
 # Kernel axiom audit
@@ -308,3 +311,38 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_cnotCount_lowerBound_of_not_exists_phaseShiftUnitary
 #print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_gateCount_lowerBound
 #print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_oneQubitCNOTCost_lowerBound
+
+/-! ## Stage 11: exact positive-width universality -/
+
+#print axioms Barenco.Universality.givensUnitary_eliminates
+#print axioms Barenco.Universality.twoLevelUnitary_mulVec_basisKet_first
+#print axioms Barenco.Universality.decomposeFinUnitary_product_eq
+#print axioms Barenco.Universality.decomposeFinUnitary_residual_diagonal
+#print axioms Barenco.Universality.reindexUnitary_twoLevelUnitary
+#print axioms Barenco.Universality.decomposeFiniteUnitary_product_eq
+#print axioms Barenco.Universality.decomposeFiniteUnitary_residual_diagonal
+#print axioms Barenco.Universality.length_basisPath
+#print axioms Barenco.Universality.basisPath_isChain
+#print axioms Barenco.Universality.eval_fullControlCircuit
+#print axioms Barenco.Universality.fullControlCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.eval_patternControlledCircuit
+#print axioms Barenco.Universality.patternControlledCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.eval_adjacentTwoLevelCircuit
+#print axioms Barenco.Universality.eval_affinePairCircuit_first
+#print axioms Barenco.Universality.eval_affinePairCircuit_second
+#print axioms Barenco.Universality.affinePairCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.unitary_conjugate_twoLevelUnitary
+#print axioms Barenco.Universality.eval_twoLevelCircuit
+#print axioms Barenco.Universality.twoLevelCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.eval_diagonalCircuit
+#print axioms Barenco.Universality.diagonalCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.eval_orderedCircuitProduct
+#print axioms Barenco.Universality.cost_orderedCircuitProduct
+#print axioms Barenco.Universality.eval_exactSynthesisCircuit
+#print axioms Barenco.Universality.exactSynthesisCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.exact_oneQubitCNOT_universality
+#print axioms Barenco.Universality.eval_widthOneCircuit
+#print axioms Barenco.Universality.widthOneCircuit_oneQubitCNOTCost
+#print axioms Barenco.Universality.basicCircuit_zero_eval
+#print axioms Barenco.Universality.zeroWidthNegUnitary_ne_one
+#print axioms Barenco.Universality.no_basicCircuit_zero_realizes_neg
