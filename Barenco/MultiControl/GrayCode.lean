@@ -126,6 +126,22 @@ def fullGrayCode : (width : ℕ) → List (GrayMask width)
 def grayCode (width : ℕ) : List (GrayMask width) :=
   (fullGrayCode width).tail
 
+/--
+The position toggled between each consecutive pair in `fullGrayCode`.
+
+At the recursive reflection boundary the new final position is toggled; the
+second half then traverses the old toggle list in reverse.
+-/
+def fullGrayToggles : (width : ℕ) → List (Fin width)
+  | 0 => []
+  | width + 1 =>
+      (fullGrayToggles width).map Fin.castSucc ++ [Fin.last width] ++
+        (fullGrayToggles width).reverse.map Fin.castSucc
+
+/-- CNOT/parity-mask transitions after removing the initial empty-to-singleton edge. -/
+def grayToggles (width : ℕ) : List (Fin width) :=
+  (fullGrayToggles width).tail
+
 @[simp]
 theorem fullGrayCode_zero : fullGrayCode 0 = [∅] := rfl
 
@@ -136,12 +152,31 @@ theorem fullGrayCode_succ (width : ℕ) :
         (fullGrayCode width).reverse.map liftGrayMaskWithLast := rfl
 
 @[simp]
+theorem fullGrayToggles_zero : fullGrayToggles 0 = [] := rfl
+
+@[simp]
+theorem fullGrayToggles_succ (width : ℕ) :
+    fullGrayToggles (width + 1) =
+      (fullGrayToggles width).map Fin.castSucc ++ [Fin.last width] ++
+        (fullGrayToggles width).reverse.map Fin.castSucc := rfl
+
+@[simp]
 theorem length_fullGrayCode : ∀ width, (fullGrayCode width).length = 2 ^ width := by
   intro width
   induction width with
   | zero => simp
   | succ width ih =>
       simp [fullGrayCode, ih, pow_succ]
+      omega
+
+@[simp]
+theorem length_fullGrayToggles : ∀ width, (fullGrayToggles width).length = 2 ^ width - 1 := by
+  intro width
+  induction width with
+  | zero => simp
+  | succ width ih =>
+      have hpow : 0 < 2 ^ width := pow_pos (by omega) width
+      simp [fullGrayToggles, ih, pow_succ]
       omega
 
 theorem fullGrayCode_ne_nil (width : ℕ) : fullGrayCode width ≠ [] := by
@@ -156,14 +191,15 @@ theorem head?_fullGrayCode : ∀ width, (fullGrayCode width).head? = some ∅ :=
   | zero => simp
   | succ width ih =>
       rw [fullGrayCode_succ, List.head?_append]
-      simp [ih, fullGrayCode_ne_nil]
+      simp [ih, liftGrayMask]
 
 /-- The full traversal is the empty mask followed by the paper schedule. -/
 theorem empty_cons_grayCode (width : ℕ) :
     ∅ :: grayCode width = fullGrayCode width := by
-  rw [grayCode]
-  nth_rw 2 [← List.cons_head?_tail (fullGrayCode width)]
+  change ∅ :: (fullGrayCode width).tail = fullGrayCode width
+  apply List.cons_head?_tail
   rw [head?_fullGrayCode]
+  simp
 
 /-- Every mask occurs in the full reflected traversal. -/
 theorem mem_fullGrayCode : ∀ {width : ℕ} (mask : GrayMask width),
@@ -219,6 +255,7 @@ theorem mem_grayCode_iff {width : ℕ} (mask : GrayMask width) :
     mask ∈ grayCode width ↔ mask.Nonempty := by
   constructor
   · intro hmem
+    rw [Finset.nonempty_iff_ne_empty]
     intro hempty
     have hall := nodup_fullGrayCode width
     rw [← empty_cons_grayCode width] at hall
@@ -227,12 +264,19 @@ theorem mem_grayCode_iff {width : ℕ} (mask : GrayMask width) :
     have hfull := mem_fullGrayCode mask
     rw [← empty_cons_grayCode width] at hfull
     rcases List.mem_cons.mp hfull with hempty | hmem
-    · exact (hnonempty.ne_empty hempty.symm).elim
+    · exact (hnonempty.ne_empty hempty).elim
     · exact hmem
 
 @[simp]
 theorem length_grayCode (width : ℕ) : (grayCode width).length = 2 ^ width - 1 := by
   rw [grayCode, List.length_tail, length_fullGrayCode]
+
+@[simp]
+theorem length_grayToggles (width : ℕ) :
+    (grayToggles width).length = 2 ^ width - 2 := by
+  rw [grayToggles, List.length_tail, length_fullGrayToggles]
+  have hpow : 0 < 2 ^ width := pow_pos (by omega) width
+  omega
 
 @[simp]
 theorem grayCode_zero : grayCode 0 = [] := rfl
@@ -248,6 +292,10 @@ theorem grayCode_two : grayCode 2 = [{0}, {0, 1}, {1}] := by
 /-- The paper's seven masks for the displayed four-bit construction. -/
 theorem grayCode_three :
     grayCode 3 = [{0}, {0, 1}, {1}, {1, 2}, {0, 1, 2}, {0, 2}, {2}] := by
+  decide
+
+/-- Toggle positions for the paper's seven-mask, six-CNOT traversal. -/
+theorem grayToggles_three : grayToggles 3 = [1, 0, 2, 0, 1, 0] := by
   decide
 
 /-- Two masks are Gray-adjacent when they differ at exactly one position. -/

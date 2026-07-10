@@ -1,6 +1,7 @@
 import Mathlib.Algebra.BigOperators.Group.Finset.Powerset
 import Mathlib.Algebra.Ring.BooleanRing
 import Mathlib.Data.Nat.Choose.Sum
+import Mathlib.Data.Finset.SymmDiff
 
 /-!
 # Finite XOR parity and the alternating subset identity
@@ -20,7 +21,7 @@ enumeration of the controls is used.
 
 namespace Barenco.MultiControl
 
-open scoped BigOperators
+open scoped BigOperators symmDiff
 
 section
 
@@ -40,6 +41,71 @@ theorem xorParity_insert {mask : Finset ι} {control : ι}
     [DecidableEq ι] (hcontrol : control ∉ mask) (bits : ι → Bool) :
     xorParity (insert control mask) bits = bits control + xorParity mask bits := by
   simp [xorParity, hcontrol]
+
+@[simp]
+theorem xorParity_singleton [DecidableEq ι] (control : ι) (bits : ι → Bool) :
+    xorParity ({control} : Finset ι) bits = bits control := by
+  simp [xorParity]
+
+/-- XOR parity sends finite symmetric difference to Boolean addition. -/
+theorem xorParity_symmDiff [DecidableEq ι]
+    (first second : Finset ι) (bits : ι → Bool) :
+    xorParity (first ∆ second) bits = xorParity first bits + xorParity second bits := by
+  have hleftRight : Disjoint (first \ second) (second \ first) := by
+    rw [Finset.disjoint_left]
+    intro control hfirst hsecond
+    exact (Finset.mem_sdiff.mp hfirst).2 (Finset.mem_sdiff.mp hsecond).1
+  have hfirstCommon : Disjoint (first \ second) (first ∩ second) :=
+    Finset.disjoint_sdiff_inter first second
+  have hsymm :
+      xorParity (first ∆ second) bits =
+        xorParity (first \ second) bits + xorParity (second \ first) bits := by
+    rw [Finset.symmDiff_def, xorParity, Finset.sum_union hleftRight]
+    rfl
+  have hfirst :
+      xorParity first bits =
+        xorParity (first \ second) bits + xorParity (first ∩ second) bits := by
+    conv_lhs => rw [← Finset.sdiff_union_inter first second]
+    rw [xorParity, Finset.sum_union hfirstCommon]
+    rfl
+  have hsecond :
+      xorParity second bits =
+        xorParity (second \ first) bits + xorParity (first ∩ second) bits := by
+    conv_lhs => rw [← Finset.sdiff_union_inter second first]
+    rw [xorParity, Finset.sum_union (Finset.disjoint_sdiff_inter second first),
+      Finset.inter_comm second first]
+    rfl
+  rw [hsymm, hfirst, hsecond]
+  have hcommonCancel :
+      xorParity (first ∩ second) bits + xorParity (first ∩ second) bits = 0 := by
+    rw [← Bool.neg_eq_id (xorParity (first ∩ second) bits)]
+    exact add_neg_cancel _
+  symm
+  calc
+    (xorParity (first \ second) bits + xorParity (first ∩ second) bits) +
+        (xorParity (second \ first) bits + xorParity (first ∩ second) bits) =
+      (xorParity (first \ second) bits + xorParity (second \ first) bits) +
+        (xorParity (first ∩ second) bits + xorParity (first ∩ second) bits) := by
+          ac_rfl
+    _ = xorParity (first \ second) bits + xorParity (second \ first) bits := by
+      rw [hcommonCancel, add_zero]
+
+/--
+Across a Gray-code edge, symmetric difference by one control toggles parity by
+exactly that control bit.
+-/
+theorem xorParity_eq_add_of_symmDiff_eq_singleton [DecidableEq ι]
+    {first second : Finset ι} {changed : ι}
+    (hchange : first ∆ second = {changed}) (bits : ι → Bool) :
+    xorParity second bits = xorParity first bits + bits changed := by
+  have hparity := xorParity_symmDiff first second bits
+  rw [hchange, xorParity_singleton] at hparity
+  calc
+    xorParity second bits =
+        -xorParity first bits +
+          (xorParity first bits + xorParity second bits) := by simp
+    _ = xorParity first bits + bits changed := by
+      rw [← hparity, Bool.neg_eq_id]
 
 /-- Interpret a Boolean as the integer `0` or `1`. -/
 def boolInt (bit : Bool) : ℤ :=
@@ -163,7 +229,7 @@ theorem allSubsetParitySum_insert_false {controls : Finset ι} {control : ι}
     exact signedParityContribution_insert_false
       (Finset.notMem_mono (Finset.mem_powerset.mp hmask) hcontrol) bits hbit
   rw [hinsert]
-  simp [allSubsetParitySum]
+  simp
 
 /--
 A true inserted control doubles the previous parity sum and adds the ordinary
@@ -220,6 +286,134 @@ theorem allSubsetParitySum_eq_parityInclusionExclusionSum [DecidableEq ι]
     ← Finset.sum_erase_add controls.powerset
       (fun mask => signedParityContribution mask bits) hempty]
   simp
+
+/-- Every selected control carries the Boolean value `true`. -/
+def AllBitsTrue (controls : Finset ι) (bits : ι → Bool) : Prop :=
+  ∀ control ∈ controls, bits control = true
+
+instance instDecidableAllBitsTrue [DecidableEq ι]
+    (controls : Finset ι) (bits : ι → Bool) : Decidable (AllBitsTrue controls bits) := by
+  unfold AllBitsTrue
+  infer_instance
+
+@[simp]
+theorem allBitsTrue_empty (bits : ι → Bool) :
+    AllBitsTrue (∅ : Finset ι) bits := by
+  simp [AllBitsTrue]
+
+@[simp]
+theorem allBitsTrue_insert [DecidableEq ι] (control : ι) (controls : Finset ι)
+    (bits : ι → Bool) :
+    AllBitsTrue (insert control controls) bits ↔
+      bits control = true ∧ AllBitsTrue controls bits := by
+  simp [AllBitsTrue]
+
+/--
+Closed form of the whole-powerset auxiliary sum, including the empty-control
+boundary case.
+-/
+theorem allSubsetParitySum_formula [DecidableEq ι]
+    (controls : Finset ι) (bits : ι → Bool) :
+    allSubsetParitySum controls bits =
+      if controls = ∅ then 0
+      else if AllBitsTrue controls bits then (2 : ℤ) ^ (controls.card - 1) else 0 := by
+  induction controls using Finset.induction_on with
+  | empty => simp
+  | @insert control controls hcontrol ih =>
+      have hinsertNonempty : insert control controls ≠ ∅ := by simp
+      rw [if_neg hinsertNonempty]
+      cases hbit : bits control with
+      | false =>
+          rw [allSubsetParitySum_insert_false hcontrol bits hbit]
+          have hnotAll : ¬AllBitsTrue (insert control controls) bits := by
+            intro hall
+            have hcontrolTrue :=
+              ((allBitsTrue_insert control controls bits).mp hall).1
+            rw [hbit] at hcontrolTrue
+            exact Bool.false_ne_true hcontrolTrue
+          rw [if_neg hnotAll]
+      | true =>
+          rw [allSubsetParitySum_insert_true hcontrol bits hbit]
+          by_cases hcontrols : controls = ∅
+          · subst controls
+            rw [if_pos]
+            · simp
+            · exact (allBitsTrue_insert control ∅ bits).mpr ⟨hbit, by simp⟩
+          · have hcontrolsNonempty : controls.Nonempty :=
+              Finset.nonempty_iff_ne_empty.mpr hcontrols
+            rw [Finset.sum_powerset_neg_one_pow_card_of_nonempty hcontrolsNonempty]
+            by_cases hall : AllBitsTrue controls bits
+            · rw [if_pos ((allBitsTrue_insert control controls bits).mpr ⟨hbit, hall⟩)]
+              rw [ih, if_neg hcontrols, if_pos hall]
+              obtain ⟨card, hcard⟩ :=
+                Nat.exists_eq_succ_of_ne_zero
+                  (Finset.card_ne_zero.mpr hcontrolsNonempty)
+              rw [Finset.card_insert_of_notMem hcontrol, hcard]
+              simp [pow_succ]
+              ring
+            · rw [if_neg]
+              · rw [ih, if_neg hcontrols, if_neg hall]
+                simp
+              · exact fun hinsertAll => hall
+                  ((allBitsTrue_insert control controls bits).mp hinsertAll).2
+
+/--
+Finite inclusion-exclusion for XOR parity.
+
+For a nonempty finite control set, the alternating signed sum over all nonempty
+subsets is `2^(card-1)` exactly on the all-true input and is zero otherwise.
+-/
+theorem parityInclusionExclusionSum_formula [DecidableEq ι]
+    {controls : Finset ι} (hcontrols : controls.Nonempty) (bits : ι → Bool) :
+    parityInclusionExclusionSum controls bits =
+      if AllBitsTrue controls bits then (2 : ℤ) ^ (controls.card - 1) else 0 := by
+  rw [← allSubsetParitySum_eq_parityInclusionExclusionSum,
+    allSubsetParitySum_formula, if_neg (Finset.nonempty_iff_ne_empty.mp hcontrols)]
+
+/-- The all-true branch of the finite XOR inclusion-exclusion identity. -/
+theorem parityInclusionExclusionSum_of_all_true [DecidableEq ι]
+    {controls : Finset ι} (hcontrols : controls.Nonempty) (bits : ι → Bool)
+    (hall : AllBitsTrue controls bits) :
+    parityInclusionExclusionSum controls bits =
+      (2 : ℤ) ^ (controls.card - 1) := by
+  rw [parityInclusionExclusionSum_formula hcontrols, if_pos hall]
+
+/-- Any false selected input makes the finite XOR inclusion-exclusion sum zero. -/
+theorem parityInclusionExclusionSum_of_not_all_true [DecidableEq ι]
+    {controls : Finset ι} (hcontrols : controls.Nonempty) (bits : ι → Bool)
+    (hall : ¬AllBitsTrue controls bits) :
+    parityInclusionExclusionSum controls bits = 0 := by
+  rw [parityInclusionExclusionSum_formula hcontrols, if_neg hall]
+
+/-- A witness false control is a convenient sufficient form of the zero branch. -/
+theorem parityInclusionExclusionSum_of_exists_false [DecidableEq ι]
+    {controls : Finset ι} (hcontrols : controls.Nonempty) (bits : ι → Bool)
+    {control : ι} (hcontrol : control ∈ controls) (hbit : bits control = false) :
+    parityInclusionExclusionSum controls bits = 0 := by
+  apply parityInclusionExclusionSum_of_not_all_true hcontrols bits
+  intro hall
+  have htrue := hall control hcontrol
+  rw [hbit] at htrue
+  exact Bool.false_ne_true htrue
+
+/-- One selected control contributes precisely its `0`/`1` integer value. -/
+@[simp]
+theorem parityInclusionExclusionSum_singleton [DecidableEq ι]
+    (control : ι) (bits : ι → Bool) :
+    parityInclusionExclusionSum ({control} : Finset ι) bits = boolInt (bits control) := by
+  rw [parityInclusionExclusionSum_formula (Finset.singleton_nonempty control)]
+  cases hbit : bits control <;> simp [AllBitsTrue, hbit, boolInt]
+
+/-- Whole finite-type specialization of the representation-independent theorem. -/
+theorem parityInclusionExclusionSum_univ [Fintype ι] [DecidableEq ι] [Nonempty ι]
+    (bits : ι → Bool) :
+    parityInclusionExclusionSum (Finset.univ : Finset ι) bits =
+      if (∀ control, bits control = true) then
+        (2 : ℤ) ^ (Fintype.card ι - 1)
+      else 0 := by
+  simpa [AllBitsTrue] using
+    parityInclusionExclusionSum_formula (Finset.univ_nonempty :
+      (Finset.univ : Finset ι).Nonempty) bits
 
 end
 
