@@ -483,6 +483,11 @@ pivot invariant, not merely Hamming adjacency.
   Its stronger capacity proof culminates in a touched-support theorem showing A
   never names the final target; this is the prerequisite, not yet the proof, for
   the later four-special-occurrence phase accounting.
+- Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
+  `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
+  proves the source's original `n=9,m=5` split exhausts A's right workspace and
+  borrows the final target, whereas the repaired balanced split never does.
+  Warning-as-error and its 3,063-job focused build pass.
 - Strict compilation passed for `FourBlock.lean`, `Corollary74.lean`, the public
   root, and the audit. The latest focused root/audit build passed with 3,486 jobs.
   The maintained audit now prints 122 headline
