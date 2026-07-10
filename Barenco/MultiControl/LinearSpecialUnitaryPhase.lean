@@ -1,4 +1,4 @@
-import Barenco.MultiControl.LinearSpecialUnitary
+import Barenco.MultiControl.LinearSpecialUnitaryExpansion
 import Barenco.ThreeQubit.RelativePhase
 
 /-!
@@ -72,13 +72,14 @@ theorem fullyControlledW_basisPhaseEq_pauliX
     BasisPhaseEq
       (positiveControlledUnitary layout.targetWire layout.controlSet pauliX :
         Gate ambientWidth)
-      (positiveControlledUnitary layout.targetWire layout.controlSet
+  (positiveControlledUnitary layout.targetWire layout.controlSet
         (specialUnitaryAsUnitary wSpecialUnitary) : Gate ambientWidth) := by
   simp only [coe_positiveControlledUnitary, coe_specialUnitaryAsUnitary,
-    coe_wSpecialUnitary, sigmaX_eq_coe_pauliX]
+    coe_wSpecialUnitary]
+  rw [← sigmaX_eq_coe_pauliX]
   rw [positiveControlledRaw, positiveControlledRaw,
     controlledRaw_eq_targetBlockRaw, controlledRaw_eq_targetBlockRaw]
-  exact targetBlockRaw_basisPhaseEq layout.targetWire
+  exact Barenco.ThreeQubit.targetBlockRaw_basisPhaseEq layout.targetWire
     (fun rest => if positiveControlsEnabled layout.controlSet rest then sigmaX else 1)
     (fun rest => if positiveControlsEnabled layout.controlSet rest then
       Barenco.ThreeQubit.wMatrix else 1)
@@ -110,6 +111,40 @@ theorem linearWSU2Circuit_basisMeasurementEq {p ambientWidth : ℕ}
         Gate ambientWidth)
       (Circuit.eval (layout.linearSU2Circuit wSpecialUnitary) : Gate ambientWidth) :=
   BasisPhaseEq.toBasisMeasurementEq layout.linearWSU2Circuit_basisPhaseEq_pauliX
+
+/-- The fully expanded linear circuit retains the exact input-column phase. -/
+theorem expandedLinearWSU2Circuit_basisPhaseEq_pauliX {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) :
+    BasisPhaseEq
+      (positiveControlledUnitary layout.targetWire layout.controlSet pauliX :
+        Gate ambientWidth)
+      (Circuit.eval (layout.expandedLinearSU2Circuit hwidth wSpecialUnitary) :
+        Gate ambientWidth) := by
+  rw [eval_expandedLinearSU2Circuit_eq_linear]
+  exact layout.linearWSU2Circuit_basisPhaseEq_pauliX
+
+theorem expandedLinearWSU2Circuit_sameBasisBehavior {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) :
+    SameBasisBehavior
+      (positiveControlledUnitary layout.targetWire layout.controlSet pauliX :
+        Gate ambientWidth)
+      (Circuit.eval (layout.expandedLinearSU2Circuit hwidth wSpecialUnitary) :
+        Gate ambientWidth) :=
+  BasisPhaseEq.toSameBasisBehavior
+    (layout.expandedLinearWSU2Circuit_basisPhaseEq_pauliX hwidth)
+
+theorem expandedLinearWSU2Circuit_basisMeasurementEq {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth)
+    (hwidth : 7 ≤ p + 2) :
+    BasisMeasurementEq
+      (positiveControlledUnitary layout.targetWire layout.controlSet pauliX :
+        Gate ambientWidth)
+      (Circuit.eval (layout.expandedLinearSU2Circuit hwidth wSpecialUnitary) :
+        Gate ambientWidth) :=
+  BasisPhaseEq.toBasisMeasurementEq
+    (layout.expandedLinearWSU2Circuit_basisPhaseEq_pauliX hwidth)
 
 end OrderedControlLayout
 

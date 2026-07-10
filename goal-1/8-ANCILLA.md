@@ -234,3 +234,16 @@ language only.
   factorization witness, so restoration/no residual entanglement is literal.
   Macro count is three and unexpanded cost is `none`. Strict/trust-zero checks and
   its 2,922-job focused build pass.
+- `LinearSpecialUnitaryExpansion.lean` substitutes three selected five-node
+  controlled-SU(2) circuits and two exact swapped-layout MCXs. It preserves the
+  full controlled-W evaluator and proves exact profiles
+  `(64p−151,48p−98,112p−249)` and width forms
+  `(64n−279,48n−194,112n−473)`, including `(169,142,311)` at `n=7`.
+  Strict/trust-zero checks, a 3,487-job focused build, scans, and standard-only
+  representative axiom audits pass.
+- `LinearSpecialUnitaryPhase.lean` packages the source's W as an actual special
+  unitary and proves the fully controlled circuit differs from controlled X by a
+  minus sign exactly when all controls and the input target are one. It exports
+  `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq`, never a false
+  global-phase claim. Strict/trust-zero checks and its 2,940-job focused build
+  pass.
