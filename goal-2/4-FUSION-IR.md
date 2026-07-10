@@ -36,22 +36,26 @@ Status: in progress (2026-07-10).
 
 ## Updated Assumptions
 
-- Use a separate `FusionPrimitive n` retaining explicit payloads for one-qubit,
-  CNOT, and ordered two-qubit nodes, plus an exact `barrier` carrying an existing
-  `Primitive n`. A barrier is not an unclassified fallback: it lowers to the same
-  primitive and is never inspected, relabeled, crossed, or fused.
-- `FusionCircuit n` is a chronological list. Its lowering is `List.map` through
-  the trusted smart constructors; evaluator equality and append chronology should
-  be definitional or proved by short induction.
-- A total `barrierCircuit : Circuit n → FusionCircuit n` should preserve every
-  unsupported input exactly and satisfy `lower (barrierCircuit c) = c`. Transparent
+- Keep `FusionPrimitive n` closed and fully inspectable with exactly explicit
+  one-qubit, CNOT, and ordered two-qubit payloads; `FusionCircuit n` is its
+  chronological list. Put opaque existing primitives in a separate mixed
+  `FusionStep`/`FusionProgram` layer whose alternatives are a visible fusion gate
+  or an exact barrier. This prevents barriers from inhabiting the local grammar.
+- Visible lowering is `List.map` through trusted smart constructors; mixed-program
+  lowering maps a visible step through that compiler and a barrier to its original
+  primitive unchanged. Evaluator equality and append chronology should be
+  definitional or proved by short induction.
+- A total barrier lift from `Circuit n` to `FusionProgram n` should preserve every
+  unsupported input exactly and satisfy an exact lowering round trip. Transparent
   builders, rather than metadata recovery, create optimizable nodes.
 - IR structural kind/support/gate-count/kind-count/touched-support and partial cost
   should be executable folds that provably equal the corresponding established
   `Circuit` quantities after lowering. The two named models remain separate.
-- Test whether a payload-preserving IR adjoint can be added cleanly. If CNOT
-  self-adjointness would force unrelated infrastructure, explicit inverse builders
-  may remain the Stage 4 path and Stage 5 can prove the needed cancellation law.
+- A strict/trust-zero disposable prototype confirms that payload-preserving
+  adjoints stay inside the visible grammar. Local-gate and two-wire branches use
+  exact inverse payloads; the CNOT branch follows from its arbitrary-width basis
+  action and self-inverse Boolean update. The mixed barrier branch delegates to
+  the established exact `Primitive.adjoint`.
 - Replace the opaque controlled-U choice for optimizer inputs with one coherent
   transparent selected-factor schedule. The existing opaque circuit remains a
   semantic/resource reference, never an optimizer input.
@@ -66,13 +70,16 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 ## Detailed Implementation Plan
 
 - Add `Barenco/Optimization/FusionIR.lean`:
-  - define explicit `oneQubit`, `cnot`, `twoQubit`, and `barrier` nodes;
-  - define trusted node/circuit lowering, chronological evaluation, append, and
-    barrier lifting with an exact round trip;
+  - define closed explicit `oneQubit`, `cnot`, and `twoQubit` nodes/circuits;
+  - define a separate visible-step/barrier mixed program layer;
+  - define trusted node/circuit/program lowering, chronological evaluation,
+    append, and barrier lifting with an exact round trip;
   - prove kind/support/denotation projections agree with lowering;
-  - add payload-preserving adjoint only if exact lowering compatibility is proved.
+  - add payload-preserving adjoints with exact lowering and evaluator
+    compatibility for visible circuits and mixed programs.
 - Add `Barenco/Optimization/FusionResources.lean`:
-  - define literal gate count, kind count, touched support, and partial cost folds;
+  - define literal gate count, kind count, touched support, and partial cost folds
+    for visible circuits and mixed programs;
   - prove equality to `Circuit.gateCount`, `kindCount`, `touchedSupport`, and
     `cost` on the lowered syntax;
   - prove append and barrier-lift resource bridges and both named-model boundaries.
@@ -127,9 +134,9 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 
 - Every visible node lowers through `Primitive.oneQubit`, `Primitive.cnot`, or
   `Primitive.twoQubit`; callers cannot independently label an ambient unitary.
-- `barrier p` lowers to exactly `p`, retains no inferred local payload, and blocks
-  every future local rewrite. `barrierCircuit` is a preservation path, not an
-  optimizer claim.
+- A mixed-program `barrier p` lowers to exactly `p`, retains no inferred local
+  payload, and blocks every future local rewrite. Barrier lifting is a preservation
+  path, not an optimizer claim.
 - No function attempts to translate an arbitrary existing `Primitive` into a
   visible node by inspecting `kind`, `support`, support cardinality, or denotation.
 - All compiler/evaluator statements are exact full-register equalities. No scalar
@@ -139,7 +146,8 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 - Resource equalities are derived from lowering and literal IR folds; a semantic
   evaluator equality never supplies a count.
 - `oneQubitCNOT` and `arbitraryTwoQubit` costs remain distinct and Option-valued.
-  Unsupported barriers remain unsupported when their original kind is unsupported.
+  A barrier retains its original syntax cost when priced and remains unsupported
+  when its original kind is unsupported; neither outcome makes it fusion-visible.
 - The opaque selected controlled-U circuit may be compared semantically and by
   aggregate profile, but its factors are never used as optimizer-visible nodes.
 - Stage 4 does not implement normalization, claim a fixed point, or test the
@@ -147,9 +155,9 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 
 ## No-Cheating Checks
 
-- Search new runtime code for `Primitive.unclassified`, direct primitive field
-  assignments, and arbitrary ambient-unitary parameters; all must be absent except
-  the exact existing-primitive payload of `barrier`.
+- Search new runtime code for construction of `Primitive.unclassified`, direct
+  primitive field assignments, and arbitrary ambient-unitary parameters; all must
+  be absent. A mixed barrier may store an already existing `Primitive` verbatim.
 - Confirm all visible lowering branches invoke trusted smart constructors and the
   barrier branch returns its stored primitive unchanged.
 - Confirm resource bridge proofs inspect IR syntax/lowering rather than semantic
@@ -161,13 +169,14 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 
 ## Completion Requirements
 
-- [ ] Payload-preserving explicit node/circuit syntax and trusted lowering compile
-  with exact kind, support, denotation, chronology, append, and barrier round-trip
-  theorems.
+- [ ] Closed payload-preserving node/circuit syntax plus the separate mixed barrier
+  program and trusted lowering compile with exact kind, support, denotation,
+  chronology, append, and barrier round-trip theorems.
 - [ ] Executable IR gate count, kind count, touched support, and partial cost agree
   exactly with the lowered `Circuit` under both named models.
 - [ ] Visible one-qubit/CNOT/two-qubit nodes retain every payload needed by Stage 5;
-  unsupported existing primitives can only enter as exact barriers.
+  unsupported existing primitives can enter only through exact mixed barriers and
+  never inhabit `FusionPrimitive`.
 - [ ] A transparent selected arbitrary controlled-U fusion circuit lowers to the
   parameterized six-node circuit, has exact evaluator, and literal profile
   `(oneQubit,CNOT,total) = (4,2,6)`.
