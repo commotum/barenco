@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 436 `#print axioms` checks, with one
+The maintained audit module currently contains 454 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -470,6 +470,24 @@ row below for each checked declaration.
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_twoQubitCount` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | trusted lowered syntax has exactly three arbitrary-two-qubit nodes; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived Section 8 cost is exactly `some 3`; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_oneQubitCNOTCost` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | early model honestly rejects the generic U(4) output; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.SymbolicCircuit.eval_erase_exposeWire` | `Barenco.Optimization.SymbolicExpose` | `propext`, `Classical.choice`, `Quot.sound` | target-directed exposure preserves exact erased evaluation; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.SymbolicCircuit.eval_erase_normalizeAtWire` | `Barenco.Optimization.SymbolicExpose` | `propext`, `Classical.choice`, `Quot.sound` | exposure followed by free-group cancellation is exactly sound; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.SymbolicCircuit.cnotTrace_normalizeAtWire` | `Barenco.Optimization.SymbolicExpose` | `propext`, `Classical.choice`, `Quot.sound` | selected-wire normalization preserves the complete ordered CNOT trace; no project axiom | 2026-07-10 |
+| `Barenco.Optimization.SymbolicCircuit.oneQubitCount_append` | `Barenco.Optimization.SymbolicCancellation` | `propext`, `Quot.sound` | symbolic one-qubit counts compose from literal list append; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.GrayAdjacent.odd_card_iff_even_card` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | Gray adjacency flips mask-cardinality parity; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.signedGrayRoot_eq_inv_of_even` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | nonempty even masks use the inverse selected root; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.eval_erase_coherentGrayRootSymbolicCircuit` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | coherent positive/literal-adjoint blocks implement the exact signed root; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.normalizeAtWire_grayBoundary` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | executable exposure/cancellation deletes one formal inverse pair at a Gray boundary; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.coherentGrayNormalizedBoundaryAt_eq_singleton` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | every generated boundary emits its unchanged literal Gray CNOT; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.coherentGrayRegroupedViaRootCircuit_eq_raw` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | boundary-oriented raw syntax is a literal regrouping of the established schedule; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | the executable streaming merger emits the named explicit normal form; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_raw` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | every boundary rewrite preserves the full raw arbitrary-register evaluator; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.eval_mergedGrayControlledViaRootFusionCircuit_eq_macro` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | erased merged syntax exactly matches the checked Lemma 7.1 macro; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.eval_mergedGrayControlledCircuit` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | trusted selected-root output implements arbitrary positive multi-control exactly; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.cnotTrace_mergedGrayControlledViaRootSymbolicCircuit_eq_raw` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | all oriented CNOT occurrences remain in their original exact order; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootSymbolicCircuit_gateCount` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | literal emitted syntax has total `5·2^m−4`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | erased emitted syntax has accepted early cost `5·2^m−4`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_arbitraryTwoQubitCost` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | trusted lowered syntax has the same literal Section 8 cost; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
 

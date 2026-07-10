@@ -41,8 +41,8 @@ claim.
 - mathlib: `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
-- Project Lean files below `Barenco/`: 132, plus `Barenco.lean`
-- Maintained kernel axiom checks: 436
+- Project Lean files below `Barenco/`: 135, plus `Barenco.lean`
+- Maintained kernel axiom checks: 454
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -55,12 +55,12 @@ The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 | Ordered two-wire gates | `TwoWire/Layout`, `TwoWire/Semantics`, `TwoWire/ControlledBridges`, `TwoWire/Circuit` | certified arbitrary-`U(4)` embeddings, spectator/orientation laws, trusted syntax, adjoints, and model-specific costs |
 | Circuit syntax | `Circuit`, `Cost` | chronological primitive lists, exact evaluation, support, gate counts, named partial cost models |
 | Exact fusion input | `Optimization/FusionIR`, `Optimization/FusionResources` | closed payload-preserving one-/two-wire syntax, exact lowering, explicit opaque barriers, and syntax-derived model-specific resources |
-| Exact normalization | `Optimization/NormalizeCore`, `FusionLaws`, `FusionCommutation`, `Normalize`, `SymbolicCancellation`, `NormalizeResources` | terminating exact rewrite policies, barrier-separated programs, honest syntactic inverse provenance, ordered-CNOT preservation, and conditional partial-cost nonincrease |
+| Exact normalization | `Optimization/NormalizeCore`, `FusionLaws`, `FusionCommutation`, `Normalize`, `SymbolicCancellation`, `SymbolicExpose`, `NormalizeResources` | terminating exact rewrite policies, target-directed exposure, barrier-separated programs, honest syntactic inverse provenance, ordered-CNOT preservation, and conditional partial-cost nonincrease |
 | Equivalence and error | `Equivalence/*` | exact global phase, basis-dependent phase, basis behavior, channel/all-measurement equality, L2 operator distance, event-probability bounds |
 | One-qubit algebra | `OneQubit/*` | row/column convention bridge, Euler forms, Pauli/rotation identities, ABC factors, exact and coherent roots |
 | Controlled gates | `ControlledCircuit/*` | target-block semantics, general and special controlled-U decompositions, controlled scalar phases, explicit expansions |
 | Three-qubit gates | `ThreeQubit/*` | Lemma 6.1, exact primitive expansion, signed relative-phase Toffoli circuits, and the explicit three-`U(4)` Section 8 implementation |
-| Multi-control | `MultiControl/*` | Gray circuits, dirty-wire ladders, four-block and recursive constructions, relative-phase substitution, clean ancillas, exact resources |
+| Multi-control | `MultiControl/*` | raw and coherently merged Gray circuits, dirty-wire ladders, four-block and recursive constructions, relative-phase substitution, clean ancillas, exact resources |
 | Approximation | `MultiControl/Approximate*`, `ApproximationResources` | truncated coherent roots, exact residual formula, operator/event error, capacity-aware synthesis |
 | Lower bounds | `LowerBounds/*` | restricted basic syntax, interaction graph, cut factorization, nonscalar obstruction, `n-1` CNOT lower bound |
 | Exact universality | `Universality/*` | Givens elimination, finite reindex bridge, affine two-level circuits, diagonal synthesis, circuit-product chronology, exact assembly |
@@ -83,7 +83,7 @@ imported by the public root.
 | `FusionCircuit.eval_lower`, `FusionCircuit.cost_lower`, `FusionProgram.lower_barriers` | exact semantic/resource compiler contracts |
 | `normalizeEarly`, `section8Normalize` | exact visible passes for the one-qubit/CNOT-preserving and arbitrary-two-qubit policies |
 | `normalizeEarlyProgram`, `section8NormalizeProgram` | exact maximal-run normalization with verbatim hard barriers |
-| `SymbolicCircuit.normalize`, `AcceptedCostNonincrease` | executable free-group inverse cancellation and honest conditional partial-cost comparison |
+| `SymbolicCircuit.normalize`, `SymbolicCircuit.normalizeAtWire`, `AcceptedCostNonincrease` | executable free-group inverse cancellation, certified target-directed exposure, and honest conditional partial-cost comparison |
 | `CostModel.oneQubitCNOT`, `CostModel.arbitraryTwoQubit` | distinct Sections 3--7 and Section 8 cost conventions |
 | `GlobalPhaseEq`, `BasisPhaseEq`, `SameBasisBehavior`, `BasisMeasurementEq`, `ChannelEq` | deliberately distinct relaxed target relations |
 | `operatorDistance`, `eventProbability` | L2 induced operator distance and finite computational-basis event probabilities |
@@ -92,6 +92,8 @@ imported by the public root.
 | `relativePhaseToffoliThreeGateCircuit`, `section8Normalize_relativePhaseToffoliAFusionCircuit` | named three-`U(4)` relative-phase Toffoli implementation and exact normalizer-output certificate |
 | `eval_relativePhaseToffoliThreeGateCircuit`, `relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost` | exact signed-unitary evaluator and syntax-derived Section 8 cost three |
 | `relativePhaseToffoliThreeGateCircuit_ne_toffoli`, `relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli` | explicit separation from exact and global-phase Toffoli |
+| `mergedGrayControlledViaRootSymbolicCircuit`, `mergedGrayControlledViaRootNormalForm` | executable coherent Gray boundary merger and its exact emitted syntax |
+| `eval_mergedGrayControlledCircuit`, `mergedGrayControlledFusionCircuit_profile` | exact arbitrary-register controlled-unitary semantics and syntax-derived post-merger counts |
 | `cleanAncillaCircuit`, `expandedCleanAncillaCircuit_oneCleanAncillaContract`, `eval_expandedCleanAncillaCircuit_factorization` | clean-zero construction, structural one-ancilla contract, and semantic restoration/factorization |
 | `decomposeFiniteUnitary` | arbitrary finite-index exact two-level decomposition with diagonal residual |
 | `twoLevelCircuit`, `diagonalCircuit`, `exactSynthesisCircuit` | literal no-ancilla positive-width synthesis layers |
@@ -127,7 +129,9 @@ imported by the public root.
 - Repricing the same literal syntax does not merge gates. Merging requires a new
   circuit and an evaluator-preservation theorem. The relative-phase Toffoli merger
   meets this requirement with a distinct named three-node circuit; the original A
-  and B source lists remain seven-node syntax.
+  and B source lists remain seven-node syntax. The Gray merger likewise counts
+  only the exact normal form emitted by its executable boundarywise pass, never
+  the semantically equal raw list.
 
 See `docs/conventions.md` for the full specification.
 
@@ -173,7 +177,7 @@ a proved affine X/CNOT endpoint normalization.
 | Lemma 6.1 | exact five-node at-most-two-wire macro cost under Section 8; exact expansion cost 16 under one-qubit/CNOT |
 | Relative-phase Toffoli | both source circuits remain seven nodes; the named A-derived merged syntax has exactly three certified `U(4)` nodes, exact full-register equality to the signed unitary, Section 8 cost `some 3`, and one-qubit/CNOT cost `none`; this is a constructive upper count, not a minimum |
 | Four-bit Gray circuit | exact Section 8 cost 13: seven singly controlled roots and six CNOTs |
-| General Gray expansion | for `m>=1` controls, exact raw profile: `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8` |
+| General Gray expansion and merger | for `m>=1` controls, exact raw profile `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8`; the coherent executable merger emits exactly `2*2^m` one-qubit, the same `3*2^m-4` CNOTs, and total/cost `5*2^m-4`, verifying the paper's post-merger count as a constructive upper bound |
 | Lemma 7.2 dirty ladder | for `m>=3` controls with stated ambient capacity, exact `4(m-2)` Toffoli occurrences and restoration |
 | Corollary 7.4 | for logical width `n>=7`, exact macro total `8(n-5)`; selected raw expansion `32n-144` one-qubit + `24n-100` CNOT = `56n-244`; printed optimized `48n-204` unresolved |
 | Recursive exact multi-control | for width `n>=7`, with depth offset `d=n-7`: exact total `56d^2+364d+440`; construction-specific `IsBigOWith 56` in width |
@@ -190,7 +194,7 @@ result has a preceding finite natural-number inequality or exact recurrence.
 
 ## Corrections and Material Differences
 
-The complete log contains 36 entries in `docs/corrections.md`. The most important
+The complete log contains 37 entries in `docs/corrections.md`. The most important
 families are:
 
 - **Matrix and execution conventions:** the source uses row action while the
@@ -229,6 +233,11 @@ families are:
   as a distinct three-`U(4)` circuit with exact evaluator preservation. Its relation
   to Toffoli is the explicit `101` input-column `BasisPhaseEq`; exact and global-
   phase equality are formally refuted, and the count is not a minimality theorem.
+- **General Gray merger:** independently chosen decompositions of `V` and `V⁻¹`
+  do not justify inverse-factor cancellation. The repaired construction selects
+  one factor package, uses literal adjoints for alternating Gray signs, and proves
+  every executable boundary normalization, the emitted normal form, exact
+  evaluator equality, CNOT chronology, and the printed count.
 - **Historical efficiency:** “most efficient known” is time-dependent comparative
   context without a specified exhaustive circuit class or proof, not a formal
   optimality claim.
@@ -252,9 +261,10 @@ families are:
   excluded pending a rigorous smooth/image-dimension argument.
 - The paper's complete repeated Gray-walk `2m-3` syntax is partial; the main
   library uses the exact affine replacement.
-- The paper's smaller post-merger one-qubit count for the general Gray family is
-  not realized by the checked raw syntax, and its historical “most efficient
-  known” comparison is intentionally excluded.
+- The historical claim that the Gray construction was “most efficient known” is
+  intentionally excluded: it is time-dependent and has no specified exhaustive
+  circuit class or proof. The separate post-merger count itself is now verified
+  for the named coherent syntax.
 - A physical POVM API is outside scope. The approximation result covers every
   finite computational-basis event. Separately, algebraic `AllMeasurementEq`
   quantifies over arbitrary matrices/effects and is equivalent to `ChannelEq`;
