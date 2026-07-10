@@ -41,8 +41,8 @@ claim.
 - mathlib: `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
-- Project Lean files below `Barenco/`: 130, plus `Barenco.lean`
-- Maintained kernel axiom checks: 420
+- Project Lean files below `Barenco/`: 132, plus `Barenco.lean`
+- Maintained kernel axiom checks: 436
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -91,6 +91,7 @@ imported by the public root.
 | `controlledU2Circuit`, `doubleControlledRootCircuit`, `grayControlledCircuit` | selected controlled and multi-controlled circuits |
 | `relativePhaseToffoliThreeGateCircuit`, `section8Normalize_relativePhaseToffoliAFusionCircuit` | named three-`U(4)` relative-phase Toffoli implementation and exact normalizer-output certificate |
 | `eval_relativePhaseToffoliThreeGateCircuit`, `relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost` | exact signed-unitary evaluator and syntax-derived Section 8 cost three |
+| `relativePhaseToffoliThreeGateCircuit_ne_toffoli`, `relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli` | explicit separation from exact and global-phase Toffoli |
 | `cleanAncillaCircuit`, `expandedCleanAncillaCircuit_oneCleanAncillaContract`, `eval_expandedCleanAncillaCircuit_factorization` | clean-zero construction, structural one-ancilla contract, and semantic restoration/factorization |
 | `decomposeFiniteUnitary` | arbitrary finite-index exact two-level decomposition with diagonal residual |
 | `twoLevelCircuit`, `diagonalCircuit`, `exactSynthesisCircuit` | literal no-ancilla positive-width synthesis layers |
@@ -226,8 +227,8 @@ families are:
   operation and must be accepted; larger controlled macros remain rejected.
 - **Section 8 relative-phase merger:** the source's omitted grouping is reconstructed
   as a distinct three-`U(4)` circuit with exact evaluator preservation. Its relation
-  to Toffoli is the explicit `101` input-column `BasisPhaseEq`; no exact or global
-  phase theorem is claimed, and the count is not a minimality theorem.
+  to Toffoli is the explicit `101` input-column `BasisPhaseEq`; exact and global-
+  phase equality are formally refuted, and the count is not a minimality theorem.
 - **Historical efficiency:** “most efficient known” is time-dependent comparative
   context without a specified exhaustive circuit class or proof, not a formal
   optimality claim.

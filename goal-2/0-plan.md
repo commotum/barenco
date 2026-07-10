@@ -2,7 +2,7 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–5 are complete; Stage 6 relative-phase Toffoli cost three
+Status: active. Stages 1–6 are complete; Stage 7 Gray-family post-merger counting
 is the first incomplete stage.
 
 ## Big-Picture Objective
@@ -164,11 +164,21 @@ collection of hand-simplified paper examples.
   relative-A output with three literal U(4) nodes but intentionally defer the
   paper-facing classification to Stage 6. The 3,603-job full build, strict and
   trust-zero checks, hygiene scans, and 420-entry maintained axiom audit pass.
+- Stage 6 applies the general Section 8 pass to the transparent relative-A
+  circuit and proves that it emits the named tail-first groups
+  `A; CNOT(second,target)`, `A; CNOT(first,target)`, and
+  `A†; CNOT(second,target); A†`. Their trusted lowering is exactly equal on every
+  ambient register to the original seven-node evaluator and
+  `relativeToffoliUnitary`. The literal profile is `(oneQ,CNOT,U4,total)=(0,0,3,3)`,
+  Section 8 cost is `some 3`, and the early model returns `none`. The exact `101`
+  signed action yields `BasisPhaseEq`, basis behavior, and basis-measurement
+  equality to Toffoli; separate checked theorems refute exact and global-phase
+  equality. Width-three and nonadjacent width-five diagnostics, 436 maintained
+  axiom checks, strict/trust-zero compilation, the 3,604-job full build, scans,
+  and synchronized documentation pass. This verifies a constructive upper count,
+  not minimality.
 
 ## Remaining Assumptions to Test
-- The relative-phase A circuit has now been checked under the exact tail-first
-  normalizer convention: its three groups are `A; CNOT(second,target)`,
-  `A; CNOT(first,target)`, and `A†; CNOT(second,target); A†`.
 - The paper's Gray count may follow from same-target one-qubit mergers across
   transparent controlled-U expansion boundaries. Boundary gates and selected
   factors may prevent the naive formula; no count is trusted before syntax exists.
@@ -216,8 +226,8 @@ The goal is complete only when all of the following hold:
 - [x] `2-TWO-WIRE` — certified ordered-pair semantic embeddings and algebra.
 - [x] `3-TWO-PRIMITIVE` — trusted circuit constructor, support, adjoint, and costs.
 - [x] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
-- [ ] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
-- [ ] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
+- [x] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
+- [x] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
 - [ ] `7-GRAY-MERGERS` — normalize the general Gray family and settle its checked count.
 - [ ] `8-COR74-MERGERS` — test the optimized Corollary 7.4 count and dependencies.
 - [ ] `9-AUDIT` — public integration, documentation, builds, and axiom audit.

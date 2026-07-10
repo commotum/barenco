@@ -688,9 +688,12 @@ explicit basis-dependent `101` sign described above, not a global phase. The
 three-node evaluator is exactly equal to `relativeToffoliUnitary`; its relation to
 exact Toffoli is instead the exported `BasisPhaseEq`, with derived
 `SameBasisBehavior` and `BasisMeasurementEq`. The last relation compares only
-computational-basis input/output transition probabilities. No exact-Toffoli,
-`GlobalPhaseEq`, channel/all-measurement, arbitrary-superposition measurement, or
-arbitrary-precomposition equivalence is claimed.
+computational-basis input/output transition probabilities. Theorems
+`relativePhaseToffoliThreeGateCircuit_ne_toffoli` and
+`relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli` use the all-zero
+and `101` columns to refute exact and global-phase equality. No
+channel/all-measurement, arbitrary-superposition measurement, or arbitrary-
+precomposition equivalence is claimed.
 
 ## Approximation and Probability
 

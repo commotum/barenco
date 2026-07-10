@@ -116,11 +116,12 @@ claim or a lower bound on arbitrary implementations of `U`.
   nodes, is exactly equal to the seven-node A evaluator on the full ambient
   register, and has Section 8 cost `some 3`. Relative to exact Toffoli, the strongest
   exported relation is the explicit `101` input-column `BasisPhaseEq`, with only
-  classical-basis and computational-basis measurement consequences. This is a
-  constructive upper count; no exact-Toffoli, `GlobalPhaseEq`, arbitrary-input
-  measurement-equivalence, or minimality theorem is claimed. The original A and B
-  lists remain seven-node syntax, and the three generic `U(4)` nodes are unsupported
-  by `CostModel.oneQubitCNOT`.
+  classical-basis and computational-basis measurement consequences. Exact and
+  global-phase equality are separately refuted by named theorems. This is a
+  constructive upper count; no arbitrary-input measurement-equivalence or
+  minimality theorem is claimed. The original A and B lists remain seven-node
+  syntax, and the three generic `U(4)` nodes are unsupported by
+  `CostModel.oneQubitCNOT`.
 - The claimed six-`U(4)` synthesis and the heuristic dimension-counting lower
   bound are not established as theorems.
 - No dense-generation theorem for a fixed finite gate set is claimed. Arbitrary

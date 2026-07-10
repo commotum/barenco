@@ -1050,6 +1050,8 @@ statement. “Open” means the repair is identified but not yet machine checked
   the seven-node A evaluator and `relativeToffoliUnitary`. Under pairwise-distinct
   named wires, transfer the exact `101` signed basis action and its
   `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq` consequences.
+  Use the all-zero and `101` columns to prove separately that the circuit is
+  neither exact Toffoli nor related to Toffoli by one global phase.
   Derive the profile `(oneQ,CNOT,U4,total)=(0,0,3,3)` and both partial costs from
   the named fusion and lowered syntax.
 - **Dependent impact:** the Section 8 cost-three statement is recovered as a
@@ -1067,8 +1069,10 @@ statement. “Open” means the repair is identified but not yet machine checked
   `relativePhaseToffoliThreeGateCircuit_mulVec_basisKet`,
   `relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli`,
   `relativePhaseToffoliThreeGateCircuit_sameBasisBehavior`,
-  `relativePhaseToffoliThreeGateCircuit_basisMeasurementEq`, and the fusion and
-  lowered component/count/cost theorems compile.
+  `relativePhaseToffoliThreeGateCircuit_basisMeasurementEq`,
+  `relativePhaseToffoliThreeGateCircuit_ne_toffoli`,
+  `relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli`, and the
+  fusion and lowered component/count/cost theorems compile.
 - **Status:** clarified and proved as an explicit syntax-derived constructive upper
-  count. No exact-Toffoli, global-phase, channel, all-measurement, arbitrary-input
-  measurement, or minimality theorem is claimed.
+  count. Exact-Toffoli and global-phase equality are formally refuted; no channel,
+  all-measurement, arbitrary-input measurement, or minimality theorem is claimed.

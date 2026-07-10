@@ -1,6 +1,6 @@
 # 6-TOFFOLI-THREE
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-10).
 
 ## Current Facts
 
@@ -135,21 +135,21 @@ and literal syntax-derived resources under the changed cost model.
 
 ## Completion Requirements
 
-- [ ] A named explicit three-U(4)-node fusion circuit and trusted lowered circuit
+- [x] A named explicit three-U(4)-node fusion circuit and trusted lowered circuit
   compile for arbitrary ambient width with pairwise-distinct classification
   assumptions.
-- [ ] The general Section 8 normalizer emits exactly the named list, and exact
+- [x] The general Section 8 normalizer emits exactly the named list, and exact
   visible/lowered evaluator equality to the seven-node A circuit is proved.
-- [ ] Exact equality to `relativeToffoliUnitary`, signed computational-basis action,
+- [x] Exact equality to `relativeToffoliUnitary`, signed computational-basis action,
   `BasisPhaseEq`, same classical basis behavior, and basis-measurement equality are
   transferred without claiming a stronger phase relation.
-- [ ] Literal oneQ/CNOT/U4/total counts and both named partial costs are proved for
+- [x] Literal oneQ/CNOT/U4/total counts and both named partial costs are proved for
   the fusion and lowered syntax; Section 8 cost is exactly `some 3`.
-- [ ] Width-three and padded nonadjacent-register diagnostics compile.
-- [ ] Traceability marks the constructive cost-three claim verified but not
+- [x] Width-three and padded nonadjacent-register diagnostics compile.
+- [x] Traceability marks the constructive cost-three claim verified but not
   minimal; correction/convention/final-report text records the precise phase and
   model scope.
-- [ ] Public import, representative axiom checks, focused/adjacent/full builds,
+- [x] Public import, representative axiom checks, focused/adjacent/full builds,
   strict, trust-zero, forbidden/no-cheating scans, root exclusion, audit/table
   synchronization, and `git diff --check` pass.
 
@@ -157,3 +157,36 @@ and literal syntax-derived resources under the changed cost model.
 
 - Stage file created after Stage 5's complete requirement audit and before any
   Stage 6 Lean source change.
+- Public `Barenco.ThreeQubit.RelativePhaseThreeGate` defines the explicit
+  three-node `FusionCircuit`, its trusted lowered `Circuit`, and the two certified
+  local payload products. The nodes use ordered pairs `(second,target)`,
+  `(first,target)`, `(second,target)` and lower only through
+  `Primitive.twoQubit`.
+- `section8Normalize_relativePhaseToffoliAFusionCircuit` proves the real general
+  pass emits exactly the named tail-first list. Exact visible and lowered bridges
+  prove equality to the seven-node A circuit and `relativeToffoliUnitary` on the
+  full ambient register; no phase is discarded by normalization.
+- The exact signed basis theorem transfers the established `101` witness to
+  `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq`. Two explicit
+  columns additionally prove `relativePhaseToffoliThreeGateCircuit_ne_toffoli`
+  and `relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli`; no
+  channel or arbitrary-input measurement equivalence is claimed.
+- Literal fusion and lowered syntax both have zero one-qubit nodes, zero CNOTs,
+  three generic U(4) nodes, and total count three. The Section 8 model returns
+  exactly `some 3`; `CostModel.oneQubitCNOT` returns `none`. This verifies the
+  paper's constructive phase-relaxed upper count and does not prove minimality.
+- Root-excluded `RelativePhaseThreeGateExamples` checks width three and a padded
+  nonadjacent width-five layout, including ordered-pair chronology, exact
+  evaluator equality, signed action, and both cost results.
+- Focused builds passed with 2,945 jobs for the public leaf and 2,946 including
+  diagnostics. The adjacent public/audit sweep passed with 3,606 jobs; the final
+  full `lake build` passed with 3,604 jobs. Direct warning-as-error and trust-zero
+  warning-as-error checks passed for the public leaf, diagnostic, root, and audit.
+- Sixteen new maintained checks raise the audit to 436 entries; every Stage 6
+  theorem uses only `propext`, `Classical.choice`, and `Quot.sound`. The audit
+  source/table counts match, the project has 132 Lean files below `Barenco/`, all
+  forbidden/no-cheating/root-exclusion scans are empty, and `git diff --check`
+  passes.
+- Traceability, conventions, C-032/C-036, README, and the final report now record
+  the actual `2+2+3` grouping, phase scope, two cost models, spectator/no-ancilla
+  scope, constructive status, and the absence of any minimality conclusion.

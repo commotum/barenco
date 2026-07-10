@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 432 `#print axioms` checks, with one
+The maintained audit module currently contains 436 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -462,6 +462,10 @@ row below for each checked declaration.
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | strongest exported Toffoli-relative phase classification; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_sameBasisBehavior` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | derived classical reversible basis behavior; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_basisMeasurementEq` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | derived computational-basis transition-probability equality; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativeToffoliUnitary_ne_toffoli` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | the explicit `101` column separates the signed unitary from exact Toffoli; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativeToffoliUnitary_not_globalPhaseEq_toffoli` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | zero and `101` columns rule out one common scalar phase; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_ne_toffoli` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | named three-gate syntax is formally separated from exact Toffoli; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | named three-gate syntax is formally separated from global-phase Toffoli; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateFusionCircuit_gateCount` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | literal visible list has exactly three nodes; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_twoQubitCount` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | trusted lowered syntax has exactly three arbitrary-two-qubit nodes; no project axiom | 2026-07-10 |
 | `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived Section 8 cost is exactly `some 3`; no project axiom | 2026-07-10 |
@@ -551,5 +555,10 @@ row below for each checked declaration.
 | Goal 2 Stage 5 strict/trust-zero boundary | direct warning-as-error and `-t0` warning-as-error compilation of the public root, 420-check audit, normalization leaves, resource leaf, facade, and root-excluded diagnostics | all checks successful; generic engine checks use only `propext`, and all other new checks stay within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
 | Goal 2 Stage 5 full build | final `lake build` after public integration, unsupported-cost iff strengthening, and documentation synchronization | successful, 3,603 jobs, 2026-07-10 |
 | Goal 2 Stage 5 hygiene | repository proof-hole/custom-declaration scans; scoped runtime-decision/no-classical-choice/no-unclassified/no-paper-special-case/root-exclusion scans; audit/table/file counts; `git diff --check` | all clean; no forbidden source hit, diagnostics remain root-excluded, audit source and documentation contain exactly 420 entries, and the project has 130 Lean files below `Barenco/`, 2026-07-10 |
+| Goal 2 Stage 6 focused and diagnostic | `lake build Barenco.ThreeQubit.RelativePhaseThreeGate`; `lake build Barenco.ThreeQubit.RelativePhaseThreeGateExamples` | successful with 2,945 and 2,946 jobs; canonical width-three and padded nonadjacent width-five checks cover literal pair chronology, exact semantics, signed action, and both costs, 2026-07-10 |
+| Goal 2 Stage 6 adjacent/public/audit integration | relative-phase and normalization leaves, Corollary 7.4 phase consumers, Stage 6 public/diagnostic leaves, `Barenco`, and `Barenco.AxiomAudit` | successful, 3,606 jobs; sixteen new checks raise the maintained total to 436 and every new result uses only `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Goal 2 Stage 6 strict/trust-zero boundary | direct warning-as-error and `-t0` warning-as-error compilation of `RelativePhaseThreeGate.lean`, its root-excluded diagnostic, `Barenco.lean`, and `AxiomAudit.lean` | all eight checks successful; exact/global-phase separation, semantics, resources, and public integration remain within the recorded standard foundations, 2026-07-10 |
+| Goal 2 Stage 6 full build | final `lake build` after public integration, negative phase-separation theorems, and documentation synchronization | successful, 3,604 jobs, 2026-07-10 |
+| Goal 2 Stage 6 hygiene | repository proof-hole/custom-declaration scans; scoped no-unclassified/no-forged-constructor/no-runtime-choice/no-paper-special-case/root-exclusion scans; audit/table/file counts; `git diff --check` | all clean; diagnostics remain root-excluded, audit source and documentation contain exactly 436 entries, and the project has 132 Lean files below `Barenco/`, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

@@ -229,6 +229,127 @@ theorem relativePhaseToffoliThreeGateCircuit_basisMeasurementEq {n : ℕ}
     (relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli
       first second target hfirstSecond hfirstTarget hsecondTarget)
 
+/-! ## Strict separation from exact and global-phase Toffoli -/
+
+private def zeroPhaseInput {n : ℕ} : Basis n := fun _ ↦ false
+
+private def relativePhaseSignedInput {n : ℕ} (first target : Fin n) : Basis n :=
+  fun wire ↦ if wire = first then true else if wire = target then true else false
+
+private theorem toffoli_zeroPhaseInput_entry {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+        (zeroPhaseInput (n := n)) (zeroPhaseInput (n := n)) = 1 := by
+  have haction := toffoliUnitary_mulVec_basisKet first second target
+    hfirstTarget hsecondTarget (zeroPhaseInput (n := n))
+  simpa [zeroPhaseInput, toffoliOutput] using
+    congrFun haction (zeroPhaseInput (n := n))
+
+private theorem relativeToffoli_zeroPhaseInput_entry {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    (relativeToffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+        (zeroPhaseInput (n := n)) (zeroPhaseInput (n := n)) = 1 := by
+  have haction := relativeToffoliUnitary_mulVec_basisKet first second target
+    hfirstSecond hfirstTarget hsecondTarget (zeroPhaseInput (n := n))
+  simpa [zeroPhaseInput, relativeToffoliPhase, toffoliOutput] using
+    congrFun haction (zeroPhaseInput (n := n))
+
+private theorem toffoli_relativePhaseSignedInput_entry {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+        (relativePhaseSignedInput (n := n) first target)
+        (relativePhaseSignedInput (n := n) first target) = 1 := by
+  have hsecondFirst : second ≠ first := hfirstSecond.symm
+  have haction := toffoliUnitary_mulVec_basisKet first second target
+    hfirstTarget hsecondTarget (relativePhaseSignedInput (n := n) first target)
+  simpa [relativePhaseSignedInput, toffoliOutput, hsecondFirst, hsecondTarget] using
+    congrFun haction (relativePhaseSignedInput (n := n) first target)
+
+private theorem relativeToffoli_relativePhaseSignedInput_entry {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    (relativeToffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+        (relativePhaseSignedInput (n := n) first target)
+        (relativePhaseSignedInput (n := n) first target) = -1 := by
+  have hsecondFirst : second ≠ first := hfirstSecond.symm
+  have htargetFirst : target ≠ first := hfirstTarget.symm
+  have haction := relativeToffoliUnitary_mulVec_basisKet first second target
+    hfirstSecond hfirstTarget hsecondTarget
+      (relativePhaseSignedInput (n := n) first target)
+  simpa [relativePhaseSignedInput, relativeToffoliPhase, toffoliOutput,
+    hsecondFirst, hsecondTarget, htargetFirst] using
+      congrFun haction (relativePhaseSignedInput (n := n) first target)
+
+/-- The established `101` sign makes the relative unitary strictly non-Toffoli. -/
+theorem relativeToffoliUnitary_ne_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    (relativeToffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) ≠
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) := by
+  intro heq
+  have hentry := congrArg
+    (fun M : Gate n ↦ M (relativePhaseSignedInput (n := n) first target)
+      (relativePhaseSignedInput (n := n) first target)) heq
+  rw [relativeToffoli_relativePhaseSignedInput_entry first second target
+      hfirstSecond hfirstTarget hsecondTarget,
+    toffoli_relativePhaseSignedInput_entry first second target hfirstSecond
+      hfirstTarget hsecondTarget] at hentry
+  norm_num at hentry
+
+/-- The varying `101` sign cannot be represented by one global scalar phase. -/
+theorem relativeToffoliUnitary_not_globalPhaseEq_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    ¬ GlobalPhaseEq
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (relativeToffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) := by
+  rintro ⟨phase, hphase⟩
+  have hzero := congrArg (fun M : Gate n ↦
+    M (zeroPhaseInput (n := n)) (zeroPhaseInput (n := n))) hphase
+  have hsigned := congrArg
+    (fun M : Gate n ↦ M (relativePhaseSignedInput (n := n) first target)
+      (relativePhaseSignedInput (n := n) first target)) hphase
+  simp only [Matrix.smul_apply, smul_eq_mul] at hzero hsigned
+  rw [relativeToffoli_zeroPhaseInput_entry first second target hfirstSecond
+      hfirstTarget hsecondTarget,
+    toffoli_zeroPhaseInput_entry first second target hfirstTarget hsecondTarget,
+    mul_one] at hzero
+  rw [relativeToffoli_relativePhaseSignedInput_entry first second target
+      hfirstSecond hfirstTarget hsecondTarget,
+    toffoli_relativePhaseSignedInput_entry first second target hfirstSecond
+      hfirstTarget hsecondTarget,
+    mul_one] at hsigned
+  rw [← hzero] at hsigned
+  norm_num at hsigned
+
+/-- The named lowered three-gate circuit is not exactly Toffoli. -/
+theorem relativePhaseToffoliThreeGateCircuit_ne_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    (Circuit.eval
+      (relativePhaseToffoliThreeGateCircuit first second target
+        hfirstTarget hsecondTarget) : Gate n) ≠
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) := by
+  rw [eval_relativePhaseToffoliThreeGateCircuit]
+  exact relativeToffoliUnitary_ne_toffoli first second target hfirstSecond
+    hfirstTarget hsecondTarget
+
+/-- The named lowered three-gate circuit is not globally phase-equivalent to Toffoli. -/
+theorem relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    ¬ GlobalPhaseEq
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliThreeGateCircuit first second target
+          hfirstTarget hsecondTarget) : Gate n) := by
+  rw [eval_relativePhaseToffoliThreeGateCircuit]
+  exact relativeToffoliUnitary_not_globalPhaseEq_toffoli first second target
+    hfirstSecond hfirstTarget hsecondTarget
+
 /-! ## Literal syntax-derived resources -/
 
 @[simp]
