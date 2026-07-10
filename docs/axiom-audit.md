@@ -373,5 +373,9 @@ row below for each checked declaration.
 | Stage 10 trust-zero root/audit | direct `lake env lean -t0 -DwarningAsError=true` compilation of `Barenco.lean` and `AxiomAudit.lean` | both successful; all 253 maintained checks remain within the recorded standard axioms, 2026-07-10 |
 | Stage 10 focused/diagnostic/root/audit build | `lake build Barenco.LowerBounds.BasicCircuit Barenco.LowerBounds.InteractionGraph Barenco.LowerBounds.PartitionFactorization Barenco.LowerBounds.ScalarObstruction Barenco.LowerBounds.Lemma77 Barenco.LowerBounds.LowerBoundExamples Barenco Barenco.AxiomAudit` | successful, 3,563 jobs, 2026-07-10 |
 | Stage 10 full builds | two consecutive `lake build` runs after final public-root integration | both successful, 3,561 jobs each, 2026-07-10 |
+| Stage 11 warning-as-error root/audit/examples | direct `lake env lean -DwarningAsError=true` compilation after public integration | all successful; the maintained audit printed 285 declarations, including 32 new Stage 11 checks, and every new result uses exactly `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Stage 11 trust-zero root/audit/examples | direct `lake env lean -t0 -DwarningAsError=true` compilation | all successful; all 285 maintained checks remain within the recorded standard axioms, 2026-07-10 |
+| Stage 11 focused/diagnostic/root/audit build | `lake build Barenco.Universality.UniversalityExamples Barenco.AxiomAudit Barenco` | successful, 3,582 jobs, 2026-07-10 |
+| Stage 11 full builds | two consecutive `lake build` runs after final public-root integration | both successful, 3,580 jobs each, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

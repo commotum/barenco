@@ -181,7 +181,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
 - [x] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
 - [x] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
-- [ ] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
+- [x] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
 - [ ] `12-RESOURCES` — recurrences, asymptotics, and cost-model separation.
 - [ ] `13-AUDIT` — coverage closure, examples, build/axiom audit, final report.
 
@@ -653,9 +653,12 @@ finite-dimensional synthesis, without bundling approximation or efficiency.
 
 - Define two-level unitaries and prove a finite complex-unitary elimination or
   decomposition theorem over arbitrary finite dimensions/index types, including
-  diagonal phases; only then specialize it to dimensions `2^n`.
-- Formalize Gray-code conjugation that implements any two-level basis rotation via
-  modified multi-control gates and restores all permuted basis states.
+  diagonal phases; transport its endpoints directly to `Basis n` without treating
+  a reindex equivalence as a circuit gate.
+- Formalize the source's shortest Gray/Hamming path combinatorics, then use the
+  stronger exact affine endpoint normalization for the main circuit: X-translate
+  the first endpoint to zero, CNOT-clear the second to a singleton, apply one
+  oriented mixed-polarity block, and reverse the transport by its adjoint.
 - Combine Sections 5–8 constructions into exact generation of arbitrary
   `2^n × 2^n` unitaries; separately state primitive availability and no-ancilla
   conditions.
@@ -670,9 +673,34 @@ finite-dimensional synthesis, without bundling approximation or efficiency.
   only identity although its one-dimensional unitary group contains all phases.
 - A reusable algebraic theorem decomposes arbitrary finite-dimensional complex
   unitary matrices independently of the qubit specialization.
-- Two-level decomposition, Gray path, diagonal handling, the `n = 1` direct case,
-  and the `n = 0` obstruction are individually tested.
+- Two-level decomposition, source-path combinatorics, affine conjugation, diagonal
+  handling, the `n = 1` direct case, and the `n = 0` obstruction are individually
+  tested.
 - Exact generation, dense generation, and efficiency appear as distinct APIs.
+
+### Stage Results
+
+- A total certified complex Givens construction and recursive finite elimination
+  now decompose every finite-index unitary into explicit ordered two-level factors
+  followed by an exact diagonal residual, with the equation
+  `U = finiteFactorProduct factors * residual` and no discarded phase.
+- Literal mixed-polarity controls, endpoint-orientation repair, affine X/CNOT pair
+  normalization, one adjacent controlled block, and adjoint restoration implement
+  every two-level factor exactly on the complete positive-width register. The
+  separately verified shortest Hamming path preserves direct source traceability.
+- `exactSynthesisCircuit` assembles those factors and the exact diagonal circuit
+  in the reverse chronology required by conventional matrix-product order.
+  `exact_oneQubitCNOT_universality` returns an exact circuit and accepted finite
+  one-qubit/CNOT cost for every successor width. Width one has a direct cost-one
+  circuit; width zero has an explicit nonidentity U(1) phase obstruction.
+- The affine backend improves the construction targeted for Stage 12 from the
+  paper Gray route's cubic worst-case per-factor upper argument to a quadratic
+  one, without claiming optimality or a `Theta` result. This material difference,
+  the paper's reversed endpoint edge, false per-factor Theta inference, and
+  zero-width boundary are recorded in corrections and traceability.
+- Public integration, root-excluded width-one/two examples, 285 maintained axiom
+  checks, strict/trust-zero compilation, the 3,582-job focused build, two
+  consecutive 3,580-job full builds, and repository scans all pass.
 
 ## 12-RESOURCES
 

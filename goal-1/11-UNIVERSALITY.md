@@ -1,8 +1,6 @@
 # 11-UNIVERSALITY
 
-Status: in progress (the exact positive-width synthesis and finite accepted-cost
-theorems compile; public integration, diagnostics, documentation, and the final
-stage audit remain).
+Status: complete.
 
 ## Current Facts
 
@@ -122,7 +120,7 @@ formal reconstruction of the paper's Gray-path reasoning.
    the order required by `Circuit.eval_append`. Prove exact universality for
    positive register width, the direct one-qubit specialization, and the exact
    zero-wire identity-only obstruction.
-8. **In progress.** Add root-excluded examples in dimensions one, two, and four, public imports,
+8. **Complete.** Add root-excluded examples in dimensions one, two, and four, public imports,
    traceability/correction/convention updates, maintained axiom checks, and focused
    plus full verification. Leave structural/asymptotic aggregation to Stage 12.
 
@@ -197,12 +195,12 @@ formal reconstruction of the paper's Gray-path reasoning.
 - [x] The headline theorem returns a circuit containing only arbitrary one-qubit
   and CNOT primitives and proves exact evaluator equality for every positive `n`,
   with a direct width-one case and a separate exact width-zero obstruction theorem.
-- [ ] Exact generation is not conflated with approximation, fixed-set dense
+- [x] Exact generation is not conflated with approximation, fixed-set dense
   generation, arbitrary-two-qubit pricing, or an efficiency theorem.
-- [ ] Representative low-dimensional examples, public imports, maintained axiom
+- [x] Representative low-dimensional examples, public imports, maintained axiom
   entries, forbidden-token/diff checks, strict/trust-zero compilation, focused
   builds, and two full builds pass and are recorded.
-- [ ] Traceability, corrections, and conventions document every material repair
+- [x] Traceability, corrections, and conventions document every material repair
   to Section 8's decomposition, Gray path, diagonal, ordering, and boundary claims.
 
 ## Stage Results
@@ -279,3 +277,13 @@ formal reconstruction of the paper's Gray-path reasoning.
   proves exact evaluator equality, and returns the exact finite cost consisting
   of all factor-circuit costs plus the diagonal schedule cost. It makes no
   asymptotic or optimality claim.
+- `UniversalityExamples.lean` instantiates the direct width-one theorem, a
+  nonadjacent width-two `|00>`/`|11>` affine two-level block (including basis
+  action and exact accepted cost), and full width-two synthesis of trusted CNOT.
+  The public root imports the exact synthesis and both boundary leaves.
+- Final verification passed: strict and trust-zero compilation of the root,
+  maintained axiom audit, and diagnostics; a focused 3,582-job build; two
+  consecutive unchanged 3,580-job full builds; repository-wide forbidden-token,
+  unclassified-universality, whitespace, and diff checks. The maintained audit
+  now covers 285 declarations, including 32 Stage 11 exports, and every Stage 11
+  result uses only `propext`, `Classical.choice`, and `Quot.sound`.
