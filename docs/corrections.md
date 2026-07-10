@@ -47,11 +47,14 @@ statement. “Open” means the repair is identified but not yet machine checked
   `columnC_mul_X_mul_columnB_mul_X_mul_columnA`, and
   `specialUnitary_exists_columnChronologicalABC` machine-check the transposed and
   reversed products used by Lemma 4.3. `sigmaXUnitary_eq_pauliX` connects the
-  Section 4 matrix to the existing circuit primitive.
+  Section 4 matrix to the existing circuit primitive. Section 5's
+  `eval_controlledABCCircuit_raw_blocks`, `eval_twoCNOTCircuit_raw_blocks`, and
+  `eval_oneCNOTCircuit_raw_blocks` prove the reversed active/inactive products as
+  full-register chronological circuit evaluators.
 - **Status:** corrected and proved for the convention bridge, Section 4 identities,
-  and Lemma 4.3's matrix algebra. Every later paper diagram must still use the
-  bridge explicitly; no circuit theorem is inferred merely from these matrix
-  equalities.
+  Lemma 4.3's matrix algebra, and all four Section 5 diagrams. Every later paper
+  diagram must still use the bridge explicitly; no circuit theorem is inferred
+  merely from a subsystem matrix equality.
 
 ## C-003 — Corollary 7.4 partition violates Lemma 7.2 at n = 7
 
@@ -190,8 +193,14 @@ statement. “Open” means the repair is identified but not yet machine checked
   `Circuit.cost` returns `none` for an unsupported occurrence, and
   `Primitive.namedModels_reject_unclassified_of_mem` proves that neither model
   silently prices `.unclassified`. Append and adjoint cost laws are compiled.
-- **Status:** corrected and proved at the cost-model foundation. Every numerical
-  paper bound still requires a concrete supported circuit and its own theorem.
+  For Corollary 5.6, `controlledVMacroU2Circuit_kindCounts` proves the structural
+  four-plus-two macro count, while
+  `controlledVMacroU2Circuit_oneQubitCNOTCost` proves that the Sections 3–7 model
+  rejects the unexpanded controlled-`V` occurrences. The separately expanded and
+  merged circuits carry their own syntax-derived CNOT-model costs.
+- **Status:** corrected and proved at the cost-model foundation and for all
+  Section 5 constructions. Every later numerical paper bound still requires a
+  concrete supported circuit and its own theorem.
 
 ## C-012 — Six arbitrary two-qubit gates for every U(8) is unsupported
 
@@ -293,3 +302,48 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Status:** corrected and proved, including both zero-entry endpoints, exact
   determinant normalization, the row/column order distinction, and the middle
   angle bound `theta ∈ [0, pi]`.
+
+## C-017 — Lemmas 5.4–5.5 omit essential classification and converse details
+
+- **Source:** Lemma 5.4 proof, manuscript pp. 12–13; Lemma 5.5 proof, p. 13;
+  Markdown lines 423–486.
+- **Issue:** Lemma 5.4 says that specializing Lemma 4.1 classifies a traceless
+  determinant-`-1` unitary, but it does not construct the two real parameters when
+  the phase-carrying off-diagonal entry is zero. Lemma 5.5's one-sentence proof
+  obtains its displayed circuit by cancelling two adjacent XORs, which proves the
+  construction direction but does not prove the converse. It also permits
+  arbitrary unitary `A,B` although the invoked Lemma 5.4 witnesses are special
+  unitary.
+- **Repair:** derive `B=A⁻¹` from the actual inactive branch `B*A=I`. Classify
+  `A† X A` as a Hermitian traceless unitary with first row `(r,z)` satisfying
+  `r²+‖z‖²=1`; choose `theta=2*arcsin r` and `alpha=-arg z`. The total complex polar
+  identity handles `z=0`. For arbitrary U(2) `A`, remove its determinant phase and
+  prove that the opposite scalar phases cancel exactly around X before applying
+  the SU(2) classification.
+- **Dependent impact:** Lemmas 5.4–5.5, Corollary 5.6, and every later use of the
+  special controlled-`V` family.
+- **Formal evidence:** `pauliConjugate_eq_sigmaX_mul_symmetricEuler`,
+  `sigmaX_mul_star_mul_sigmaX_mul_eq_symmetricEuler`,
+  `twoCNOTFamily_iff`, `oneCNOTSpecialFamily_iff`,
+  `unitaryPauliConjugate_eq_specialUnitaryPart`, and `oneCNOTFamily_iff` compile.
+  The two topology iff theorems independently extract their inactive and active
+  branches from full-register evaluator equality.
+- **Status:** corrected and proved in both directions, including zero-coordinate
+  cases and the paper's arbitrary-unitary quantification.
+
+## C-018 — “Rx(theta) is not of this form” has scalar endpoint exceptions
+
+- **Source:** discussion after Lemma 5.4, manuscript p. 13; Markdown line 469.
+- **Issue:** the unconditional sentence is false when `sin(theta/2)=0`. Then the
+  displayed `Rx(theta)` is the scalar matrix `I` or `-I`, both of which belong to
+  the equal-outer-angle `Rz Ry Rz` family. The intended contrast is true only for
+  generic/non-scalar x-axis rotations.
+- **Repair:** state that `Rx(theta)` is outside the Lemma 5.4 family when
+  `sin(theta/2) ≠ 0`; retain the scalar endpoint cases explicitly.
+- **Dependent impact:** illustrative examples only; no numbered construction or
+  resource theorem depends on the sentence.
+- **Formal evidence:** the Section 5 diagnostic module checks the zero-angle
+  identity member of `symmetricEuler`; a complete iff for the family itself is
+  `twoCNOTFamily_iff`.
+- **Status:** corrected as an expository boundary case; the general Rx
+  non-membership theorem is intentionally not needed by the paper's main chain.

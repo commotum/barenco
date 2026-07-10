@@ -221,6 +221,61 @@ operator norm and a shared eigenphase choice. Embedding roots into the controlle
 circuits of Lemmas 6.1, 7.5, and 7.8, proving evaluator correctness, and deriving
 syntax-based gate counts remain separate circuit/resource stages.
 
+## Section 5 Controlled-Gate Conventions
+
+`Barenco.ControlledCircuit.targetBlockRaw` exposes the existing arbitrary-target
+semantics as a reindexed block-diagonal matrix. Multiplication is pointwise on
+target blocks, and `targetBlockRaw_injective` lets a full-register equality be
+proved or recovered from all complementary-wire assignments. This is proof-side
+infrastructure, not a circuit representation or a resource counter.
+
+The four Section 5 diagrams are represented by chronological lists whose first
+element executes first:
+
+- Lemma 5.1: `A; CNOT; B; CNOT; C`, with column-semantic branches
+  `C * B * A` and `C * X * B * X * A`;
+- Lemma 5.2: the single control-wire gate
+  `E(delta) = Rz(-delta) * Ph(delta/2) = diag(1,cis delta)`;
+- Lemma 5.4: `A; CNOT; B; CNOT`, with branches `B * A` and
+  `X * B * X * A`;
+- Lemma 5.5: `A; CNOT; B`, with branches `B * A` and `B * X * A`.
+
+All evaluator theorems quantify an arbitrary ambient width and distinct named
+control and target wires. Thus their equality is equality of the complete register
+unitaries, including every other wire; no two-qubit coordinate check is promoted to
+a larger-register theorem. There are no auxiliary wires in these constructions.
+
+Controlling the scalar matrix `Ph(delta)` does not produce an ignorable global
+phase. It produces a relative phase between the two control branches and is exactly
+equal to applying `E(delta)` on the control wire. Corollary 5.3 uses the exact
+determinant-phase split from Section 4 and has a constructed syntax cost of four
+one-qubit gates plus two CNOTs under `CostModel.oneQubitCNOT`.
+
+For Lemmas 5.4 and 5.5, define
+`symmetricEuler alpha theta = rz alpha * ry theta * rz alpha`. In standard-column
+orientation the two-CNOT family is `symmetricEuler alpha theta`, while the
+one-CNOT family is `sigmaX * symmetricEuler alpha theta`. The latter is equivalent
+to the paper's displayed row-action family after transposition and renaming the
+unrestricted parameters. The classification chooses `theta` with `Real.arcsin`
+and the phase with total `Complex.arg`; zero off-diagonal entries require no
+division or nonzero assumption. Lemma 5.5's arbitrary U(2) witnesses are normalized
+to `specialUnitaryPart` only after the inactive branch proves `B = A⁻¹`; the
+opposite scalar phases then cancel exactly around Pauli-X.
+
+Corollary 5.6 has two deliberately separate resource layers. The six-node macro
+circuit contains four `.oneQubit` occurrences and two
+`.controlledOneQubit 1` occurrences. It is a valid circuit over an enlarged library
+containing the selected controlled-`V`, but `CostModel.oneQubitCNOT` returns `none`
+before expansion. Expanding each controlled-`V` as `D; CNOT; F` produces ten
+Section-3 primitives before local merges; the three checked adjacent merge groups
+recover the ordinary six-primitive Corollary 5.3 circuit. A semantic equality never
+serves as the count proof: each count is evaluated on the corresponding syntax.
+
+The unnumbered controlled-Z diagram is exact wire-swap symmetry, not merely a
+graphical convention or phase equivalence. `controlledZUnitary_swap` proves it for
+arbitrary ambient width; the shared matrix contributes `-1` exactly when both named
+wires are true.
+
 ## Semantic Relations
 
 The implemented relations are deliberately noninterchangeable:
