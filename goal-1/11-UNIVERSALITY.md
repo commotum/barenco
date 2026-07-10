@@ -1,7 +1,7 @@
 # 11-UNIVERSALITY
 
-Status: in progress (source and pinned-API audit; no Stage 11 Lean implementation
-has begun).
+Status: in progress (constructive algebraic decomposition and the local/full-control
+circuit layers compile; affine two-level transport and final assembly remain).
 
 ## Current Facts
 
@@ -39,9 +39,12 @@ has begun).
   lexicographic `Fin (2^n)` bridge is a separate theorem, not an existing API.
 - The project already has chronological `Circuit.append`/`Circuit.eval`, certified
   arbitrary one-qubit primitives, CNOT primitives, circuit adjoints, finite-mask
-  Gray-code facts, and exact positive multi-control constructions. Whether the
-  most reusable Section 8 path should reuse the reflected Gray enumeration or a
-  direct Hamming path remains under audit.
+  Gray-code facts, and exact positive multi-control constructions. A direct
+  duplicate-free shortest Hamming path has now been proved for source
+  traceability. The main exact circuit theorem instead uses a smaller affine
+  conjugation: translate the first endpoint to zero with local X gates, then use
+  CNOTs from one differing pivot to clear every other differing bit of the second
+  endpoint. This sends the ordered pair to zero and a singleton without ancillas.
 - The pinned mathlib audit confirms there is no Givens, Householder/QR,
   two-level-unitary, or unitary-triangular decomposition API. The general
   transvection factorization is unusable because its factors are nonunitary.
@@ -59,9 +62,12 @@ has begun).
   excluded under Stage 10. They are not prerequisites for exact universality.
 - The source's per-factor `Theta(n^3)` and total `Theta(n^3 4^n)` claims are also
   overstated. The Gray path only satisfies `m <= n+1`; adjacent endpoints have
-  `m=2` and one fully controlled gate, so the displayed construction supports a
-  uniform `O(n^3)` upper bound, not a per-instance lower bound. Stage 12 must not
-  promote this into `Theta` without an aggregate matching theorem.
+  `m=2` and one fully controlled gate, so that displayed construction supports a
+  uniform `O(n^3)` upper bound, not a per-instance lower bound. The affine
+  conjugation needs only linearly many X/CNOT transport gates around one quadratic
+  fully controlled block, giving the formal library a stronger uniform `O(n^2)`
+  construction per two-level factor. Stage 12 must state this as an upper bound,
+  not promote either schedule to `Theta` without a matching lower theorem.
 
 ## Updated Assumptions
 
@@ -83,9 +89,11 @@ has begun).
 ## Big Picture Objective
 
 Construct and verify an exact, no-ancilla circuit over arbitrary one-qubit gates
-and CNOT for every finite-qubit unitary. Supply a reusable finite-dimensional
-two-level decomposition independently of the qubit specialization, then connect
-each two-level factor to a fully explicit Gray-path circuit.
+and CNOT for every positive-width finite-qubit unitary. Supply a reusable
+finite-dimensional two-level decomposition independently of the qubit
+specialization, then connect each two-level factor to a fully explicit affine
+X/CNOT conjugation circuit. Retain the verified shortest Hamming path as a direct
+formal reconstruction of the paper's Gray-path reasoning.
 
 ## Detailed Implementation Plan
 
@@ -104,9 +112,11 @@ each two-level factor to a fully explicit Gray-path circuit.
 5. Define pattern-controlled one-qubit circuits via local-X conjugation of the
    existing positive-control implementation. Prove exact full-register semantics,
    negative-control restoration, and primitive expansion to one-qubit/CNOT syntax.
-6. Construct a two-level circuit by moving one endpoint along the path, applying
-   the desired block on the final adjacent pair, and reversing the moves. Prove
-   evaluator equality on all computational basis states and then as matrices.
+6. Construct a two-level circuit by affine-conjugating the two endpoints to zero
+   and a singleton, applying the desired ordered block on that adjacent pair, and
+   reversing the X/CNOT transport. Prove evaluator equality using the general
+   certified-unitary transport theorem. The shorter Hamming path remains a proved
+   alternative/source model rather than the assembly dependency.
 7. Map every algebraic factor to its circuit and concatenate chronologically with
    the order required by `Circuit.eval_append`. Prove exact universality for
    positive register width, the direct one-qubit specialization, and the exact
@@ -120,8 +130,9 @@ each two-level factor to a fully explicit Gray-path circuit.
 - Algebraic layer: `Barenco/Universality/Givens.lean`,
   `Barenco/Universality/TwoLevel.lean`, and one or more narrow elimination leaves.
   These are public algebraic APIs and must not import circuit syntax.
-- Circuit layer: narrow full-control, pattern-control, and basis-path modules importing
-  only the semantic/circuit and established multi-control leaves they use.
+- Circuit layer: narrow full-control, pattern-control, basis-path, adjacent-pair,
+  affine-pair, and two-level transport modules importing only the semantic/circuit
+  and established multi-control leaves they use.
 - Assembly layer: a universality leaf importing both algebraic and circuit
   synthesis. `Barenco.lean` changes only after stable theorem signatures compile.
 - Planned diagnostic leaf: `Barenco/Universality/UniversalityExamples.lean`, excluded
@@ -209,3 +220,26 @@ each two-level factor to a fully explicit Gray-path circuit.
   block. It exactly sends `(a,b)` to
   `(0,sqrt(normSq a + normSq b))`, including the zero pair, and passes strict and
   trust-zero compilation.
+- `TwoLevel.lean`, `EliminationCore.lean`, `Elimination.lean`, and
+  `FiniteBridge.lean` now give a reusable constructive decomposition over every
+  finite decidable index type. Exact left-Givens elimination returns an explicit
+  ordered list of certified two-level factors and a certified diagonal residual,
+  with a proved product equation and no lost phase; the finite zero- and
+  one-dimensional cases are included.
+- `FullControl.lean`, `PatternFlip.lean`, `PatternControl.lean`, and
+  `AdjacentTwoLevel.lean` now compile. They expand mixed-polarity pattern controls
+  to literal arbitrary one-qubit/CNOT syntax, prove exact full-register semantics
+  and restoration, and repair reversed endpoint order by using `X U X` precisely
+  when the first endpoint has target bit `true`.
+- `BasisPath.lean` proves a duplicate-free shortest differing-wire path, exact
+  endpoints, one-wire adjacency, length `hammingDist + 1`, and the bound `<= n+1`.
+  `TwoLevelTransport.lean` proves the stronger algebraic conjugation theorem that
+  any certified unitary with the two required basis-ket images transports the
+  corresponding ordered two-level block; no unsupported claim about the remaining
+  basis permutation is needed.
+- A smaller affine implementation was discovered after the path layer compiled:
+  X gates translate the first endpoint to zero and pivot-controlled CNOTs reduce
+  the second endpoint's difference mask to one bit. This improves the construction
+  targeted by the library from the source route's cubic worst-case upper bound to
+  a quadratic upper bound per two-level factor. Its implementation and independent
+  proof audit are in progress before final universality assembly.
