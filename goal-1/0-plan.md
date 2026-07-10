@@ -319,6 +319,43 @@ from syntax.
 Verify Section 6 exact controlled-controlled gates and the precise relative-phase
 Toffoli behavior.
 
+### Current Facts
+
+- The Lemma 6.1 diagram executes left-to-right as controlled-`V` from the second
+  control to the target; CNOT from the first control to the second; controlled-
+  `V†` from the second control; the same CNOT restoring the second wire; and
+  controlled-`V` from the first control. Its proof requires three pairwise
+  distinct named wires and no auxiliary wire.
+- `OneQubit.unitarySquareRoot` already provides a certified exact square root
+  with `unitarySquareRoot_pow_two`; Stage 6 must connect that semantic root to an
+  explicit circuit rather than restating root existence.
+- The Section 5 target-block algebra applies directly to all gates sharing the
+  final target, but the two intermediate CNOTs change a complementary/control
+  assignment. Lemma 6.1 therefore needs a checked parity/conjugation layer or an
+  equivalent basis-extensional argument; a two-by-two branch calculation alone
+  is insufficient.
+- Corollary 6.2's published `8` one-qubit plus `8` XOR upper bound is not the
+  naive expansion count: three six-primitive controlled-unitary expansions plus
+  two CNOTs give `20`. The source claims two adjacent inverse pairs of local
+  gates cancel, so the formal result needs coordinated Section 5 witnesses and
+  explicit syntax whose count is `16`.
+- The first relative-phase Toffoli diagram is chronological
+  `A(target); CNOT(second,target); A(target); CNOT(first,target); A†(target);`
+  `CNOT(second,target); A†(target)`, with `A = Ry(pi/4)` in the paper convention.
+  The second replaces the three CNOTs by symmetric controlled-Z gates and uses
+  `B; CZ(second,target); B†; CZ(first,target); B; CZ(second,target); B†`, with
+  `B = Ry(3*pi/4)`. Independent diagram evaluation gives the same exact signed
+  permutation for both: `|101⟩` alone receives `-1`, while `|110⟩` and `|111⟩`
+  are swapped positively and every other basis state is fixed.
+- Section 6.2 does not establish global-phase equality. Controlled-`W` with
+  `W = [[0,1],[-1,0]]` instead maps `|111⟩` to `-|110⟩`; it has a different
+  exact sign witness from both displayed seven-node circuits. All three must
+  remain distinct before deriving weaker `BasisPhaseEq`, reversible-basis, or
+  basis-measurement consequences.
+- `BUILD-PLAN.md` remains authoritative. Stage 6 facts, declaration ownership,
+  focused builds, and verification evidence belong in `goal-1/6-THREE-QUBIT.md`
+  before public root or audit files change.
+
 ### Detailed Implementation Plan
 
 - Formalize Lemma 6.1 using a proved square root and explicit embedded gates.
