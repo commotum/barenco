@@ -262,9 +262,13 @@ pivot invariant, not merely Hamming adjacency.
 - `Barenco/MultiControl/Lemma71.lean`: runtime/public Gray circuit constructors
   and proof-side/public four-bit/general evaluators, root wrapper, and macro
   counts. Import `GrayCode`, narrow controlled circuit semantics, roots, and cost.
-- `Barenco/MultiControl/Borrowed.lean`: runtime/public wire-partition and Lemma 7.2
-  ladder syntax; proof-side/public Boolean update, restoration, evaluator, and
-  Toffoli-count theorems.
+- `Barenco/MultiControl/Borrowed.lean`: low-dependency runtime/public Lemma 7.2
+  slot layout, recursive ladder syntax, and cheap exact gate/Toffoli counts.
+- `Barenco/MultiControl/BorrowedSemantics.lean`: proof-side/public Boolean half
+  invariant, dirty-wire restoration, basis action, and exact full-register
+  evaluator equality.
+- `Barenco/MultiControl/BorrowedResources.lean`: proof-side/public width/capacity,
+  touched-support where useful, and explicit rejection by named cost models.
 - `Barenco/MultiControl/FourBlock.lean`: runtime/public Lemma 7.3 and repaired
   Corollary 7.4 macro circuits; proof-side/public full-register correctness,
   partition inequalities, and `8(n−5)` count.

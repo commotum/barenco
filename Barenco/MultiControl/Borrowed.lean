@@ -1,7 +1,5 @@
 import Barenco.Cost
 import Barenco.MultiControl.Layout
-import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Algebra.Ring.BooleanRing
 import Mathlib.Tactic
 
 /-!
@@ -232,7 +230,9 @@ theorem halfLadderCircuit_gateCount {b n : ℕ} (layout : InwardLadderLayout b n
   | zero => intro layout; simp [halfLadderCircuit, Circuit.gateCount]
   | succ b ih =>
       intro layout
-      simp [halfLadderCircuit, ih layout.smaller, Circuit.gateCount, Circuit.append]
+      rw [halfLadderCircuit, Circuit.gateCount_append, Circuit.gateCount_append,
+        ih layout.smaller]
+      simp [Circuit.gateCount]
       omega
 
 @[simp]
@@ -244,7 +244,9 @@ theorem halfLadderCircuit_toffoliCount {b n : ℕ}
   | zero => intro layout; simp [halfLadderCircuit, Circuit.kindCount]
   | succ b ih =>
       intro layout
-      simp [halfLadderCircuit, ih layout.smaller, Circuit.kindCount, Circuit.append]
+      rw [halfLadderCircuit, Circuit.kindCount_append, Circuit.kindCount_append,
+        ih layout.smaller]
+      simp [Circuit.kindCount]
       omega
 
 @[simp]
