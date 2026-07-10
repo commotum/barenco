@@ -453,7 +453,7 @@ theorem relativePhaseToffoliB_block_cases (firstBit secondBit : Bool) :
             noncomm_ring
       _ = ry (-3 * Real.pi) * sigmaZ := by
             repeat rw [ry_mul]
-            congr 1
+            congr 2
             ring
       _ = sigmaX := ry_neg_three_pi_mul_sigmaZ
 
@@ -494,3 +494,442 @@ theorem eval_relativePhaseToffoliACircuit_eq_BCircuit {n : ℕ}
       Circuit.eval
         (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget) := by
   rw [eval_relativePhaseToffoliACircuit, eval_relativePhaseToffoliBCircuit]
+
+/-! ## Exact adjacent-pair cancellation -/
+
+/-- The canonical `I/I/Z/X` signed permutation is an involution. -/
+@[simp]
+theorem relativeToffoliUnitary_sq {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    relativeToffoliUnitary first second target hfirstTarget hsecondTarget ^ 2 = 1 := by
+  rw [pow_two]
+  apply Subtype.ext
+  simp only [Submonoid.coe_mul, coe_relativeToffoliUnitary, Submonoid.coe_one]
+  rw [targetBlockRaw_mul]
+  rw [← targetBlockRaw_one target]
+  congr 1
+  funext rest
+  cases hfirstBit : rest ⟨first, hfirstTarget⟩ <;>
+    cases hsecondBit : rest ⟨second, hsecondTarget⟩ <;>
+    simp [sigmaX_sq, sigmaZ_sq]
+
+/-- Two immediately adjacent copies of the first diagram evaluate to identity. -/
+@[simp]
+theorem eval_append_relativePhaseToffoliACircuit_self {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    Circuit.eval (Circuit.append
+      (relativePhaseToffoliACircuit first second target hfirstTarget hsecondTarget)
+      (relativePhaseToffoliACircuit first second target hfirstTarget hsecondTarget)) = 1 := by
+  rw [Circuit.eval_append, eval_relativePhaseToffoliACircuit,
+    ← pow_two, relativeToffoliUnitary_sq]
+
+/-- Two immediately adjacent copies of the second diagram evaluate to identity. -/
+@[simp]
+theorem eval_append_relativePhaseToffoliBCircuit_self {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    Circuit.eval (Circuit.append
+      (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget)
+      (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget)) = 1 := by
+  rw [Circuit.eval_append, eval_relativePhaseToffoliBCircuit,
+    ← pow_two, relativeToffoliUnitary_sq]
+
+/-! ## Two-control block bridge and exact phase witnesses -/
+
+/-- Nested target block selected by both named controls. -/
+def twoControlBlock {n : ℕ} (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (U : QubitMatrix) (rest : ComplementBasis target) : QubitMatrix :=
+  if rest ⟨first, hfirstTarget⟩ then
+    if rest ⟨second, hsecondTarget⟩ then U else 1
+  else 1
+
+/-- The existing unordered `twoControlSet` has the expected nested target blocks. -/
+theorem positiveControlledRaw_twoControlSet_eq_targetBlockRaw {n : ℕ}
+    (first second target : Fin n) (_hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (U : QubitMatrix) :
+    positiveControlledRaw target
+        (twoControlSet first second target hfirstTarget hsecondTarget) U =
+      targetBlockRaw target
+        (twoControlBlock first second target hfirstTarget hsecondTarget U) := by
+  rw [twoControlSet, positiveControlledRaw, controlledRaw_eq_targetBlockRaw]
+  congr 1
+  funext rest
+  cases hfirstBit : rest ⟨first, hfirstTarget⟩ <;>
+    cases hsecondBit : rest ⟨second, hsecondTarget⟩ <;>
+    simp [twoControlBlock, positiveControlsEnabled, hfirstBit, hsecondBit]
+
+/-- Exact doubly controlled Pauli-X (Toffoli) on three named wires. -/
+def toffoliUnitary {n : ℕ} (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    UnitaryGate n :=
+  positiveControlledUnitary target
+    (twoControlSet first second target hfirstTarget hsecondTarget) sigmaXUnitary
+
+/-- Exact doubly controlled standard-column translation of the paper's `W`. -/
+def controlledWUnitary {n : ℕ} (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    UnitaryGate n :=
+  positiveControlledUnitary target
+    (twoControlSet first second target hfirstTarget hsecondTarget) wUnitary
+
+/-- Input-column sign of the two displayed relative-phase diagrams. -/
+def relativeToffoliPhase {n : ℕ} (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (rest : ComplementBasis target) (input : Bool) : Circle :=
+  if rest ⟨first, hfirstTarget⟩ = true ∧
+      rest ⟨second, hsecondTarget⟩ = false ∧ input = true then
+    (-1 : Circle)
+  else 1
+
+/-- The relative-phase witness is negative exactly on input bits `101`. -/
+@[simp]
+theorem relativeToffoliPhase_input {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) (input : Basis n) :
+    relativeToffoliPhase first second target hfirstTarget hsecondTarget
+        (splitTarget target input).2 (input target) =
+      if input first = true ∧ input second = false ∧ input target = true then
+        (-1 : Circle)
+      else 1 := by
+  simp [relativeToffoliPhase]
+
+/-- Input-column sign of doubly controlled paper `W`. -/
+def controlledWPhase {n : ℕ} (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (rest : ComplementBasis target) (input : Bool) : Circle :=
+  if rest ⟨first, hfirstTarget⟩ = true ∧
+      rest ⟨second, hsecondTarget⟩ = true ∧ input = true then
+    (-1 : Circle)
+  else 1
+
+/-- The controlled-`W` witness is negative exactly on input bits `111`. -/
+@[simp]
+theorem controlledWPhase_input {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) (input : Basis n) :
+    controlledWPhase first second target hfirstTarget hsecondTarget
+        (splitTarget target input).2 (input target) =
+      if input first = true ∧ input second = true ∧ input target = true then
+        (-1 : Circle)
+      else 1 := by
+  simp [controlledWPhase]
+
+/-- Entrywise block sign of the canonical relative-phase unitary versus Toffoli. -/
+theorem relativeToffoliBlock_phase {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) (rest : ComplementBasis target)
+    (row input : Bool) :
+    (if rest ⟨first, hfirstTarget⟩ then
+        if rest ⟨second, hsecondTarget⟩ then sigmaX else sigmaZ
+      else 1) row input =
+      (relativeToffoliPhase first second target hfirstTarget hsecondTarget
+        rest input : ℂ) *
+        twoControlBlock first second target hfirstTarget hsecondTarget sigmaX
+          rest row input := by
+  cases hfirstBit : rest ⟨first, hfirstTarget⟩ <;>
+    cases hsecondBit : rest ⟨second, hsecondTarget⟩ <;>
+    cases row <;> cases input <;>
+    norm_num [relativeToffoliPhase, twoControlBlock, sigmaZ_eq_matrix2,
+      sigmaX_eq_paperX, paperX, hfirstBit, hsecondBit]
+
+/-- Entrywise block sign of controlled paper `W` versus Toffoli. -/
+theorem controlledWBlock_phase {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) (rest : ComplementBasis target)
+    (row input : Bool) :
+    twoControlBlock first second target hfirstTarget hsecondTarget wMatrix
+        rest row input =
+      (controlledWPhase first second target hfirstTarget hsecondTarget rest input :
+        ℂ) *
+        twoControlBlock first second target hfirstTarget hsecondTarget sigmaX
+          rest row input := by
+  cases hfirstBit : rest ⟨first, hfirstTarget⟩ <;>
+    cases hsecondBit : rest ⟨second, hsecondTarget⟩ <;>
+    cases row <;> cases input <;>
+    norm_num [twoControlBlock, wMatrix, paperW, controlledWPhase, fromPaper,
+      sigmaX_eq_paperX, paperX, hfirstBit, hsecondBit]
+
+/-! ## Lifting block signs to full-register columns -/
+
+/-- Pointwise target-block column phases lift to arbitrary-width basis-phase equality. -/
+theorem targetBlockRaw_basisPhaseEq {n : ℕ} (target : Fin n)
+    (F G : ComplementBasis target → QubitMatrix)
+    (phase : ComplementBasis target → Bool → Circle)
+    (hphase : ∀ rest row input,
+      G rest row input = (phase rest input : ℂ) * F rest row input) :
+    BasisPhaseEq (targetBlockRaw target F) (targetBlockRaw target G) := by
+  refine ⟨fun input ↦ phase (splitTarget target input).2 (input target), ?_⟩
+  intro row input
+  rw [targetBlockRaw_apply, targetBlockRaw_apply]
+  by_cases hrest : (splitTarget target row).2 = (splitTarget target input).2
+  · rw [if_pos hrest, if_pos hrest, hphase, hrest]
+  · rw [if_neg hrest, if_neg hrest, mul_zero]
+
+/-- Pointwise block phases also give the corresponding exact basis-column action. -/
+theorem targetBlockRaw_mulVec_basisKet_phase {n : ℕ} (target : Fin n)
+    (F G : ComplementBasis target → QubitMatrix)
+    (phase : ComplementBasis target → Bool → Circle)
+    (hphase : ∀ rest row input,
+      G rest row input = (phase rest input : ℂ) * F rest row input)
+    (input : Basis n) :
+    targetBlockRaw target G *ᵥ basisKet input =
+      (phase (splitTarget target input).2 (input target) : ℂ) •
+        (targetBlockRaw target F *ᵥ basisKet input) := by
+  ext row
+  simp only [mulVec_basisKet_apply, Pi.smul_apply, smul_eq_mul]
+  rw [targetBlockRaw_apply, targetBlockRaw_apply]
+  by_cases hrest : (splitTarget target row).2 = (splitTarget target input).2
+  · rw [if_pos hrest, if_pos hrest, hphase, hrest]
+  · rw [if_neg hrest, if_neg hrest, mul_zero]
+
+/-- Classical basis assignment produced by exact Toffoli on the three named wires. -/
+def toffoliOutput {n : ℕ} (first second target : Fin n)
+    (input : Basis n) : Basis n :=
+  if input first = true ∧ input second = true then
+    setTarget target input (!input target)
+  else input
+
+/-- Exact arbitrary-width Toffoli basis action. -/
+theorem toffoliUnitary_mulVec_basisKet {n : ℕ}
+    (first second target : Fin n) (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) (input : Basis n) :
+    (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) *ᵥ
+        basisKet input =
+      basisKet (toffoliOutput first second target input) := by
+  rw [toffoliUnitary, coe_positiveControlledUnitary,
+    positiveControlledRaw_truthTable]
+  by_cases hactive : input first = true ∧ input second = true
+  · rw [if_pos]
+    · simpa [toffoliOutput, hactive, xRaw, sigmaX_eq_coe_pauliX] using
+        xRaw_mulVec_basisKet target input
+    · intro i hi
+      rw [twoControlSet] at hi
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hi
+      rcases hi with rfl | rfl
+      · exact hactive.1
+      · exact hactive.2
+  · rw [if_neg]
+    · simp [toffoliOutput, hactive]
+    · intro hall
+      apply hactive
+      constructor
+      · exact hall ⟨first, hfirstTarget⟩ (by simp [twoControlSet])
+      · exact hall ⟨second, hsecondTarget⟩ (by simp [twoControlSet])
+
+/-! ## Basis-phase relations with exact witnesses -/
+
+/-- The canonical relative-phase unitary differs from Toffoli by its `101` sign. -/
+theorem relativeToffoliUnitary_basisPhaseEq_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisPhaseEq (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (relativeToffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) := by
+  simp only [toffoliUnitary, coe_positiveControlledUnitary, coe_sigmaXUnitary]
+  rw [positiveControlledRaw_twoControlSet_eq_targetBlockRaw first second target
+      hfirstSecond hfirstTarget hsecondTarget sigmaX,
+    coe_relativeToffoliUnitary]
+  exact targetBlockRaw_basisPhaseEq target
+    (twoControlBlock first second target hfirstTarget hsecondTarget sigmaX)
+    (fun rest ↦ if rest ⟨first, hfirstTarget⟩ then
+      if rest ⟨second, hsecondTarget⟩ then sigmaX else sigmaZ else 1)
+    (relativeToffoliPhase first second target hfirstTarget hsecondTarget)
+    (relativeToffoliBlock_phase first second target hfirstTarget hsecondTarget)
+
+/-- Doubly controlled paper `W` differs from Toffoli by its `111` sign. -/
+theorem controlledWUnitary_basisPhaseEq_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisPhaseEq (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (controlledWUnitary first second target hfirstTarget hsecondTarget : Gate n) := by
+  simp only [toffoliUnitary, controlledWUnitary, coe_positiveControlledUnitary,
+    coe_sigmaXUnitary, coe_wUnitary]
+  rw [positiveControlledRaw_twoControlSet_eq_targetBlockRaw first second target
+      hfirstSecond hfirstTarget hsecondTarget sigmaX,
+    positiveControlledRaw_twoControlSet_eq_targetBlockRaw first second target
+      hfirstSecond hfirstTarget hsecondTarget wMatrix]
+  exact targetBlockRaw_basisPhaseEq target
+    (twoControlBlock first second target hfirstTarget hsecondTarget sigmaX)
+    (twoControlBlock first second target hfirstTarget hsecondTarget wMatrix)
+    (controlledWPhase first second target hfirstTarget hsecondTarget)
+    (controlledWBlock_phase first second target hfirstTarget hsecondTarget)
+
+/-! ## Exact signed-permutation basis actions -/
+
+/-- Canonical exact signed action: Toffoli output with the `101` input sign. -/
+theorem relativeToffoliUnitary_mulVec_basisKet {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (input : Basis n) :
+    (relativeToffoliUnitary first second target hfirstTarget hsecondTarget : Gate n) *ᵥ
+        basisKet input =
+      (relativeToffoliPhase first second target hfirstTarget hsecondTarget
+        (splitTarget target input).2 (input target) : ℂ) •
+        basisKet (toffoliOutput first second target input) := by
+  rw [coe_relativeToffoliUnitary]
+  have hphase := targetBlockRaw_mulVec_basisKet_phase target
+    (twoControlBlock first second target hfirstTarget hsecondTarget sigmaX)
+    (fun rest ↦ if rest ⟨first, hfirstTarget⟩ then
+      if rest ⟨second, hsecondTarget⟩ then sigmaX else sigmaZ else 1)
+    (relativeToffoliPhase first second target hfirstTarget hsecondTarget)
+    (relativeToffoliBlock_phase first second target hfirstTarget hsecondTarget) input
+  rw [hphase]
+  congr 1
+  rw [← positiveControlledRaw_twoControlSet_eq_targetBlockRaw first second target
+      hfirstSecond hfirstTarget hsecondTarget sigmaX]
+  simpa [toffoliUnitary, coe_sigmaXUnitary] using
+    toffoliUnitary_mulVec_basisKet first second target hfirstTarget hsecondTarget input
+
+/-- Exact signed action of doubly controlled paper `W`, whose sign is on `111`. -/
+theorem controlledWUnitary_mulVec_basisKet {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (input : Basis n) :
+    (controlledWUnitary first second target hfirstTarget hsecondTarget : Gate n) *ᵥ
+        basisKet input =
+      (controlledWPhase first second target hfirstTarget hsecondTarget
+        (splitTarget target input).2 (input target) : ℂ) •
+        basisKet (toffoliOutput first second target input) := by
+  simp only [controlledWUnitary, coe_positiveControlledUnitary, coe_wUnitary]
+  rw [positiveControlledRaw_twoControlSet_eq_targetBlockRaw first second target
+      hfirstSecond hfirstTarget hsecondTarget wMatrix]
+  have hphase := targetBlockRaw_mulVec_basisKet_phase target
+    (twoControlBlock first second target hfirstTarget hsecondTarget sigmaX)
+    (twoControlBlock first second target hfirstTarget hsecondTarget wMatrix)
+    (controlledWPhase first second target hfirstTarget hsecondTarget)
+    (controlledWBlock_phase first second target hfirstTarget hsecondTarget) input
+  rw [hphase]
+  congr 1
+  rw [← positiveControlledRaw_twoControlSet_eq_targetBlockRaw first second target
+      hfirstSecond hfirstTarget hsecondTarget sigmaX]
+  simpa [toffoliUnitary, coe_sigmaXUnitary] using
+    toffoliUnitary_mulVec_basisKet first second target hfirstTarget hsecondTarget input
+
+/-- Exact signed action of the first seven-node circuit. -/
+theorem relativePhaseToffoliACircuit_mulVec_basisKet {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (input : Basis n) :
+    (Circuit.eval
+        (relativePhaseToffoliACircuit first second target hfirstTarget hsecondTarget) :
+      Gate n) *ᵥ basisKet input =
+      (relativeToffoliPhase first second target hfirstTarget hsecondTarget
+        (splitTarget target input).2 (input target) : ℂ) •
+        basisKet (toffoliOutput first second target input) := by
+  rw [eval_relativePhaseToffoliACircuit]
+  exact relativeToffoliUnitary_mulVec_basisKet first second target hfirstSecond
+    hfirstTarget hsecondTarget input
+
+/-- Exact signed action of the controlled-Z seven-node circuit. -/
+theorem relativePhaseToffoliBCircuit_mulVec_basisKet {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (input : Basis n) :
+    (Circuit.eval
+        (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget) :
+      Gate n) *ᵥ basisKet input =
+      (relativeToffoliPhase first second target hfirstTarget hsecondTarget
+        (splitTarget target input).2 (input target) : ℂ) •
+        basisKet (toffoliOutput first second target input) := by
+  rw [eval_relativePhaseToffoliBCircuit]
+  exact relativeToffoliUnitary_mulVec_basisKet first second target hfirstSecond
+    hfirstTarget hsecondTarget input
+
+/-! ## Derived phase, reversible-basis, and basis-measurement relations -/
+
+theorem relativePhaseToffoliACircuit_basisPhaseEq_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisPhaseEq (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliACircuit first second target hfirstTarget hsecondTarget) :
+          Gate n) := by
+  rw [eval_relativePhaseToffoliACircuit]
+  exact relativeToffoliUnitary_basisPhaseEq_toffoli first second target
+    hfirstSecond hfirstTarget hsecondTarget
+
+theorem relativePhaseToffoliBCircuit_basisPhaseEq_toffoli {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisPhaseEq (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget) :
+          Gate n) := by
+  rw [eval_relativePhaseToffoliBCircuit]
+  exact relativeToffoliUnitary_basisPhaseEq_toffoli first second target
+    hfirstSecond hfirstTarget hsecondTarget
+
+theorem relativePhaseToffoliACircuit_sameBasisBehavior {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    SameBasisBehavior
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliACircuit first second target hfirstTarget hsecondTarget) :
+          Gate n) :=
+  BasisPhaseEq.toSameBasisBehavior
+    (relativePhaseToffoliACircuit_basisPhaseEq_toffoli first second target
+      hfirstSecond hfirstTarget hsecondTarget)
+
+theorem relativePhaseToffoliACircuit_basisMeasurementEq {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisMeasurementEq
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliACircuit first second target hfirstTarget hsecondTarget) :
+          Gate n) :=
+  BasisPhaseEq.toBasisMeasurementEq
+    (relativePhaseToffoliACircuit_basisPhaseEq_toffoli first second target
+      hfirstSecond hfirstTarget hsecondTarget)
+
+theorem relativePhaseToffoliBCircuit_sameBasisBehavior {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    SameBasisBehavior
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget) :
+          Gate n) :=
+  BasisPhaseEq.toSameBasisBehavior
+    (relativePhaseToffoliBCircuit_basisPhaseEq_toffoli first second target
+      hfirstSecond hfirstTarget hsecondTarget)
+
+theorem relativePhaseToffoliBCircuit_basisMeasurementEq {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisMeasurementEq
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (Circuit.eval
+        (relativePhaseToffoliBCircuit first second target hfirstTarget hsecondTarget) :
+          Gate n) :=
+  BasisPhaseEq.toBasisMeasurementEq
+    (relativePhaseToffoliBCircuit_basisPhaseEq_toffoli first second target
+      hfirstSecond hfirstTarget hsecondTarget)
+
+theorem controlledWUnitary_sameBasisBehavior {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    SameBasisBehavior
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (controlledWUnitary first second target hfirstTarget hsecondTarget : Gate n) :=
+  BasisPhaseEq.toSameBasisBehavior
+    (controlledWUnitary_basisPhaseEq_toffoli first second target
+      hfirstSecond hfirstTarget hsecondTarget)
+
+theorem controlledWUnitary_basisMeasurementEq {n : ℕ}
+    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    BasisMeasurementEq
+      (toffoliUnitary first second target hfirstTarget hsecondTarget : Gate n)
+      (controlledWUnitary first second target hfirstTarget hsecondTarget : Gate n) :=
+  BasisPhaseEq.toBasisMeasurementEq
+    (controlledWUnitary_basisPhaseEq_toffoli first second target
+      hfirstSecond hfirstTarget hsecondTarget)
+
+end
+
+end Barenco.ThreeQubit

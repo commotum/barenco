@@ -427,3 +427,33 @@ statement. “Open” means the repair is identified but not yet machine checked
   circuit has exactly eight `.oneQubit` and eight `.cnot` nodes and cost
   `some 16` under `CostModel.oneQubitCNOT`.
 - **Status:** clarified and proved as an exact constructed upper bound.
+
+## C-021 — The PDF attributes the controlled-W minus sign to the wrong gate
+
+- **Source:** Section 6.2 opening paragraph, manuscript pp. 15–16; Markdown lines
+  552–566.
+- **Issue:** after introducing `∧₂(W)` and exact Toffoli `∧₂(X)`, the original PDF
+  says “the latter maps `|111⟩` to `-|110⟩`.” Grammatically, “latter” names
+  Toffoli, which is false; the minus sign belongs to the former, controlled-`W`.
+  The Markdown transcription silently changes “latter” to “former.” A separate
+  possible confusion is that the two following seven-node diagrams do not equal
+  controlled-`W`: their basis-dependent minus sign is on input `|101⟩`, whereas
+  controlled-`W` has it on `|111⟩`.
+- **Repair:** translate the paper matrix `W=[[0,1],[-1,0]]` to the standard-column
+  matrix `Wᵀ=Ry(pi)`, prove its exact controlled basis action, and keep it distinct
+  from the exact common evaluator of the A/CNOT and B/controlled-Z diagrams.
+  Relate each operator to exact Toffoli through its own explicit input-column
+  phase witness; do not use global-phase equality.
+- **Dependent impact:** relative-phase cancellation in Corollary 7.4 must use the
+  actual `|101⟩` witness of the displayed circuits, not the `|111⟩` witness of
+  controlled-`W`. Claims about paired occurrences require an ordered basis-path
+  calculation when intervening gates are present.
+- **Formal evidence:** `wMatrix_eq_ry_pi`, `coe_wUnitary`,
+  `controlledWUnitary_mulVec_basisKet`,
+  `relativePhaseToffoliACircuit_mulVec_basisKet`,
+  `relativePhaseToffoliBCircuit_mulVec_basisKet`, and
+  `eval_relativePhaseToffoliACircuit_eq_BCircuit` compile. The derived
+  `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq` theorems retain
+  the distinct phase predicates.
+- **Status:** corrected and proved with exact arbitrary-width signed actions; the
+  Markdown wording is correct, while the original PDF is not.

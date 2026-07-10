@@ -194,7 +194,7 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
 - [x] Lemma 6.1 has a named five-node circuit, a parameterized exact evaluator
   theorem from `V^2=U`, a selected-root exact theorem, structural macro counts,
   and arbitrary-width/pairwise-distinct wire quantification.
-- [ ] Full-register equality covers all spectator wires and exact restoration of
+- [x] Full-register equality covers all spectator wires and exact restoration of
   the second control; representative `Fin 3` and wider-register cases compile.
 - [x] Corollary 6.2 has a named explicit expansion, evaluator equality, exactly
   eight one-qubit and eight CNOT nodes, and `some 16` cost under
