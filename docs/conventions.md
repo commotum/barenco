@@ -63,10 +63,10 @@ matrices; paper-facing bridge theorems use `fromPaper` explicitly.
   matching the diagrams.
 - Semantic matrix multiplication remains standard. Executing `g₁` and then `g₂`
   yields `eval [g₁,g₂] = eval g₂ * eval g₁`.
-- Evaluation will therefore fold a chronological list by left-multiplication,
+- Evaluation folds a chronological list by left-multiplication,
   starting at identity.
-- Circuit append means chronological concatenation. Its evaluator theorem will
-  expose the reversal: `eval (c₁ ++ c₂) = eval c₂ * eval c₁`.
+- Circuit append means chronological concatenation. Its evaluator theorem
+  exposes the reversal: `eval (c₁ ++ c₂) = eval c₂ * eval c₁`.
 - Adjoint/inverse circuits reverse the list and adjoint every primitive.
 
 `Circuit.eval` proves these equations directly in the unitary group:
@@ -245,7 +245,9 @@ compiling smoke module:
 - `Matrix.kronecker`, `Matrix.mul_kronecker_mul`,
   `Matrix.kronecker_mem_unitary`;
 - `Matrix.reindex`, `Matrix.reindexAlgEquiv`, `Equiv.Perm.permMatrix`;
-- `Equiv.piEquivPiSubtypeProd` and `Function.update` for wire splitting/action;
+- `Equiv.piSplitAt` for arbitrary-target wire splitting and reconstruction;
+- `Circle`, `Complex.normSq_mul`, `Matrix.trace`, and
+  `Matrix.trace_single_mul` for phase and measurement algebra;
 - `BitVec` XOR/get/equivalence APIs for later Gray-code support;
 - `Matrix.toEuclideanCLM`, `Matrix.l2_opNorm_mulVec`, and
   `Matrix.l2_opNorm_mul` under the scoped L² norm.

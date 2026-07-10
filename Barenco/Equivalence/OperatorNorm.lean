@@ -108,6 +108,77 @@ theorem operatorDistance_action_le (A B : Matrix ι ι ℂ)
       operatorDistance A B * ‖ψ‖ := by
   simpa [operatorDistance] using Matrix.l2_opNorm_mulVec (A - B) ψ
 
+/-- The squared modulus is Lipschitz with the sum of the two scalar norms. -/
+theorem abs_normSq_sub_normSq_le (a b : ℂ) :
+    abs (Complex.normSq a - Complex.normSq b) ≤
+      (‖a‖ + ‖b‖) * ‖a - b‖ := by
+  rw [Complex.normSq_eq_norm_sq, Complex.normSq_eq_norm_sq, sq_sub_sq, abs_mul,
+    abs_of_nonneg (add_nonneg (norm_nonneg a) (norm_nonneg b))]
+  exact mul_le_mul_of_nonneg_left (abs_norm_sub_norm_le a b)
+    (add_nonneg (norm_nonneg a) (norm_nonneg b))
+
+/-- Operator distance controls the error in each individual output amplitude. -/
+theorem operatorDistance_mulVec_apply_le (A B : Matrix ι ι ℂ)
+    (ψ : EuclideanSpace ℂ ι) (output : ι) :
+    ‖(A *ᵥ ψ) output - (B *ᵥ ψ) output‖ ≤
+      operatorDistance A B * ‖ψ‖ := by
+  calc
+    ‖(A *ᵥ ψ) output - (B *ᵥ ψ) output‖ = ‖((A - B) *ᵥ ψ) output‖ := by
+      simp only [Matrix.sub_mulVec, Pi.sub_apply]
+    _ ≤ ‖(EuclideanSpace.equiv ι ℂ).symm ((A - B) *ᵥ ψ)‖ := by
+      exact PiLp.norm_apply_le _ output
+    _ ≤ operatorDistance A B * ‖ψ‖ := operatorDistance_action_le A B ψ
+
+/-- Every output amplitude of a unitary action is bounded by the input-state norm. -/
+theorem unitary_mulVec_apply_norm_le (U : Matrix.unitaryGroup ι ℂ)
+    (ψ : EuclideanSpace ℂ ι) (output : ι) :
+    ‖((U : Matrix ι ι ℂ) *ᵥ ψ) output‖ ≤ ‖ψ‖ := by
+  letI : Nonempty ι := ⟨output⟩
+  calc
+    ‖((U : Matrix ι ι ℂ) *ᵥ ψ) output‖ ≤
+        ‖(EuclideanSpace.equiv ι ℂ).symm ((U : Matrix ι ι ℂ) *ᵥ ψ)‖ := by
+      exact PiLp.norm_apply_le _ output
+    _ ≤ ‖(U : Matrix ι ι ℂ)‖ * ‖ψ‖ :=
+      Matrix.l2_opNorm_mulVec (U : Matrix ι ι ℂ) ψ
+    _ = ‖ψ‖ := by rw [CStarRing.norm_coe_unitary, one_mul]
+
+/--
+Operator distance bounds the probability error of one computational-basis
+outcome on a state of norm at most one.  This is a single-coordinate statement;
+it does not by itself bound an arbitrary event, coarse-graining, or POVM effect.
+-/
+theorem operatorDistance_basisOutcomeProbability_le
+    (U V : Matrix.unitaryGroup ι ℂ) (ψ : EuclideanSpace ℂ ι)
+    (hψ : ‖ψ‖ ≤ 1) (output : ι) :
+    abs
+        (Complex.normSq (((U : Matrix ι ι ℂ) *ᵥ ψ) output) -
+          Complex.normSq (((V : Matrix ι ι ℂ) *ᵥ ψ) output)) ≤
+      2 * operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) := by
+  let a : ℂ := ((U : Matrix ι ι ℂ) *ᵥ ψ) output
+  let b : ℂ := ((V : Matrix ι ι ℂ) *ᵥ ψ) output
+  change abs (Complex.normSq a - Complex.normSq b) ≤
+    2 * operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ)
+  have ha : ‖a‖ ≤ 1 := by
+    simpa only [a] using (unitary_mulVec_apply_norm_le U ψ output).trans hψ
+  have hb : ‖b‖ ≤ 1 := by
+    simpa only [b] using (unitary_mulVec_apply_norm_le V ψ output).trans hψ
+  have hab : ‖a - b‖ ≤ operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) := by
+    calc
+      ‖a - b‖ ≤
+          operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) * ‖ψ‖ := by
+        simpa only [a, b] using
+          operatorDistance_mulVec_apply_le (U : Matrix ι ι ℂ)
+            (V : Matrix ι ι ℂ) ψ output
+      _ ≤ operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) * 1 :=
+        mul_le_mul_of_nonneg_left hψ (operatorDistance_nonneg _ _)
+      _ = operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) := mul_one _
+  calc
+    abs (Complex.normSq a - Complex.normSq b) ≤ (‖a‖ + ‖b‖) * ‖a - b‖ :=
+      abs_normSq_sub_normSq_le a b
+    _ ≤ (1 + 1) * operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) :=
+      mul_le_mul (add_le_add ha hb) hab (norm_nonneg _) (by norm_num)
+    _ = 2 * operatorDistance (U : Matrix ι ι ℂ) (V : Matrix ι ι ℂ) := by norm_num
+
 /-- Any two certified unitaries are at operator distance at most two. -/
 theorem operatorDistance_unitary_le_two [Nonempty ι]
     (U V : Matrix.unitaryGroup ι ℂ) :
