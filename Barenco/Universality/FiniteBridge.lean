@@ -82,8 +82,9 @@ def reindex {dimension : ℕ} {ι : Type*} [Fintype ι] [DecidableEq ι]
 @[simp]
 theorem eval_reindex {dimension : ℕ} {ι : Type*} [Fintype ι] [DecidableEq ι]
     (e : Fin dimension ≃ ι) (factor : FinTwoLevelFactor dimension) :
-    (factor.reindex e).eval = reindexUnitary e factor.eval := by
-  rw [eval, FinTwoLevelFactor.eval, reindexUnitary_twoLevelUnitary]
+    (FiniteTwoLevelFactor.reindex e factor).eval = reindexUnitary e factor.eval := by
+  exact (reindexUnitary_twoLevelUnitary e factor.first factor.second
+    factor.distinct factor.block).symm
 
 end FiniteTwoLevelFactor
 
@@ -91,6 +92,13 @@ end FiniteTwoLevelFactor
 def finiteFactorProduct {ι : Type*} [Fintype ι] [DecidableEq ι]
     (factors : List (FiniteTwoLevelFactor ι)) : Matrix.unitaryGroup ι ℂ :=
   (factors.map FiniteTwoLevelFactor.eval).prod
+
+@[simp]
+theorem finiteFactorProduct_cons {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (factor : FiniteTwoLevelFactor ι) (factors : List (FiniteTwoLevelFactor ι)) :
+    finiteFactorProduct (factor :: factors) =
+      factor.eval * finiteFactorProduct factors := by
+  simp [finiteFactorProduct]
 
 @[simp]
 theorem finiteFactorProduct_reindex {dimension : ℕ} {ι : Type*}
@@ -101,7 +109,8 @@ theorem finiteFactorProduct_reindex {dimension : ℕ} {ι : Type*}
   induction factors with
   | nil => simp [finiteFactorProduct]
   | cons factor factors ih =>
-      simp [finiteFactorProduct, factorProduct, ih, reindexUnitary_mul]
+      rw [List.map_cons, finiteFactorProduct_cons, FiniteTwoLevelFactor.eval_reindex,
+        factorProduct_cons, reindexUnitary_mul, ih]
 
 /-- Explicit transported decomposition on an arbitrary finite index type. -/
 structure FiniteTwoLevelDecomposition {ι : Type*} [Fintype ι] [DecidableEq ι]
