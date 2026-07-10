@@ -11,6 +11,11 @@ Names beginning with `paper` use the manuscript's row-action matrices and produc
 order.  Names beginning with `column` are their `fromPaper` transposes.  The
 column-action theorems reverse products explicitly, so they are ready to feed into
 the library's chronological evaluator without treating a paper diagram as a proof.
+
+The factor and certified-factor definitions are public runtime API; their coercion
+laws and all decomposition identities are public proof-side API. Every result in
+this file is a matrix or special-unitary equality. No theorem here constructs
+circuit syntax or establishes a gate count, width, or other resource bound.
 -/
 
 namespace Barenco.OneQubit
@@ -212,7 +217,10 @@ theorem coe_columnCSpecialUnitary (alpha beta : ℝ) :
   rw [columnC_eq]
   rfl
 
-/-- Reversed standard-column product for the chronological sequence `A,B,C`. -/
+/--
+Reversed standard-column matrix product corresponding to chronological
+application of `A,B,C`.
+-/
 theorem columnC_mul_columnB_mul_columnA (alpha theta beta : ℝ) :
     columnC alpha beta * columnB alpha theta beta * columnA alpha theta =
       (1 : QubitMatrix) := by
@@ -225,17 +233,20 @@ theorem columnC_mul_columnB_mul_columnA (alpha theta beta : ℝ) :
       rw [paperA_mul_paperB_mul_paperC]
     _ = 1 := fromPaper_one
 
-/-- Reversed standard-column product for the chronological sequence `A,X,B,X,C`. -/
+/--
+Reversed standard-column matrix product corresponding to chronological
+application of `A,X,B,X,C`.
+-/
 theorem columnC_mul_X_mul_columnB_mul_X_mul_columnA (alpha theta beta : ℝ) :
-    columnC alpha beta * fromPaper paperX * columnB alpha theta beta *
-        fromPaper paperX * columnA alpha theta = columnEuler alpha theta beta := by
+    columnC alpha beta * sigmaX * columnB alpha theta beta * sigmaX *
+        columnA alpha theta = columnEuler alpha theta beta := by
   calc
-    columnC alpha beta * fromPaper paperX * columnB alpha theta beta *
-          fromPaper paperX * columnA alpha theta =
+    columnC alpha beta * sigmaX * columnB alpha theta beta * sigmaX *
+          columnA alpha theta =
         fromPaper
           (paperA alpha theta * paperX * paperB alpha theta beta * paperX *
             paperC alpha beta) := by
-      simp [columnA, columnB, columnC, fromPaper_mul, Matrix.mul_assoc]
+      simp [columnA, columnB, columnC, sigmaX, fromPaper_mul, Matrix.mul_assoc]
     _ = fromPaper (paperEuler alpha theta beta) := by
       rw [paperA_mul_X_mul_paperB_mul_X_mul_paperC]
     _ = columnEuler alpha theta beta := rfl
