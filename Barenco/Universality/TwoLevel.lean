@@ -51,36 +51,42 @@ def twoLevelIndexEquiv (first second : ι) (hfirstSecond : first ≠ second) :
       · simp [hsecond, hfirstSecond.symm]
       · simp [hfirst, hsecond]
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelIndexEquiv_inl_false (first second : ι)
     (hfirstSecond : first ≠ second) :
     twoLevelIndexEquiv first second hfirstSecond (Sum.inl false) = first :=
   rfl
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelIndexEquiv_inl_true (first second : ι)
     (hfirstSecond : first ≠ second) :
     twoLevelIndexEquiv first second hfirstSecond (Sum.inl true) = second :=
   rfl
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelIndexEquiv_inr (first second : ι)
     (hfirstSecond : first ≠ second) (index : TwoLevelComplement first second) :
     twoLevelIndexEquiv first second hfirstSecond (Sum.inr index) = index :=
   rfl
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelIndexEquiv_symm_first (first second : ι)
     (hfirstSecond : first ≠ second) :
     (twoLevelIndexEquiv first second hfirstSecond).symm first = Sum.inl false := by
   simp [twoLevelIndexEquiv]
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelIndexEquiv_symm_second (first second : ι)
     (hfirstSecond : first ≠ second) :
     (twoLevelIndexEquiv first second hfirstSecond).symm second = Sum.inl true := by
   simp [twoLevelIndexEquiv, hfirstSecond.symm]
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelIndexEquiv_symm_outside (first second index : ι)
     (hfirstSecond : first ≠ second) (hindexFirst : index ≠ first)
@@ -176,16 +182,19 @@ def twoLevelCoordinate (first second index : ι) : Option Bool :=
   else if index = second then some true
   else none
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelCoordinate_first (first second : ι) :
     twoLevelCoordinate first second first = some false := by
   simp [twoLevelCoordinate]
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelCoordinate_second (first second : ι) (hfirstSecond : first ≠ second) :
     twoLevelCoordinate first second second = some true := by
   simp [twoLevelCoordinate, hfirstSecond.symm]
 
+omit [Fintype ι] in
 @[simp]
 theorem twoLevelCoordinate_outside (first second index : ι)
     (hindexFirst : index ≠ first) (hindexSecond : index ≠ second) :
@@ -205,32 +214,31 @@ theorem twoLevelUnitary_apply (first second : ι) (hfirstSecond : first ≠ seco
   · subst row
     by_cases hcolFirst : col = first
     · subst col
-      simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate]
+      simp [twoLevelUnitary, twoLevelCoordinate]
     · by_cases hcolSecond : col = second
       · subst col
-        simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hfirstSecond.symm]
-      · simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hcolFirst,
+        simp [twoLevelUnitary, twoLevelCoordinate, hfirstSecond.symm]
+      · simp [twoLevelUnitary, twoLevelCoordinate, hcolFirst,
           hcolSecond]
   · by_cases hrowSecond : row = second
     · subst row
       by_cases hcolFirst : col = first
       · subst col
-        simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hfirstSecond,
-          hfirstSecond.symm]
+        simp [twoLevelUnitary, twoLevelCoordinate, hfirstSecond.symm]
       · by_cases hcolSecond : col = second
         · subst col
-          simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hfirstSecond.symm]
-        · simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate,
+          simp [twoLevelUnitary, twoLevelCoordinate, hfirstSecond.symm]
+        · simp [twoLevelUnitary, twoLevelCoordinate,
             hfirstSecond.symm, hcolFirst, hcolSecond]
     · by_cases hcolFirst : col = first
       · subst col
-        simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hrowFirst,
+        simp [twoLevelUnitary, twoLevelCoordinate, hrowFirst,
           hrowSecond]
       · by_cases hcolSecond : col = second
         · subst col
-          simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hrowFirst,
+          simp [twoLevelUnitary, twoLevelCoordinate, hrowFirst,
             hrowSecond, hfirstSecond.symm]
-        · simp [twoLevelUnitary, twoLevelEmbedding, twoLevelCoordinate, hrowFirst,
+        · simp [twoLevelUnitary, twoLevelCoordinate, hrowFirst,
             hrowSecond, hcolFirst, hcolSecond, Matrix.one_apply]
 
 @[simp]
@@ -318,9 +326,8 @@ theorem twoLevelUnitary_mulVec_basisKet_second (first second : ι)
     simp [hfirstSecond]
   · by_cases hrowSecond : row = second
     · subst row
-      simp [hfirstSecond, hfirstSecond.symm]
-    · simp [twoLevelUnitary_outside_pair, hrowFirst, hrowSecond,
-        hfirstSecond]
+      simp [hfirstSecond.symm]
+    · simp [twoLevelUnitary_outside_pair, hrowFirst, hrowSecond]
 
 /-- Every basis ket outside the ordered pair is fixed exactly. -/
 theorem twoLevelUnitary_mulVec_basisKet_outside (first second index : ι)
@@ -333,11 +340,11 @@ theorem twoLevelUnitary_mulVec_basisKet_outside (first second index : ι)
   by_cases hrowFirst : row = first
   · subst row
     simp [twoLevelUnitary_pair_outside, hindexFirst, hindexFirst.symm,
-      hindexSecond, hindexSecond.symm]
+      hindexSecond]
   · by_cases hrowSecond : row = second
     · subst row
-      simp [twoLevelUnitary_pair_outside, hindexFirst, hindexFirst.symm,
-        hindexSecond, hindexSecond.symm]
+      simp [twoLevelUnitary_pair_outside, hindexFirst, hindexSecond,
+        hindexSecond.symm]
     · rw [twoLevelUnitary_outside_outside first second row index hfirstSecond U
         hrowFirst hrowSecond hindexFirst hindexSecond]
       simp [basisKet_apply]

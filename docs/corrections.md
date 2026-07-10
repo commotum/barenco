@@ -778,3 +778,71 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Status:** corrected and proved. Public integration, boundary examples, all 18
   new maintained axiom checks, strict/trust-zero compilation, the focused build,
   and two full builds passed with Stage 10.
+
+## C-028 — Exact one-qubit/CNOT universality has a zero-wire obstruction
+
+- **Source:** abstract and Section 8, especially manuscript pp. 1 and 27–28;
+  Markdown lines 39 and 939–983.
+- **Issue:** the broad statement that arbitrary one-qubit gates and CNOT generate
+  every finite-qubit unitary is false if “finite” includes width zero and equality
+  is exact. `Basis 0` has one computational-basis state, so its certified unitary
+  group contains every `U(1)` scalar phase. But the restricted syntax has no legal
+  one-qubit target and no pair of distinct wires for CNOT; it can only be empty and
+  therefore evaluates to identity.
+- **Repair:** state exact universality for positive register width. Prove separately
+  that every restricted zero-wire circuit evaluates to identity and exhibit or
+  characterize the nonidentity zero-wire phases it cannot reach. Width one remains
+  the direct arbitrary-one-qubit primitive case. Do not erase this obstruction by
+  silently switching to global-phase equality.
+- **Dependent impact:** the headline exact-universality theorem, its boundary
+  examples, and any API advertised for “all `n`.” It does not affect ordinary
+  positive-width quantum registers or a separately stated global-phase-relaxed
+  zero-width theorem.
+- **Formal evidence:** Stage 11 source/API audit; exact Lean obstruction and
+  positive-width synthesis are in progress.
+- **Status:** corrected statement fixed; proof in progress.
+
+## C-029 — The final Gray edge may reverse the two-level block orientation
+
+- **Source:** Section 8 Gray-path construction, manuscript pp. 27–28; Markdown
+  lines 959–976.
+- **Issue:** a local one-qubit matrix is ordered by target values
+  `(false,true)`, while the requested two-level block is ordered by its two named
+  path endpoints. The paper does not relate these orders. In its own example the
+  final edge is `00110111 -> 00100111`, so the target bit runs `(true,false)`.
+  Applying the unmodified local matrix on that edge represents `X U X` relative
+  to the ordered endpoints, not `U`.
+- **Repair:** carry the ordered endpoint equivalence explicitly. If the final edge
+  has target order `(false,true)`, use `U`; if it has `(true,false)`, use the
+  certified conjugate `X U X`. Prove the resulting move/apply/unmove conjugation
+  on every basis state and then extend to exact matrix equality.
+- **Dependent impact:** every non-adjacent two-level circuit, the exact
+  universality theorem, and its resource counts. Control-polarity X conjugations
+  are a separate issue and do not repair this target-order reversal.
+- **Formal evidence:** Stage 11 audit identifies the concrete reversed source edge;
+  the endpoint-transport circuit theorem is in progress.
+- **Status:** correction identified; proof in progress.
+
+## C-030 — A path-length upper bound does not prove per-factor cubic Theta
+
+- **Source:** Section 8, manuscript p. 28; Markdown lines 971–983.
+- **Issue:** the paper reuses `m` both for bit-string width in the decomposition
+  formula and for the number of vertices in a Gray path. For the latter it proves
+  only `m <= n+1`, then concludes that every two-level factor costs
+  `Theta(n^3)`. This supplies a uniform cubic upper bound after a quadratic
+  multi-control expansion, not a matching lower bound. Adjacent endpoints have
+  path length two and need one fully controlled gate, so the named cost is only
+  quadratic in that case.
+- **Repair:** use register width `n`, Hamming distance `d`, and path length `d+1`
+  as distinct parameters. The exact macro count for distinct endpoints is
+  `2*d-1`, giving a per-factor bound `O((2*d-1)*n^2)` and worst-case
+  `O(n^3)`. Consequently the immediate general synthesis claim is a uniform
+  `O(n^3*4^n)` upper bound. A two-sided theorem may later describe a fixed
+  non-pruning schedule after its aggregate counts are proved; it is not an
+  optimal-synthesis theorem.
+- **Dependent impact:** U8 path counts, the general resource headline, and any
+  comparison with the conjectural dimension lower bound. Exact universality does
+  not depend on the asymptotic correction.
+- **Formal evidence:** Stage 11 source audit; shortest-path length/count and Stage
+  12 aggregate cost theorems are in progress/planned respectively.
+- **Status:** corrected statement fixed; structural proof in progress.

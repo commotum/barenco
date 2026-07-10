@@ -42,10 +42,11 @@ has begun).
   Gray-code facts, and exact positive multi-control constructions. Whether the
   most reusable Section 8 path should reuse the reflected Gray enumeration or a
   direct Hamming path remains under audit.
-- The pinned mathlib version has no previously identified ready-made unitary
-  Givens decomposition. Available finite-unitary, reindexing, finite-product, and
-  orthogonality APIs are being checked before selecting a custom elimination
-  invariant.
+- The pinned mathlib audit confirms there is no Givens, Householder/QR,
+  two-level-unitary, or unitary-triangular decomposition API. The general
+  transvection factorization is unusable because its factors are nonunitary.
+  Reindexing, `fromBlocks`, unitary-group, diagonal, and finite-induction APIs are
+  sufficient for a custom construction.
 - Boundary dimensions matter. On zero qubits the Hilbert space has one basis
   state and hence arbitrary `U(1)` phases, but the allowed one-qubit/CNOT syntax
   has no legal primitive and evaluates only to identity. Exact universality is
@@ -88,16 +89,16 @@ each two-level factor to a fully explicit Gray-path circuit.
 
 ## Detailed Implementation Plan
 
-1. Finish the source and pinned-API audit. Fix the algebraic index type,
-   multiplication order, two-level block orientation, diagonal treatment, direct
-   path convention, and the precise boundary APIs before writing proofs.
+1. The source and pinned-API audit is complete. It fixes the multiplication and
+   endpoint-order hazards, requires a direct shortest Hamming path, retains exact
+   diagonal phases, and corrects the headline to positive register width.
 2. Add a low-dependency algebraic two-level module: define the embedded `U(2)`
    block on two distinct finite indices, certify unitarity, prove entries/basis
    action, inverse and multiplication facts actually needed by elimination.
 3. Prove a constructive finite-unitary elimination/decomposition theorem. Keep
    the chronological factor list explicit, include the residual diagonal phases,
    and prove the product equation with all zero/singleton boundary cases.
-4. Add qubit-path infrastructure: construct a duplicate-free Hamming/Gray path
+4. Add qubit-path infrastructure: construct a duplicate-free shortest Hamming path
    between distinct basis assignments, prove adjacent states differ at one named
    wire, and specify the exact fixed values required of every other wire.
 5. Define pattern-controlled one-qubit circuits via local-X conjugation of the
@@ -116,14 +117,14 @@ each two-level factor to a fully explicit Gray-path circuit.
 
 ## Build Structure
 
-- Planned algebraic layer: `Barenco/Synthesis/TwoLevel.lean` and one or more narrow
-  elimination leaves. These are public algebraic APIs and must not import circuit
-  syntax.
-- Planned circuit layer: narrow pattern-control and basis-path modules importing
+- Algebraic layer: `Barenco/Universality/Givens.lean`,
+  `Barenco/Universality/TwoLevel.lean`, and one or more narrow elimination leaves.
+  These are public algebraic APIs and must not import circuit syntax.
+- Circuit layer: narrow full-control, pattern-control, and basis-path modules importing
   only the semantic/circuit and established multi-control leaves they use.
-- Planned assembly layer: a universality leaf importing both algebraic and circuit
+- Assembly layer: a universality leaf importing both algebraic and circuit
   synthesis. `Barenco.lean` changes only after stable theorem signatures compile.
-- Planned diagnostic leaf: `Barenco/Synthesis/UniversalityExamples.lean`, excluded
+- Planned diagnostic leaf: `Barenco/Universality/UniversalityExamples.lean`, excluded
   from the public root.
 - High-fanout `Semantics.lean`, `Circuit.lean`, and established Section 4–10 theorem
   leaves are not to be edited unless the audit demonstrates a genuinely shared
@@ -199,3 +200,12 @@ each two-level factor to a fully explicit Gray-path circuit.
   six-`U(4)` surjectivity claim as prerequisites, and makes diagonal/global phases,
   negative controls, chronology, no-ancilla scope, and width-zero/one behavior
   explicit.
+- The completed independent source/API audits found no reusable unitary
+  decomposition in pinned mathlib, rejected nonunitary transvections, identified
+  the paper's reversed final-edge block hazard and false per-factor `Theta(n^3)`
+  inference, and selected a shortest differing-wire path instead of the Section 7
+  reflected Gray traversal.
+- `Barenco/Universality/Givens.lean` now supplies a total certified complex Givens
+  block. It exactly sends `(a,b)` to
+  `(0,sqrt(normSq a + normSq b))`, including the zero pair, and passes strict and
+  trust-zero compilation.

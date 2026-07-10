@@ -135,6 +135,13 @@ extra assumption, omission, or unresolved obstruction.
   exact no-ancilla bound of `n-1` CNOT occurrences. The source's total-basic-gate
   and named-cost forms are corollaries; scalar, approximate, phase-relaxed,
   measurement, and ancilla-assisted targets are outside the theorem.
+- Stage 11's source/API audit shows that exact one-qubit+CNOT universality must be
+  stated for positive register width: at width zero the unitary group contains all
+  `U(1)` phases but the restricted syntax reaches only identity. Pinned mathlib has
+  no reusable unitary Givens/QR decomposition, so the library is building an
+  explicit certified complex Givens eliminator and generic two-level factorization.
+  The paper's reversed final Gray edge requires an endpoint-orientation transport,
+  and its per-factor `Theta(n^3)` claim supports only a uniform `O(n^3)` upper bound.
 
 ## Success Metrics and Final Verification
 
