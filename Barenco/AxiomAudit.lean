@@ -11,6 +11,9 @@ import Barenco.Equivalence.EventProbability
 import Barenco.Equivalence.Phase
 import Barenco.TwoWire.ControlledBridges
 import Barenco.TwoWire.Circuit
+import Barenco.Optimization.FusionIR
+import Barenco.Optimization.FusionResources
+import Barenco.ControlledCircuit.CanonicalSelected
 import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
@@ -21,6 +24,7 @@ import Barenco.OneQubit.SelectedABC
 import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
+import Barenco.ThreeQubit.RelativePhaseFusion
 import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
@@ -29,6 +33,7 @@ import Barenco.MultiControl.Corollary74
 import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
 import Barenco.MultiControl.GrayExpansion
+import Barenco.MultiControl.GrayFusion
 import Barenco.MultiControl.Recursive
 import Barenco.MultiControl.RecursiveExpansion
 import Barenco.MultiControl.Resources
@@ -109,6 +114,38 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Primitive.oneQubitCNOT_cost_twoQubit
 #print axioms Barenco.Primitive.arbitraryTwoQubit_cost_twoQubit
 #print axioms Barenco.Primitive.arbitraryTwoQubit_cost_adjoint_twoQubit
+
+/-! ## Goal 2 Stage 4: payload-preserving fusion syntax and transparent inputs -/
+
+#print axioms Barenco.Optimization.FusionPrimitive.lower_adjoint
+#print axioms Barenco.Optimization.FusionCircuit.eval_lower
+#print axioms Barenco.Optimization.FusionCircuit.eval_append
+#print axioms Barenco.Optimization.FusionCircuit.lower_adjoint
+#print axioms Barenco.Optimization.FusionProgram.lower_barriers
+#print axioms Barenco.Optimization.FusionProgram.eval_barriers
+#print axioms Barenco.Optimization.FusionProgram.lower_adjoint
+#print axioms Barenco.Optimization.FusionCircuit.gateCount_lower
+#print axioms Barenco.Optimization.FusionCircuit.support_lower
+#print axioms Barenco.Optimization.FusionCircuit.cost_lower
+#print axioms Barenco.Optimization.FusionCircuit.oneQubitCNOT_cost_eq
+#print axioms Barenco.Optimization.FusionCircuit.arbitraryTwoQubit_cost_eq_gateCount
+#print axioms Barenco.Optimization.FusionProgram.cost_barriers
+#print axioms Barenco.Optimization.FusionProgram.cost_eq_none_of_barrier_mem
+#print axioms Barenco.ControlledCircuit.lower_canonicalSelectedControlledU2FusionCircuit
+#print axioms Barenco.ControlledCircuit.eval_canonicalSelectedControlledU2FusionCircuit
+#print axioms Barenco.ControlledCircuit.canonicalSelectedControlledU2FusionCircuit_profile
+#print axioms Barenco.ThreeQubit.lower_relativePhaseToffoliAFusionCircuit
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliAFusionCircuit
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliAFusionCircuit_oneQubitCount
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliAFusionCircuit_cnotCount
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliAFusionCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_grayFusionControlledViaRootCircuit_eq_macro
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_lower_grayFusionControlledViaRootCircuit_eq_macro
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_grayFusionControlledCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_oneQubitCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_cnotCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.grayFusionControlledCircuit_oneQubitCNOTCost
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose

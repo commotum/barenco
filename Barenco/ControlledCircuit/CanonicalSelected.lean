@@ -11,8 +11,8 @@ factor in optimizer-visible syntax.  Its six chronological nodes are
 
 `phase(control); A(target); CNOT; B(target); CNOT; C(target)`.
 
-Unlike the existing opaque whole-circuit selector, this constructor retains a
-literal `FusionCircuit`, lowers exactly to the parameterized
+Unlike the existing whole-circuit selector, this constructor retains a literal
+`FusionCircuit`, lowers exactly to the parameterized
 `controlledU2Circuit`, and derives its resource profile from the visible syntax.
 -/
 
@@ -41,7 +41,7 @@ def canonicalSelectedControlledU2FusionCircuit {n : ℕ}
 
 /--
 Trusted lowering exposes exactly the existing parameterized six-node circuit,
-with no opaque whole-circuit selection or metadata reconstruction.
+with no whole-circuit selection or metadata reconstruction.
 -/
 @[simp]
 theorem lower_canonicalSelectedControlledU2FusionCircuit {n : ℕ}

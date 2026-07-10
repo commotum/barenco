@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 348 `#print axioms` checks, with one
+The maintained audit module currently contains 377 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |

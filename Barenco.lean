@@ -12,10 +12,13 @@ import Barenco.Equivalence.ControlledDistance
 import Barenco.Equivalence.EventProbability
 import Barenco.Cost
 import Barenco.TwoWire.Circuit
+import Barenco.Optimization.FusionIR
+import Barenco.Optimization.FusionResources
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
 import Barenco.ControlledCircuit.Selected
 import Barenco.ControlledCircuit.SelectedSpecial
+import Barenco.ControlledCircuit.CanonicalSelected
 import Barenco.OneQubit.Lemma43
 import Barenco.OneQubit.Pauli
 import Barenco.OneQubit.U2Euler
@@ -26,6 +29,7 @@ import Barenco.OneQubit.SelectedABC
 import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
+import Barenco.ThreeQubit.RelativePhaseFusion
 import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
@@ -34,6 +38,7 @@ import Barenco.MultiControl.Corollary74
 import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
 import Barenco.MultiControl.GrayExpansion
+import Barenco.MultiControl.GrayFusion
 import Barenco.MultiControl.Recursive
 import Barenco.MultiControl.RecursiveExpansion
 import Barenco.MultiControl.Resources

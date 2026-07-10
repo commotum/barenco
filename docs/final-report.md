@@ -41,8 +41,8 @@ claim.
 - mathlib: `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
-- Project Lean files below `Barenco/`: 115, plus `Barenco.lean`
-- Maintained kernel axiom checks: 348
+- Project Lean files below `Barenco/`: 121, plus `Barenco.lean`
+- Maintained kernel axiom checks: 377
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -278,8 +278,10 @@ trusted arbitrary-two-qubit syntax. Stage 4 adds a separate closed fusion IR,
 exact visible/mixed lowering, syntax-derived costs, and transparent selected
 controlled-U, relative-phase, and Gray inputs. It does not yet claim that any
 paper merger has occurred; executable normalization and the disputed output
-counts belong to later Goal 2 stages. Current maintained-audit and final build
-figures are updated when each stage closes.
+counts belong to later Goal 2 stages. Twenty-nine representative Stage 4 checks
+raise the maintained audit from 348 to 377; its public root/audit integration
+build passed with 3,595 jobs, and the combined public/diagnostic regression passed
+with 3,596 jobs. Direct strict and trust-zero root/audit checks remain clean.
 
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic

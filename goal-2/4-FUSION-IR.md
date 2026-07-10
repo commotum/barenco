@@ -225,3 +225,12 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
   `relativePhaseToffoliACircuit`, transfers its exact arbitrary-width evaluator,
   and proves literal profile `(4,3,0,7)` plus cost seven in both models. The
   combined canonical/relative focused build passed with 2,942 jobs.
+- Added `Barenco/MultiControl/GrayFusion.lean` for the full parameterized positive-
+  control family, not merely a low-dimensional probe. It rebuilds every root block
+  from the public Gray masks/pivots, the transparent canonical factor circuit, and
+  literal generated CNOT edges; it never imports or inspects the opaque selected
+  expansion. Prefix induction proves exact equality with the checked Lemma 7.1
+  macro evaluator on arbitrary ambient width. Literal syntax proves raw profile
+  `4(2^m-1)` one-qubit nodes, `3*2^m-4` CNOTs, and `7*2^m-8` total/early-model
+  cost for every `m=tail+1>0`, with explicit one-, two-, and three-control checks.
+  Its focused build passed with 3,469 jobs.

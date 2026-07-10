@@ -1,4 +1,5 @@
 import Barenco.ControlledCircuit.CanonicalSelected
+import Barenco.MultiControl.GrayFusion
 import Barenco.ThreeQubit.RelativePhaseFusion
 
 /-!
@@ -77,7 +78,7 @@ theorem eval_widthTwoChronology (U V : TwoQubitUnitary) :
     FusionCircuit.eval_nil, FusionPrimitive.denotation, one_mul]
   exact twoWireUnitary_chronological widthTwoPair U V
 
-/-! ## Exact opaque-barrier preservation -/
+/-! ## Exact barrier preservation -/
 
 private theorem fin3_zero_ne_one : (0 : Fin 3) ≠ 1 := by decide
 private theorem fin3_zero_ne_two : (0 : Fin 3) ≠ 2 := by decide
@@ -169,5 +170,62 @@ theorem relativeA_threeWire_profile :
   · exact ThreeQubit.eval_relativePhaseToffoliAFusionCircuit
       0 1 2 fin3_zero_ne_two fin3_one_ne_two
   · simp
+
+/-! ## Transparent Gray raw-profile boundaries -/
+
+/-- Consecutive one-control layout: control wire `0`, target wire `1`. -/
+def oneControlGrayLayout : MultiControl.OrderedControlLayout 1 2 where
+  controlWire := Fin.castSuccEmb
+  targetWire := Fin.last 1
+  control_ne_target := Fin.castSucc_ne_last
+
+/--
+The complete transparent Gray input has the checked exact evaluator and the
+general unmerged raw profile for every positive number of controls.
+-/
+theorem grayFusion_general_rawProfile {tail ambientWidth : ℕ}
+    (layout : MultiControl.OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) :
+    (MultiControl.OrderedControlLayout.grayFusionControlledCircuit layout U).eval =
+        positiveControlledUnitary layout.targetWire layout.controlSet U ∧
+      FusionCircuit.oneQubitCount
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit layout U) =
+          4 * (2 ^ (tail + 1) - 1) ∧
+      FusionCircuit.cnotCount
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit layout U) =
+          3 * 2 ^ (tail + 1) - 4 ∧
+      FusionCircuit.gateCount
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit layout U) =
+          7 * 2 ^ (tail + 1) - 8 ∧
+      FusionCircuit.cost CostModel.oneQubitCNOT
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit layout U) =
+          some (7 * 2 ^ (tail + 1) - 8) := by
+  constructor
+  · exact MultiControl.OrderedControlLayout.eval_grayFusionControlledCircuit
+      layout U
+  · simp
+
+/-- At one control the raw Gray input is exactly one six-node controlled-U block. -/
+theorem grayFusion_oneControl_rawProfile (U : QubitUnitary) :
+    (MultiControl.OrderedControlLayout.grayFusionControlledCircuit
+        (tail := 0) oneControlGrayLayout U).eval =
+        positiveControlledUnitary oneControlGrayLayout.targetWire
+          oneControlGrayLayout.controlSet U ∧
+      FusionCircuit.oneQubitCount
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit
+          (tail := 0) oneControlGrayLayout U) = 4 ∧
+      FusionCircuit.cnotCount
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit
+          (tail := 0) oneControlGrayLayout U) = 2 ∧
+      FusionCircuit.gateCount
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit
+          (tail := 0) oneControlGrayLayout U) = 6 ∧
+      FusionCircuit.cost CostModel.oneQubitCNOT
+        (MultiControl.OrderedControlLayout.grayFusionControlledCircuit
+          (tail := 0) oneControlGrayLayout U) = some 6 := by
+  constructor
+  · exact MultiControl.OrderedControlLayout.eval_grayFusionControlledCircuit
+      oneControlGrayLayout U
+  · norm_num
 
 end Barenco.FusionExamples
