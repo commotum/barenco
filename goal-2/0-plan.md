@@ -191,11 +191,32 @@ collection of hand-simplified paper examples.
   adjacent, strict, trust-zero, full-build, documentation, and hygiene evidence is
   recorded in `7-GRAY-MERGERS.md`. This verifies the paper's post-merger count as
   a constructive upper bound, not a minimum or historical-efficiency claim.
+- Stage 8 begins from `8n-40` total Toffoli occurrences, split into four exact
+  occurrences and `8n-44` relative-phase occurrences. The paper's intermediate
+  `8n-36` remainder is arithmetically impossible. The current explicit expansion
+  has `(oneQubit,CNOT,total)=(32n-144,24n-100,56n-244)`. If normalization keeps
+  all CNOTs, the printed `48n-204` total requires exactly `24n-104` one-qubit
+  nodes: `8n-40` fewer than the raw circuit. Cancelling one one-qubit node per
+  relative occurrence accounts for only `8n-44`, so any successful reconstruction
+  must expose four additional one-qubit deletions at exact/relative or outer
+  construction boundaries. This arithmetic is a target diagnostic, not evidence
+  that such rewrites exist.
+- `exactToffoliExpansionCircuit` is selected as an opaque whole circuit and is not
+  legal optimizer input. The underlying `doubleControlledExpansion16Circuit` is
+  an explicit oriented sixteen-node schedule, while
+  `selectedColumnABCFactors (specialUnitaryPart (unitarySquareRoot pauliX))`
+  provides one transparent checked factor package. Stage 8 must connect those
+  factors to explicit fusion/symbolic syntax before claiming any merger.
 
 ## Remaining Assumptions to Test
 - The Corollary 7.4 constant may require rewrites beyond the general Gray mergers.
   Its source arithmetic and phase errors remain corrected regardless of whether a
   lower count is found.
+- It is not yet known whether a coherent orientation of the four explicit exact
+  Toffoli expansions exposes the four extra one-qubit deletions required by the
+  paper's final constant, or whether the verified normalizer reaches a larger
+  stable profile. One chosen orientation failing establishes only “not recovered”
+  for that named construction, not a lower bound or refutation.
 
 ## Success Metrics and Final Verification
 
