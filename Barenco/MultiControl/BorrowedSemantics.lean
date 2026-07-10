@@ -389,6 +389,224 @@ theorem halfLadderUpdate_apply_target {b n : ℕ}
                 input (layout.controlWire (Fin.last (b + 2))) := by
               rw [mul_comm]
 
+/--
+Recursive normal form for a positive half ladder: the smaller half remains on
+the prefix work register, while the larger target receives exactly the full
+control product.
+-/
+theorem halfLadderUpdate_succ_eq_update {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    halfLadderUpdate (b + 1) layout input =
+      Function.update (halfLadderUpdate b layout.smaller input)
+        layout.targetWire
+        (input layout.targetWire + controlProduct layout input) := by
+  funext wire
+  by_cases hwire : wire = layout.targetWire
+  · subst wire
+    simp
+  · rw [halfLadderUpdate, outerUpdate_apply_of_ne layout _ wire hwire]
+    rw [outerUpdate_eq_update]
+    rw [halfLadderUpdate_update_of_outside layout.smaller layout.targetWire
+      (targetWire_ne_smaller_controlWire layout)
+      (targetWire_ne_smaller_workWire layout)]
+    simp [hwire]
+
+/-! ## Complete dirty-wire restoration -/
+
+/--
+Exact Boolean action of the complete dirty-borrowed construction.  Only the
+named target changes; every borrowed wire and every spectator is restored.
+-/
+theorem inwardLadderUpdate_eq_update {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    inwardLadderUpdate layout input =
+      Function.update input layout.targetWire
+        (input layout.targetWire + controlProduct layout input) := by
+  rw [inwardLadderUpdate, halfLadderUpdate_succ_eq_update]
+  rw [halfLadderUpdate_update_of_outside layout.smaller layout.targetWire
+    (targetWire_ne_smaller_controlWire layout)
+    (targetWire_ne_smaller_workWire layout)]
+  rw [halfLadderUpdate_involutive]
+
+/-- Every non-target ambient wire is restored, with no clean-borrow assumption. -/
+@[simp]
+theorem inwardLadderUpdate_apply_of_ne {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n)
+    (wire : Fin n) (hwire : wire ≠ layout.targetWire) :
+    inwardLadderUpdate layout input wire = input wire := by
+  rw [inwardLadderUpdate_eq_update]
+  exact Function.update_of_ne hwire _ _
+
+/-- The complete ladder flips the target by the product of all controls. -/
+@[simp]
+theorem inwardLadderUpdate_apply_target {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    inwardLadderUpdate layout input layout.targetWire =
+      input layout.targetWire + controlProduct layout input := by
+  rw [inwardLadderUpdate_eq_update, Function.update_self]
+
+/-- Every dirty borrowed wire is returned to its arbitrary initial value. -/
+@[simp]
+theorem inwardLadderUpdate_apply_borrowedWire {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n)
+    (borrowed : Fin (b + 1)) :
+    inwardLadderUpdate layout input (layout.borrowedWire borrowed) =
+      input (layout.borrowedWire borrowed) := by
+  apply inwardLadderUpdate_apply_of_ne
+  exact layout.borrowedWire_ne_targetWire borrowed
+
+/-! ## Circuit-to-Boolean bridge -/
+
+/-- The trusted base primitive realizes the Boolean base update exactly. -/
+@[simp]
+theorem baseToffoli_denotation_mulVec_basisKet {n : ℕ}
+    (layout : InwardLadderLayout 0 n) (input : Basis n) :
+    (layout.baseToffoli.denotation : Gate n) *ᵥ basisKet input =
+      basisKet (baseUpdate layout input) := by
+  rw [baseToffoli, Primitive.toffoli_denotation_mulVec_basisKet,
+    toffoliBasisUpdate_eq_xorUpdate]
+  rfl
+
+/-- Every trusted outer primitive realizes its Boolean outer update exactly. -/
+@[simp]
+theorem outerToffoli_denotation_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    (layout.outerToffoli.denotation : Gate n) *ᵥ basisKet input =
+      basisKet (outerUpdate layout input) := by
+  rw [outerToffoli, Primitive.toffoli_denotation_mulVec_basisKet,
+    toffoliBasisUpdate_eq_xorUpdate]
+  rfl
+
+/-- Exact arbitrary-width basis action of every palindromic half circuit. -/
+theorem eval_halfLadderCircuit_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    (Circuit.eval (halfLadderCircuit b layout) : Gate n) *ᵥ basisKet input =
+      basisKet (halfLadderUpdate b layout input) := by
+  revert layout input
+  induction b with
+  | zero =>
+      intro layout input
+      rw [halfLadderCircuit, Circuit.eval_singleton,
+        baseToffoli_denotation_mulVec_basisKet]
+      rfl
+  | succ b ih =>
+      intro layout input
+      rw [halfLadderCircuit, Circuit.eval_append, Circuit.eval_append]
+      simp only [Submonoid.coe_mul, Circuit.eval_singleton]
+      rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+      rw [outerToffoli_denotation_mulVec_basisKet]
+      rw [ih layout.smaller]
+      rw [outerToffoli_denotation_mulVec_basisKet]
+      rfl
+
+/-- Exact arbitrary-width basis action of the complete dirty-borrowed circuit. -/
+theorem eval_inwardLadderCircuit_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    (Circuit.eval (inwardLadderCircuit layout) : Gate n) *ᵥ basisKet input =
+      basisKet (inwardLadderUpdate layout input) := by
+  rw [inwardLadderCircuit, Circuit.eval_append]
+  simp only [Submonoid.coe_mul]
+  rw [← Matrix.mulVec_mulVec]
+  rw [eval_halfLadderCircuit_mulVec_basisKet]
+  rw [eval_halfLadderCircuit_mulVec_basisKet]
+  rfl
+
+/-! ## Identification with positive-controlled Pauli-X -/
+
+private theorem boolFinsetProduct_eq_true_iff {ι : Type*} [DecidableEq ι]
+    (s : Finset ι) (f : ι → Bool) :
+    (∏ i ∈ s, f i) = true ↔ ∀ i ∈ s, f i = true := by
+  induction s using Finset.induction_on with
+  | empty => simp [Bool.one_eq_true]
+  | @insert element s hnotMem ih =>
+      rw [Finset.prod_insert hnotMem, Bool.mul_eq_and, Bool.and_eq_true, ih]
+      simp
+
+/-- The Boolean control product is true exactly when every logical control is true. -/
+theorem controlProduct_eq_true_iff {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    controlProduct layout input = true ↔
+      ∀ control, input (layout.controlWire control) = true := by
+  rw [controlProduct]
+  simpa using boolFinsetProduct_eq_true_iff
+    (Finset.univ : Finset (Fin (b + 2)))
+    (fun control => input (layout.controlWire control))
+
+/-- The unordered `ControlSet` truth condition is the same Boolean product. -/
+theorem all_controlSet_true_iff_controlProduct_eq_true {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    (∀ wire ∈ layout.controlSet, input wire = true) ↔
+      controlProduct layout input = true := by
+  change (∀ wire ∈ layout.orderedControlLayout.controlSet,
+      input wire = true) ↔ _
+  rw [layout.orderedControlLayout.all_controls_iff]
+  change (∀ control, input (layout.controlWire control) = true) ↔ _
+  exact (controlProduct_eq_true_iff layout input).symm
+
+private theorem update_add_true_eq_setTarget_not {n : ℕ}
+    (target : Fin n) (input : Basis n) :
+    Function.update input target (input target + true) =
+      setTarget target input (!input target) := by
+  funext wire
+  by_cases hwire : wire = target
+  · subst wire
+    rw [Function.update_self, setTarget_apply_target]
+    cases input target <;> rfl
+  · rw [Function.update_of_ne hwire,
+      setTarget_apply_of_ne target input _ wire hwire]
+
+private theorem update_add_false_eq_self {n : ℕ}
+    (target : Fin n) (input : Basis n) :
+    Function.update input target (input target + false) = input := by
+  funext wire
+  by_cases hwire : wire = target
+  · subst wire
+    rw [Function.update_self]
+    cases input target <;> rfl
+  · rw [Function.update_of_ne hwire]
+
+/--
+The library's positive-controlled Pauli-X has exactly the Boolean action used by
+the dirty-borrowed construction.
+-/
+theorem positiveControlledUnitary_pauliX_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    (positiveControlledUnitary layout.targetWire layout.controlSet pauliX : Gate n) *ᵥ
+        basisKet input =
+      basisKet
+        (Function.update input layout.targetWire
+          (input layout.targetWire + controlProduct layout input)) := by
+  rw [coe_positiveControlledUnitary, positiveControlledRaw_truthTable]
+  by_cases hall : ∀ wire ∈ layout.controlSet, input wire = true
+  · rw [if_pos hall]
+    have hproduct : controlProduct layout input = true :=
+      (all_controlSet_true_iff_controlProduct_eq_true layout input).mp hall
+    rw [hproduct, update_add_true_eq_setTarget_not]
+    simpa [xRaw] using xRaw_mulVec_basisKet layout.targetWire input
+  · rw [if_neg hall]
+    have hproduct : controlProduct layout input = false := by
+      apply Bool.eq_false_of_not_eq_true
+      intro htrue
+      exact hall
+        ((all_controlSet_true_iff_controlProduct_eq_true layout input).mpr htrue)
+    rw [hproduct, update_add_false_eq_self]
+
+/--
+Barenco Lemma 7.2: for every positive number of dirty borrowed wires, the
+counted recursive circuit is exactly the corresponding positive multi-controlled
+Pauli-X on the full ambient register.
+-/
+@[simp]
+theorem eval_inwardLadderCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    Circuit.eval (inwardLadderCircuit layout) =
+      positiveControlledUnitary layout.targetWire layout.controlSet pauliX := by
+  apply Subtype.ext
+  rw [matrix_eq_iff_mulVec_basisKet_eq]
+  intro input
+  rw [eval_inwardLadderCircuit_mulVec_basisKet, inwardLadderUpdate_eq_update,
+    positiveControlledUnitary_pauliX_mulVec_basisKet]
+
 end InwardLadderLayout
 
 end Barenco.MultiControl
