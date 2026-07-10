@@ -20,6 +20,42 @@ noncomputable section
 
 namespace OrderedControlLayout
 
+/-- The wire embedding obtained by replacing the final control with the old target. -/
+def swapLastControlTargetEmbedding {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth) :
+    Fin (p + 1) ↪ Fin ambientWidth where
+  toFun := fun control =>
+    Fin.lastCases layout.targetWire
+      (fun prefixIndex => layout.controlWire prefixIndex.castSucc) control
+  inj' := by
+    intro first second
+    refine Fin.lastCases ?_ (fun firstPrefix => ?_) first <;>
+      refine Fin.lastCases ?_ (fun secondPrefix => ?_) second
+    · intro
+      rfl
+    · intro heq
+      simp only [Fin.lastCases_last, Fin.lastCases_castSucc] at heq
+      exact False.elim (layout.control_ne_target secondPrefix.castSucc heq.symm)
+    · intro heq
+      simp only [Fin.lastCases_last, Fin.lastCases_castSucc] at heq
+      exact False.elim (layout.control_ne_target firstPrefix.castSucc heq)
+    · intro heq
+      simp only [Fin.lastCases_castSucc] at heq
+      exact layout.controlWire.injective heq
+
+@[simp]
+theorem swapLastControlTargetEmbedding_castSucc {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth) (control : Fin p) :
+    layout.swapLastControlTargetEmbedding control.castSucc =
+      layout.controlWire control.castSucc := by
+  simp [swapLastControlTargetEmbedding]
+
+@[simp]
+theorem swapLastControlTargetEmbedding_last {p ambientWidth : ℕ}
+    (layout : OrderedControlLayout (p + 1) ambientWidth) :
+    layout.swapLastControlTargetEmbedding (Fin.last p) = layout.targetWire := by
+  simp [swapLastControlTargetEmbedding]
+
 /--
 Exchange the last ordered control with the target while preserving the prefix
 control order.
@@ -27,31 +63,16 @@ control order.
 def swapLastControlTarget {p ambientWidth : ℕ}
     (layout : OrderedControlLayout (p + 1) ambientWidth) :
     OrderedControlLayout (p + 1) ambientWidth where
-  controlWire :=
-    { toFun := fun control =>
-        Fin.lastCases layout.targetWire
-          (fun prefixIndex => layout.controlWire prefixIndex.castSucc) control
-      inj' := by
-        intro first second
-        refine Fin.lastCases ?_ (fun firstPrefix => ?_) first <;>
-          refine Fin.lastCases ?_ (fun secondPrefix => ?_) second
-        · intro
-          rfl
-        · intro heq
-          simp only [Fin.lastCases_last, Fin.lastCases_castSucc] at heq
-          exact False.elim (layout.control_ne_target secondPrefix.castSucc heq.symm)
-        · intro heq
-          simp only [Fin.lastCases_last, Fin.lastCases_castSucc] at heq
-          exact False.elim (layout.control_ne_target firstPrefix.castSucc heq)
-        · intro heq
-          simp only [Fin.lastCases_castSucc] at heq
-          exact layout.controlWire.injective heq }
+  controlWire := layout.swapLastControlTargetEmbedding
   targetWire := layout.lastControlWire
   control_ne_target := by
     intro control
     refine Fin.lastCases ?_ (fun prefixIndex => ?_) control
-    · simpa using layout.lastControlWire_ne_targetWire.symm
-    · simp only [Fin.lastCases_castSucc, lastControlWire]
+    · rw [swapLastControlTargetEmbedding_last]
+      exact layout.lastControlWire_ne_targetWire.symm
+    · rw [swapLastControlTargetEmbedding_castSucc]
+      change layout.controlWire prefixIndex.castSucc ≠
+        layout.controlWire (Fin.last p)
       exact layout.controlWire_ne (Fin.castSucc_ne_last prefixIndex)
 
 @[simp]

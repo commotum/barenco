@@ -200,3 +200,22 @@ language only.
   C-026 records why the two printed `Θ(n)` statements are construction upper
   bounds rather than optimal-synthesis theorems. No Stage 8 Lean file was changed
   during these audits.
+- `LastTargetSwap.lean` now exchanges the final ordered control with the target,
+  proves the prefix layout identity, and reuses Stage 7 as
+  `expandedPrefixTargetXCircuit`. Its evaluator is exactly the original
+  prefix-controlled target X; the transported dirty wire is the original final
+  control, the target is restored, and inherited counts are
+  `(32p−80,24p−52,56p−132)`. Strict/trust-zero warning-as-error checks and a
+  3,483-job focused build pass.
+- `SelectedABC.lean` packages one checked column-chronological special-unitary
+  factor triple, and `SelectedSpecial.lean` turns such a target into an exact
+  selected five-node controlled circuit with `(3,2,5)` component/total cost.
+  Both leaves pass strict/trust-zero checks, their combined 2,372-job focused
+  build, forbidden/diff scans, and standard-only representative axiom audits.
+- `LinearSpecialUnitary.lean` stores Lemma 7.9's exact five-macro chronology,
+  proves its arbitrary-register target-local basis action, checks all four
+  prefix/final-control branches, and derives full controlled-W evaluator equality
+  from explicit `CBA=I` and `CXBXA=W` products. The selected ABC wrapper is exact
+  for every nonempty total control family, including an empty prefix; macro count
+  is five and the early-basic cost is honestly `none`. Strict/trust-zero checks
+  and its 2,929-job focused build pass.
