@@ -412,9 +412,13 @@ Current implementation facts:
   `InwardLadderLayout`, exact recursive syntax, Boolean-ring dirty restoration,
   full-register evaluator equality, `4(m−2)` syntax count, capacity/support
   bounds, rejected unexpanded paper costs, and exact `m=3`/`n=9,m=5`
-  diagnostics. The latest focused root/audit build has 3,485 jobs, two full builds
-  have 3,483 jobs each, and all 106 maintained axiom prints are standard. Lemma
-  7.3's four-block dirty construction is next.
+  diagnostics.
+- Lemma 7.3 now has arbitrary-wire `FourBlockLayout`, exact `A;B;A;B` syntax,
+  explicit Boolean-ring dirty restoration, full-register operator equality, four
+  macro occurrences, and checked A/B substitution with exact doubled counts. The
+  latest focused root/audit build has 3,485 jobs and all 112 maintained axiom
+  prints are standard; two post-root full builds have 3,484 jobs each. Corrected
+  Corollary 7.4 ladder substitution is next.
 
 ### Detailed Implementation Plan
 

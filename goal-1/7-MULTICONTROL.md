@@ -1,6 +1,6 @@
 # 7-MULTICONTROL
 
-Status: in progress (Lemmas 7.1–7.2 complete; Lemma 7.3 next).
+Status: in progress (Lemmas 7.1–7.3 complete; corrected Corollary 7.4 next).
 
 ## Current Facts
 
@@ -64,14 +64,17 @@ Status: in progress (Lemmas 7.1–7.2 complete; Lemma 7.3 next).
   theorem. Thus an equal-control CNOT cannot be mislabeled as a Toffoli. Both
   named paper cost models reject the unexpanded macro; the ladder will count
   Toffolis structurally and retain `none` until explicit expansion.
-- Lemma 7.3's four-block core is the Boolean identity
+- Lemma 7.3's implemented four-block core is the Boolean identity
   `d := d xor A; t := t xor (d and B); d := d xor A;`
   `t := t xor (d and B)`, hence `d` is restored and `t` changes by `A and B`.
-  Parameterize the two data-control groups as sizes `left+2` and `right+1`, so
-  the A and B macro control counts are `left+2` and `right+2` without subtraction;
-  a single injected slot layout must include both groups, the dirty borrowed wire,
-  and the target. General Lemma 7.3 counts four controlled-X macros only. Its later
-  Corollary 7.4 expansion through Lemma 7.2 is a separate syntax theorem.
+  `FourBlockLayout` parameterizes the two data-control groups as sizes `left+2`
+  and `right+1`, so the A and B macro control counts are `left+2` and `right+2`
+  without subtraction. One injected slot layout includes both groups, the dirty
+  borrowed wire, and the target in arbitrary ambient positions. The exact basis
+  evaluator and `eval_fourBlockCircuit` prove full-register equality, and
+  `fourBlockSubstitutionCircuit` permits checked A/B implementations with exact
+  count `2*A+2*B`. General Lemma 7.3 counts four controlled-X macros only; its
+  Corollary 7.4 ladder expansion is a separate syntax theorem.
 - For the repaired Corollary 7.4 expansion, use Lemma 7.2 borrowed-count tails
   `ℓ,r`, so the two macro control counts are `ℓ+3,r+3` and logical width is
   `ℓ+r+7`. The exact capacity assumptions reduce to `ℓ≤r+2` and `r≤ℓ+2`, while
@@ -88,7 +91,7 @@ Status: in progress (Lemmas 7.1–7.2 complete; Lemma 7.3 next).
 | Four-bit Gray example | For `V^4=U`, seven controlled `V`/`V†` gates and six CNOTs realize `∧₃(U)` using parity masks `100,110,010,011,111,101,001`. | Exact chronology is recoverable and all three controls are restored. Formalize first as the smallest circuit consumer of the Gray API. |
 | Lemma 7.1 | For `n≥3`, `∧_{n−1}(U)` uses `2^(n−1)−1` controlled `V`/`V†` gates and `2^(n−1)−2` CNOTs, with `V^(2^(n−2))=U`; proof omitted. After expansion/merging the paper claims `3·2^(n−1)−4` CNOTs and `2·2^(n−1)` one-qubit gates. | The macro count is plausible but needs a constructed schedule, accumulator invariant, root equation, and exact evaluator proof. The expanded count needs coordinated Section 5 decompositions and explicit merges; it does not follow from the semantic theorem. Stage 7. |
 | Lemma 7.2 | For `n≥5` and `3≤m≤⌈n/2⌉`, a `∧ₘ(X)` gate uses `4(m−2)` three-bit Toffolis while borrowing `m−2` arbitrary wires and restoring them. | Corrected and proved as exact full-register equality through `InwardLadderLayout`: `b+1=m−2>0`, capacity is `2m−1≤n`, all dirty/spectator wires are restored, and the syntax count is exactly `4(b+1)=4(m−2)`. The layout-parametric theorem supports arbitrary nonadjacent placements. |
-| Lemma 7.3 | For `n≥5` and `2≤m≤n−3`, a `∧_{n−2}(X)` gate is `A;B;A;B`, where `A=∧ₘ(X)` computes into one borrowed wire and `B=∧_{n−m−1}(X)` uses it with the remaining controls. Proof is only “by inspection.” | Recoverable by four Boolean cases/full basis action. The borrowed wire begins arbitrarily and is restored. Stage 7. |
+| Lemma 7.3 | For `n≥5` and `2≤m≤n−3`, a `∧_{n−2}(X)` gate is `A;B;A;B`, where `A=∧ₘ(X)` computes into one borrowed wire and `B=∧_{n−m−1}(X)` uses it with the remaining controls. Proof is only “by inspection.” | Corrected and proved by explicit Boolean-ring algebra, exact basis action, and full arbitrary-width operator equality. The borrowed wire begins arbitrarily and is restored; syntax and substitution counts are exact. |
 | Corollary 7.4 | For `n≥7`, compose Lemmas 7.2–7.3 to obtain `8(n−5)` Toffolis and allegedly `48n−204` early-basic operations; four Toffolis are exact and the rest may be relative-phase implementations. | The `8(n−5)` macro count is repairable with the partition in C-003. The paper's intermediate remainder is wrong (C-004), and the final basic count remains unproved until exact contextual phase cancellation and all one-qubit merges are represented in syntax. Stage 7. |
 | Lemma 7.5 | A fully controlled `U` is built recursively from a square root `V`, two singly controlled `V`/`V†` gates, two `∧_{n−2}(X)` gates, and one recursively smaller controlled `V`. | Exact generalization of Lemma 6.1 is recoverable. The statement omits a lower bound on `n`; the displayed recursive form requires at least one control (`n≥2`) or an explicit base case. Stage 7. |
 | Corollary 7.6 | Recurrence `C_{n−1}=C_{n−2}+Θ(n)` is reported as a `Θ(n²)` simulation, with `48n²+O(n)` after detailed counting. | Export an exact recurrence and an `O(n²)` upper bound for the named construction. Do not claim optimal quadratic synthesis; see C-005. Its leading constant depends on the unresolved Corollary 7.4 count. Stage 7 for the construction/upper recurrence; final asymptotic packaging may continue in Stage 12. |
@@ -233,8 +236,11 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
    arbitrary dirty-wire restoration, capacity/support bounds, macro counts, named
    cost rejection, and `m=3`/`n=9,m=5` diagnostics compile.
 5. Define the Lemma 7.3 four-block circuit. Prove `A;B;A;B` by explicit Boolean
-   algebra for an arbitrary borrowed bit, then use Lemma 7.2 expansions and the
-   repaired floor partition to obtain Corollary 7.4's `8(n−5)` macro count.
+   algebra for an arbitrary borrowed bit, then lift it to full operator equality.
+   **Implemented:** exact syntax, dirty/spectator restoration, arbitrary-width
+   evaluator, four-macro count, and checked A/B substitution all compile. Next,
+   instantiate Lemma 7.2 expansions and the repaired floor partition to obtain
+   Corollary 7.4's `8(n−5)` Toffoli count.
 6. Construct separate exact and relative-phase expanded Corollary 7.4 circuits.
    Prove exact evaluator equality by multiplying the Stage 6
    `relativeToffoliPhase` witnesses along every ordered basis path. Only after
@@ -288,9 +294,12 @@ pivot invariant, not merely Hamming adjacency.
   evaluator equality.
 - `Barenco/MultiControl/BorrowedResources.lean`: proof-side/public width/capacity,
   touched-support where useful, and explicit rejection by named cost models.
-- `Barenco/MultiControl/FourBlock.lean`: runtime/public Lemma 7.3 and repaired
-  Corollary 7.4 macro circuits; proof-side/public full-register correctness,
-  partition inequalities, and `8(n−5)` count.
+- `Barenco/MultiControl/FourBlock.lean`: runtime/public Lemma 7.3 slot layout,
+  four-macro syntax, Boolean/full-register correctness, structural split bounds,
+  and checked substitution with exact doubled counts.
+- `Barenco/MultiControl/Corollary74.lean`: planned concrete substitution of the
+  Lemma 7.2 ladders into both four-block macro types, balanced repaired partition,
+  exact `8(n−5)` Toffoli count, and smallest `n=7` boundary theorem.
 - `Barenco/MultiControl/RelativePhase.lean`: heavy proof-side/public contextual
   phase cancellation and explicit early-basic expansion/count. Keep it out of
   the Boolean/runtime leaves.
@@ -364,7 +373,7 @@ pivot invariant, not merely Hamming adjacency.
 - [x] Lemma 7.2 has a named circuit, full-register dirty-wire
   correctness/restoration for every layout, exact width/support contracts, and
   exact `4(m−2)` Toffoli count.
-- [ ] Lemma 7.3 has a named four-block circuit and full-register dirty-wire
+- [x] Lemma 7.3 has a named four-block circuit and full-register dirty-wire
   correctness/restoration for every legal partition, plus exact macro counts.
 - [ ] Corollary 7.4 uses the repaired partition, proves `8(n−5)` Toffoli macros,
   proves contextual relative-phase cancellation, and either proves or explicitly
@@ -446,9 +455,19 @@ pivot invariant, not merely Hamming adjacency.
   logical/touched-support bounds, and rejection by both named cost models.
   `BorrowedExamples.lean` pins the smallest four-Toffoli boundary and the exact
   twelve-node `n=9,m=5` source chronology with kernel-`decide` dirty-bit checks.
-- Strict compilation passed for every new public/diagnostic module and the root.
-  The latest focused root/audit build passed with 3,485 jobs; two consecutive full builds
-  passed with 3,483 jobs each. The maintained audit now prints 106 headline
+- `FourBlock.lean` defines one injective arbitrary-wire layout with first-group,
+  second-group, dirty, and target projections; proves the subtraction-free source
+  bounds and exact control-set cardinalities; stores the chronology exactly as
+  `[A,B,A,B]`; and proves `fourBlockUpdate_eq_update`, dirty/spectator restoration,
+  the basis evaluator, and `eval_fourBlockCircuit`. The generic
+  `fourBlockSubstitutionCircuit` theorem preserves semantics for any checked A/B
+  implementations and derives exact `2*A+2*B` gate and kind counts, including the
+  equal-arity collision case. The four unexpanded macros correctly have no
+  one-qubit+CNOT cost.
+- Strict compilation passed for `FourBlock.lean`, the public root, and the audit.
+  The latest focused root/audit build passed with 3,485 jobs. The maintained audit
+  now prints 112 headline
   declarations; all use only `propext`, `Classical.choice`, and `Quot.sound`
   (with `nodup_grayCode` not requiring choice). Forbidden-shortcut scans and
-  `git diff --check` passed.
+  `git diff --check` passed. Two consecutive post-root full builds passed with
+  3,484 jobs each.

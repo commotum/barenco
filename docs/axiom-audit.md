@@ -137,6 +137,12 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.MultiControl.InwardLadderLayout.eval_inwardLadderCircuit` | `Barenco.MultiControl.BorrowedSemantics` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-width exact Lemma 7.2 operator equality; no project axiom | 2026-07-09 |
 | `Barenco.MultiControl.InwardLadderLayout.touchedSupport_inwardLadderCircuit_subset` | `Barenco.MultiControl.BorrowedResources` | `propext`, `Classical.choice`, `Quot.sound` | no full-ladder primitive names an ambient spectator; no project axiom | 2026-07-09 |
 | `Barenco.MultiControl.InwardLadderLayout.inwardLadderCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.BorrowedResources` | `propext`, `Classical.choice`, `Quot.sound` | partial early-basic model rejects unexpanded Toffolis; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.FourBlockLayout.sourceSplit_bounds` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | subtraction-free encoding of the source's legal Lemma 7.3 split; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.logicalWidth_le_ambientWidth` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | injective logical slots fit the ambient register; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.fourBlockUpdate_eq_update` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | exact Boolean normal form with dirty/spectator restoration; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_fourBlockCircuit` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-width exact Lemma 7.3 operator equality; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.fourBlockSubstitutionCircuit_gateCount` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | exact syntax-derived doubled implementation count; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_fourBlockSubstitutionCircuit` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | checked A/B expansion preserves exact full-register semantics; no project axiom | 2026-07-10 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 
@@ -166,5 +172,8 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 7 Lemma 7.2 warning-as-error/root/audit | direct strict compilation of `Circuit`, `Cost`, `Borrowed`, `BorrowedSemantics`, `BorrowedResources`, `BorrowedExamples`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 106 declarations, all within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-09 |
 | Stage 7 Lemma 7.2 focused/root/audit build | `lake build Barenco.MultiControl.Borrowed Barenco.MultiControl.BorrowedSemantics Barenco.MultiControl.BorrowedResources Barenco.MultiControl.BorrowedExamples Barenco.AxiomAudit Barenco` | successful, 3,485 jobs, 2026-07-09 |
 | Stage 7 Lemma 7.2 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,483 jobs each, 2026-07-09 |
+| Stage 7 Lemma 7.3 warning-as-error/root/audit | direct strict compilation of `FourBlock.lean`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 112 declarations, all within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Stage 7 Lemma 7.3 focused/root/audit build | `lake build Barenco.MultiControl.FourBlock Barenco.AxiomAudit Barenco` | successful, 3,485 jobs, 2026-07-10 |
+| Stage 7 Lemma 7.3 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,484 jobs each, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
