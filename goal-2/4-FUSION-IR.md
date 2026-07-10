@@ -1,0 +1,188 @@
+# 4-FUSION-IR
+
+Status: in progress (2026-07-10).
+
+## Current Facts
+
+- Stages 2–3 provide the exact semantic and trusted syntax boundaries needed by a
+  compiler layer: `localUnitary`/`Primitive.oneQubit`, certified CNOT syntax, and
+  `twoWireUnitary`/`Primitive.twoQubit` all have arbitrary-width evaluator,
+  support, adjoint, and named-cost facts.
+- `Primitive` intentionally stores only `kind`, `support`, and ambient denotation.
+  Even a trusted `Primitive.twoQubit pair U` does not expose `pair` or `U` after it
+  is erased to an arbitrary `Primitive`. Reconstructing optimizer payloads from
+  kind/support/denotation is therefore unavailable and forbidden.
+- `Circuit n` is a chronological `List (Primitive n)` and evaluates the head first.
+  `Circuit.append first second` lowers to list append and evaluates as
+  `eval second * eval first`.
+- Both named cost models are partial folds over literal primitive kinds.
+  `oneQubitCNOT` accepts only one-qubit and CNOT syntax;
+  `arbitraryTwoQubit` additionally accepts trusted generic two-wire nodes and
+  zero/one-control macros. Unsupported nodes produce `none`.
+- The seven-node relative-phase A circuit is already transparent literal syntax:
+  four target rotations and three CNOTs. It can be rebuilt directly in an
+  optimizer-visible grammar and lowered definitionally to the existing circuit.
+- `expandedGrayControlledCircuit` has exact semantics and raw profile
+  `(4(2^m-1), 3*2^m-4, 7*2^m-8)`, but each six-node controlled-root block is the
+  opaque `selectedControlledU2Circuit` chosen only by an aggregate spec. Its
+  boundary chronology is unavailable to an optimizer.
+- The ingredients for a transparent replacement are public:
+  `selectedColumnABCFactors (specialUnitaryPart U)` exposes checked `A/B/C`,
+  `determinantPhaseAngle U` and `controlPhaseUnitary` expose the scalar correction,
+  and parameterized `controlledU2Circuit` proves the exact six-node evaluator.
+  Gray masks, pivots, edges, signed roots, and layout wire proofs are also public.
+- Stage 3's final high-fanout regression passed with 3,593 jobs, the full build with
+  3,589 jobs, and the maintained audit has 348 standard-foundation checks.
+
+## Updated Assumptions
+
+- Use a separate `FusionPrimitive n` retaining explicit payloads for one-qubit,
+  CNOT, and ordered two-qubit nodes, plus an exact `barrier` carrying an existing
+  `Primitive n`. A barrier is not an unclassified fallback: it lowers to the same
+  primitive and is never inspected, relabeled, crossed, or fused.
+- `FusionCircuit n` is a chronological list. Its lowering is `List.map` through
+  the trusted smart constructors; evaluator equality and append chronology should
+  be definitional or proved by short induction.
+- A total `barrierCircuit : Circuit n → FusionCircuit n` should preserve every
+  unsupported input exactly and satisfy `lower (barrierCircuit c) = c`. Transparent
+  builders, rather than metadata recovery, create optimizable nodes.
+- IR structural kind/support/gate-count/kind-count/touched-support and partial cost
+  should be executable folds that provably equal the corresponding established
+  `Circuit` quantities after lowering. The two named models remain separate.
+- Test whether a payload-preserving IR adjoint can be added cleanly. If CNOT
+  self-adjointness would force unrelated infrastructure, explicit inverse builders
+  may remain the Stage 4 path and Stage 5 can prove the needed cancellation law.
+- Replace the opaque controlled-U choice for optimizer inputs with one coherent
+  transparent selected-factor schedule. The existing opaque circuit remains a
+  semantic/resource reference, never an optimizer input.
+
+## Big Picture Objective
+
+Introduce a small compiler IR that retains exactly the local payload needed for
+future fusion, lowers only through trusted circuit constructors, preserves exact
+full-register semantics and syntax-derived resources, and can represent the
+relative-phase and Gray inputs without inspecting opaque primitive metadata.
+
+## Detailed Implementation Plan
+
+- Add `Barenco/Optimization/FusionIR.lean`:
+  - define explicit `oneQubit`, `cnot`, `twoQubit`, and `barrier` nodes;
+  - define trusted node/circuit lowering, chronological evaluation, append, and
+    barrier lifting with an exact round trip;
+  - prove kind/support/denotation projections agree with lowering;
+  - add payload-preserving adjoint only if exact lowering compatibility is proved.
+- Add `Barenco/Optimization/FusionResources.lean`:
+  - define literal gate count, kind count, touched support, and partial cost folds;
+  - prove equality to `Circuit.gateCount`, `kindCount`, `touchedSupport`, and
+    `cost` on the lowered syntax;
+  - prove append and barrier-lift resource bridges and both named-model boundaries.
+- Add `Barenco/ControlledCircuit/CanonicalSelected.lean`:
+  - construct one transparent six-node fusion circuit from the selected
+    determinant phase and column-chronological `A/B/C` factors;
+  - prove its lowering is the parameterized `controlledU2Circuit`, its evaluator is
+    the desired singleton-controlled `U`, and its literal profile is `(4,2,6)`.
+- Add `Barenco/ThreeQubit/RelativePhaseFusion.lean`:
+  - rebuild relative-phase A in fusion syntax;
+  - prove exact lowering equality to the existing seven-node circuit, exact
+    evaluator transfer, and literal pre-normalization profile `(4,3,7)`.
+- Add `Barenco/MultiControl/GrayFusion.lean` at the smallest useful generality:
+  - use the public Gray mask/pivot/edge schedule and the transparent controlled-U
+    fusion block, never `selectedControlledU2Circuit`;
+  - prove exact full-register evaluator equality to the checked Gray macro target;
+  - prove literal raw profile matching Goal 1. If the full parameterized schedule
+    exposes a new proof dependency, finish at least the one-control and one indexed
+    transition blocks and record the exact remaining general constructor rather
+    than substituting the opaque witness.
+- Add root-excluded `Barenco/FusionExamples.lean` covering lowering chronology,
+  barrier round trip, model separation, relative A, and a Gray boundary.
+- Integrate only stable public leaves into the root/audit after focused builds;
+  update conventions, traceability, axiom docs, stage results, and the master plan.
+
+## Build Structure
+
+- `Barenco/Optimization/FusionIR.lean` — public runtime plus exact lowering/eval
+  core; imports the trusted two-wire circuit layer but no paper construction.
+- `Barenco/Optimization/FusionResources.lean` — public proof/resource leaf;
+  imports the IR and established `Cost` API.
+- `Barenco/ControlledCircuit/CanonicalSelected.lean` — public noncomputable
+  transparent factor schedule and exact compiler bridge.
+- `Barenco/ThreeQubit/RelativePhaseFusion.lean` — public paper-input bridge.
+- `Barenco/MultiControl/GrayFusion.lean` — public schedule-aware transparent Gray
+  input bridge at the achieved checked generality.
+- `Barenco/FusionExamples.lean` — diagnostic and root-excluded.
+- `Barenco.lean`, `Barenco/AxiomAudit.lean`, and documentation — stable integration
+  only after narrow leaves compile.
+- High-fanout `Primitive`, `Circuit`, and `CostModel` definitions are intentionally
+  unchanged in this stage.
+- Focused sequence:
+  `lake build Barenco.Optimization.FusionIR`, then
+  `lake build Barenco.Optimization.FusionResources`, then
+  `lake build Barenco.ControlledCircuit.CanonicalSelected`,
+  `Barenco.ThreeQubit.RelativePhaseFusion`,
+  `Barenco.MultiControl.GrayFusion`, and `Barenco.FusionExamples`.
+- Adjacent/public sequence includes existing selected controlled-U, relative-phase,
+  Gray expansion, lower-bound restricted syntax, root, and audit consumers.
+
+## Boundary Checks
+
+- Every visible node lowers through `Primitive.oneQubit`, `Primitive.cnot`, or
+  `Primitive.twoQubit`; callers cannot independently label an ambient unitary.
+- `barrier p` lowers to exactly `p`, retains no inferred local payload, and blocks
+  every future local rewrite. `barrierCircuit` is a preservation path, not an
+  optimizer claim.
+- No function attempts to translate an arbitrary existing `Primitive` into a
+  visible node by inspecting `kind`, `support`, support cardinality, or denotation.
+- All compiler/evaluator statements are exact full-register equalities. No scalar
+  or basis-dependent phase is discarded.
+- Head-first chronology is preserved. A later Stage 5 fusion of chronological
+  local gates `U;V` must eventually use payload `V*U`.
+- Resource equalities are derived from lowering and literal IR folds; a semantic
+  evaluator equality never supplies a count.
+- `oneQubitCNOT` and `arbitraryTwoQubit` costs remain distinct and Option-valued.
+  Unsupported barriers remain unsupported when their original kind is unsupported.
+- The opaque selected controlled-U circuit may be compared semantically and by
+  aggregate profile, but its factors are never used as optimizer-visible nodes.
+- Stage 4 does not implement normalization, claim a fixed point, or test the
+  disputed post-merger formulas beyond constructing honest transparent inputs.
+
+## No-Cheating Checks
+
+- Search new runtime code for `Primitive.unclassified`, direct primitive field
+  assignments, and arbitrary ambient-unitary parameters; all must be absent except
+  the exact existing-primitive payload of `barrier`.
+- Confirm all visible lowering branches invoke trusted smart constructors and the
+  barrier branch returns its stored primitive unchanged.
+- Confirm resource bridge proofs inspect IR syntax/lowering rather than semantic
+  matrices.
+- Confirm relative/Gray builders construct their factor lists explicitly and do
+  not call `selectedControlledU2Circuit` or an opaque whole-circuit choice.
+- Repository scans reject proof holes, custom axioms/opaque declarations, and
+  forbidden decision shortcuts.
+
+## Completion Requirements
+
+- [ ] Payload-preserving explicit node/circuit syntax and trusted lowering compile
+  with exact kind, support, denotation, chronology, append, and barrier round-trip
+  theorems.
+- [ ] Executable IR gate count, kind count, touched support, and partial cost agree
+  exactly with the lowered `Circuit` under both named models.
+- [ ] Visible one-qubit/CNOT/two-qubit nodes retain every payload needed by Stage 5;
+  unsupported existing primitives can only enter as exact barriers.
+- [ ] A transparent selected arbitrary controlled-U fusion circuit lowers to the
+  parameterized six-node circuit, has exact evaluator, and literal profile
+  `(oneQubit,CNOT,total) = (4,2,6)`.
+- [ ] Relative-phase A lowers exactly to its existing seven-node syntax with profile
+  `(4,3,7)` and exact evaluator transfer.
+- [ ] At least one checked Gray fusion input uses the transparent factor schedule,
+  has an exact evaluator bridge, and matches the corresponding Goal 1 raw counts;
+  any remaining parameterized schedule work is recorded precisely.
+- [ ] Barrier, width-two/nonadjacent, chronology, model-boundary, relative, and Gray
+  diagnostics compile without entering the public root.
+- [ ] Stable public imports and representative axiom checks are integrated; focused,
+  adjacent, strict, trust-zero, forbidden/no-cheating, and diff checks pass.
+- [ ] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
+  folded forward with Stage 4 marked complete and Stage 5 resumable.
+
+## Stage Results
+
+- Stage file created before any Stage 4 Lean source change.
