@@ -282,6 +282,142 @@ theorem doubleControlledExpansion16Circuit_oneQubitCNOTCost {n : ℕ}
         hfirstTarget hsecondTarget delta A B C) = some 16 := by
   simp [doubleControlledExpansion16Circuit, Circuit.cost, Circuit.addCost]
 
+/-! ## Semantic bridge and Corollary 6.2 -/
+
+/-- A singleton-controlled identity is the full-register identity. -/
+@[simp]
+theorem singleControlledUnitary_one {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) :
+    positiveControlledUnitary target ({⟨control, h⟩} : ControlSet target)
+        (1 : QubitUnitary) = 1 := by
+  apply Subtype.ext
+  rw [coe_positiveControlledUnitary,
+    positiveControlledRaw_singleton_eq_targetBlockRaw]
+  simp
+
+/-- Inversion passes through a singleton positive control exactly. -/
+@[simp]
+theorem singleControlledUnitary_inv {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    (positiveControlledUnitary target
+      ({⟨control, h⟩} : ControlSet target) V)⁻¹ =
+      positiveControlledUnitary target
+        ({⟨control, h⟩} : ControlSet target) V⁻¹ := by
+  apply inv_eq_iff_mul_eq_one.mpr
+  rw [singleControlledUnitary_mul, mul_inv_cancel, singleControlledUnitary_one]
+
+/-- The twenty-node expansion is exactly the Lemma 6.1 macro evaluator. -/
+theorem eval_doubleControlledExpansion20Circuit_eq_macro {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target)
+    (delta : ℝ) (A B C V : QubitUnitary)
+    (hsecond : Circuit.eval
+        (controlledU2Circuit second target hsecondTarget delta A B C) =
+      positiveControlledUnitary target
+        ({⟨second, hsecondTarget⟩} : ControlSet target) V)
+    (hfirst : Circuit.eval
+        (controlledU2Circuit first target hfirstTarget delta A B C) =
+      positiveControlledUnitary target
+        ({⟨first, hfirstTarget⟩} : ControlSet target) V) :
+    Circuit.eval (doubleControlledExpansion20Circuit first second target
+        hfirstSecond hfirstTarget hsecondTarget delta A B C) =
+      Circuit.eval (doubleControlledViaSquareCircuit first second target
+        hfirstSecond hfirstTarget hsecondTarget V) := by
+  rw [doubleControlledExpansion20Circuit, Circuit.eval_append,
+    Circuit.eval_append, Circuit.eval_append, Circuit.eval_append,
+    Circuit.eval_adjoint, hsecond, hfirst, singleControlledUnitary_inv]
+  simp [doubleControlledViaSquareCircuit, Circuit.eval]
+
+/-- The sixteen-node syntax is correct from one shared Section 5 factorization. -/
+theorem eval_doubleControlledExpansion16Circuit_of_products {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target)
+    (delta : ℝ) (A B C W V U : QubitUnitary)
+    (hinactive : (C : QubitMatrix) * (B : QubitMatrix) * (A : QubitMatrix) = 1)
+    (hactive : (C : QubitMatrix) * sigmaX * (B : QubitMatrix) * sigmaX *
+      (A : QubitMatrix) = (W : QubitMatrix))
+    (hV : (V : QubitMatrix) = phaseShift delta * (W : QubitMatrix))
+    (hSq : V ^ 2 = U) :
+    Circuit.eval (doubleControlledExpansion16Circuit first second target
+        hfirstSecond hfirstTarget hsecondTarget delta A B C) =
+      positiveControlledUnitary target
+        (twoControlSet first second target hfirstTarget hsecondTarget) U := by
+  have hsecond := eval_controlledU2Circuit_of_products second target hsecondTarget
+    delta A B C W V hinactive hactive hV
+  have hfirst := eval_controlledU2Circuit_of_products first target hfirstTarget
+    delta A B C W V hinactive hactive hV
+  calc
+    Circuit.eval (doubleControlledExpansion16Circuit first second target
+        hfirstSecond hfirstTarget hsecondTarget delta A B C) =
+        Circuit.eval (doubleControlledExpansion20Circuit first second target
+          hfirstSecond hfirstTarget hsecondTarget delta A B C) :=
+      (eval_doubleControlledExpansion20Circuit_eq_16 first second target
+        hfirstSecond hfirstTarget hsecondTarget delta A B C).symm
+    _ = Circuit.eval (doubleControlledViaSquareCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget V) :=
+      eval_doubleControlledExpansion20Circuit_eq_macro first second target
+        hfirstSecond hfirstTarget hsecondTarget delta A B C V hsecond hfirst
+    _ = positiveControlledUnitary target
+          (twoControlSet first second target hfirstTarget hsecondTarget) U :=
+      eval_doubleControlledViaSquareCircuit_of_sq_eq first second target
+        hfirstSecond hfirstTarget hsecondTarget U V hSq
+
+/-- Selected-root witnesses choose the Section 5 factorization only once. -/
+theorem doubleControlledExpansion16Circuit_exists {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target)
+    (U : QubitUnitary) :
+    ∃ A B C : QubitSpecialUnitary,
+      Circuit.eval (doubleControlledExpansion16Circuit first second target
+        hfirstSecond hfirstTarget hsecondTarget
+        (determinantPhaseAngle (unitarySquareRoot U))
+        (specialUnitaryAsUnitary A) (specialUnitaryAsUnitary B)
+        (specialUnitaryAsUnitary C)) =
+      positiveControlledUnitary target
+        (twoControlSet first second target hfirstTarget hsecondTarget) U := by
+  let V := unitarySquareRoot U
+  obtain ⟨A, B, C, hinactive, hactive⟩ :=
+    specialUnitary_exists_columnChronologicalABC (specialUnitaryPart V)
+  refine ⟨A, B, C, ?_⟩
+  apply eval_doubleControlledExpansion16Circuit_of_products first second target
+    hfirstSecond hfirstTarget hsecondTarget (determinantPhaseAngle V)
+    (specialUnitaryAsUnitary A) (specialUnitaryAsUnitary B)
+    (specialUnitaryAsUnitary C)
+    (specialUnitaryAsUnitary (specialUnitaryPart V)) V U
+  · exact hinactive
+  · exact hactive
+  · exact (phaseShift_mul_specialUnitaryPart V).symm
+  · exact unitarySquareRoot_pow_two U
+
+/-- Corollary 6.2 as an exact existence-and-resource theorem. -/
+theorem doubleControlledUnitary_has_sixteenPrimitiveCircuit {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target)
+    (U : QubitUnitary) :
+    ∃ circuit : Circuit n,
+      Circuit.eval circuit = positiveControlledUnitary target
+        (twoControlSet first second target hfirstTarget hsecondTarget) U ∧
+      Circuit.gateCount circuit = 16 ∧
+      Circuit.kindCount .oneQubit circuit = 8 ∧
+      Circuit.kindCount .cnot circuit = 8 ∧
+      Circuit.cost CostModel.oneQubitCNOT circuit = some 16 := by
+  obtain ⟨A, B, C, heval⟩ := doubleControlledExpansion16Circuit_exists
+    first second target hfirstSecond hfirstTarget hsecondTarget U
+  let circuit := doubleControlledExpansion16Circuit first second target
+    hfirstSecond hfirstTarget hsecondTarget
+    (determinantPhaseAngle (unitarySquareRoot U))
+    (specialUnitaryAsUnitary A) (specialUnitaryAsUnitary B)
+    (specialUnitaryAsUnitary C)
+  refine ⟨circuit, heval, ?_, ?_, ?_, ?_⟩ <;> simp [circuit]
+
 end
 
 end Barenco.ThreeQubit
