@@ -66,8 +66,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   three and the same total `8(n−5)` follows.
 - **Dependent impact:** Corollary 7.4, Lemmas 7.5/7.9/7.11, Corollaries 7.6/7.10/7.12,
   and Section 8 costs.
-- **Formal evidence:** planned integer-bound and reconstructed-circuit theorems.
-- **Status:** open.
+- **Formal evidence:** `InwardLadderLayout.slotCount_le_ambientWidth`,
+  `inwardLadderCircuit`, `eval_inwardLadderCircuit`, and the exact
+  `inwardLadderCircuit_toffoliCount` now establish the Lemma 7.2 ingredient on
+  arbitrary layouts. The repaired floor partition and Lemma 7.3 composition
+  remain to be formalized.
+- **Status:** partial: Lemma 7.2 is proved; the corrected Corollary 7.4 partition is open.
 
 ## C-004 — Corollary 7.4 remainder has an arithmetic error
 
@@ -160,11 +164,13 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** Section 6.2 circuits and Corollary 7.4's reduced gate count.
 - **Formal evidence:** `GlobalPhaseEq` is one constant `Circle` scalar;
   `BasisPhaseEq` is an input-column phase function; `SameBasisBehavior` and
-  `BasisMeasurementEq` are separate relations. The compiled implications include
-  global-to-basis phase, basis phase to basis probabilities, and global phase to
-  channel equality. No Section 6.2 circuit witness has been supplied.
-- **Status:** partial: the semantic ambiguity is resolved, while both relative-phase
-  Toffoli diagrams and their claimed later cancellation remain open.
+  `BasisMeasurementEq` are separate relations. Both Section 6.2 diagrams now
+  compile with exact signed basis actions and exact equality to each other;
+  `relativePhaseToffoliACircuit_basisPhaseEq_toffoli` and its B-circuit analogue
+  record the `101` column sign. The contextual Corollary 7.4 cancellation remains
+  a separate ordered-circuit obligation.
+- **Status:** partial: the diagrams and semantic relation are proved; their later
+  contextual phase cancellation remains open.
 
 ## C-010 — Auxiliary-wire contracts are underspecified
 
@@ -176,8 +182,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   as equality on the clean-zero input subspace, quantified over arbitrary data
   states, and prove output factorization/restoration.
 - **Dependent impact:** Corollaries 7.4, 7.10, 7.12 and downstream reuse of ancillas.
-- **Formal evidence:** planned ancilla contract theorems.
-- **Status:** open.
+- **Formal evidence:** `inwardLadderUpdate_eq_update`,
+  `inwardLadderUpdate_apply_borrowedWire`, and `eval_inwardLadderCircuit` prove
+  Lemma 7.2 as exact full-register equality with arbitrary dirty borrowed inputs.
+  Lemma 7.3's dirty composition and Lemma 7.11's clean-zero subspace theorem remain
+  open.
+- **Status:** partial: Lemma 7.2's dirty contract is proved; Lemmas 7.3/7.11 remain.
 
 ## C-011 — “Basic operation” changes and drifts
 

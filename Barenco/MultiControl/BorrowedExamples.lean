@@ -4,9 +4,9 @@ import Barenco.MultiControl.Borrowed
 # Diagnostic examples for the dirty-borrowed inward ladder
 
 This file pins the smallest instance of Barenco et al., Lemma 7.2 and the
-paper's displayed `n = 9`, `m = 5` instance.  It is intentionally excluded from
-the public root: the general construction and resource theorems live in
-`Barenco.MultiControl.Borrowed`.
+paper's displayed `n = 9`, `m = 5` instance. It is intentionally excluded from
+the public root: the general construction, semantics, and resource theorems live
+in `Borrowed`, `BorrowedSemantics`, and `BorrowedResources`.
 -/
 
 namespace Barenco.MultiControl.BorrowedExamples

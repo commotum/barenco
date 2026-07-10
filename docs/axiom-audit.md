@@ -129,6 +129,14 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.MultiControl.eval_grayControlledCircuit` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | selected exact root implements controlled U; no project axiom | 2026-07-09 |
 | `Barenco.MultiControl.grayControlledViaRootCircuit_kindCounts` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived root/CNOT macro counts; no project axiom | 2026-07-09 |
 | `Barenco.MultiControl.eval_fourBitGrayCircuit` | `Barenco.MultiControl.Lemma71` | `propext`, `Classical.choice`, `Quot.sound` | exact displayed four-bit circuit evaluator; no project axiom | 2026-07-09 |
+| `Barenco.Primitive.namedModels_reject_toffoli` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | both named paper models reject unexpanded Toffoli macros; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.slotCount_le_ambientWidth` | `Barenco.MultiControl.BorrowedResources` | `propext`, `Classical.choice`, `Quot.sound` | exact Lemma 7.2 layout-capacity bound; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.halfLadderCircuit_gateCount` | `Barenco.MultiControl.Borrowed` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived half-ladder gate count; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.inwardLadderCircuit_toffoliCount` | `Barenco.MultiControl.Borrowed` | `propext`, `Classical.choice`, `Quot.sound` | exact `4(m−2)` Toffoli-macro count; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.inwardLadderUpdate_eq_update` | `Barenco.MultiControl.BorrowedSemantics` | `propext`, `Classical.choice`, `Quot.sound` | exact dirty/spectator restoration normal form; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.eval_inwardLadderCircuit` | `Barenco.MultiControl.BorrowedSemantics` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-width exact Lemma 7.2 operator equality; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.touchedSupport_inwardLadderCircuit_subset` | `Barenco.MultiControl.BorrowedResources` | `propext`, `Classical.choice`, `Quot.sound` | no full-ladder primitive names an ambient spectator; no project axiom | 2026-07-09 |
+| `Barenco.MultiControl.InwardLadderLayout.inwardLadderCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.BorrowedResources` | `propext`, `Classical.choice`, `Quot.sound` | partial early-basic model rejects unexpanded Toffolis; no project axiom | 2026-07-09 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 
@@ -155,5 +163,8 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 7 Lemma 7.1 warning-as-error/root/audit | direct strict compilation of `Parity`, `GrayCode`, `GrayAccumulator`, `Layout`, `Lemma71`, `MultiControlExamples`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the audit printed 96 declarations and every result is within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-09 |
 | Stage 7 Lemma 7.1 focused/root/audit build | `lake build Barenco.MultiControl.Parity Barenco.MultiControl.GrayCode Barenco.MultiControl.GrayAccumulator Barenco.MultiControl.Layout Barenco.MultiControl.Lemma71 Barenco.MultiControlExamples Barenco.AxiomAudit Barenco` | successful after retrying one transient parallel output-file race, 3,482 jobs, 2026-07-09 |
 | Stage 7 Lemma 7.1 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,480 jobs each, 2026-07-09 |
+| Stage 7 Lemma 7.2 warning-as-error/root/audit | direct strict compilation of `Circuit`, `Cost`, `Borrowed`, `BorrowedSemantics`, `BorrowedResources`, `BorrowedExamples`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 106 declarations, all within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-09 |
+| Stage 7 Lemma 7.2 focused/root/audit build | `lake build Barenco.MultiControl.Borrowed Barenco.MultiControl.BorrowedSemantics Barenco.MultiControl.BorrowedResources Barenco.MultiControl.BorrowedExamples Barenco.AxiomAudit Barenco` | successful, 3,485 jobs, 2026-07-09 |
+| Stage 7 Lemma 7.2 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,483 jobs each, 2026-07-09 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

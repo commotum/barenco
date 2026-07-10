@@ -429,6 +429,28 @@ These controlled-root nodes remain `.controlledOneQubit 1` macros, so
 one-qubit/CNOT counts require an explicit coordinated Section 5 expansion and are
 not inferred from the semantic equality or the macro counts.
 
+Lemma 7.2 uses a different syntax and workspace contract.
+`InwardLadderLayout b ambientWidth` injects `b+2` ordered controls, `b` dirty
+borrowed wires, and one target into arbitrary ambient positions. The layout itself
+therefore witnesses the exact capacity `2b+3 ≤ ambientWidth`. The full public
+construction is indexed by a positive borrowed count `b+1`; equivalently it has
+`m=b+3≥3` controls and requires `2m−1` named logical wires.
+
+`halfLadderCircuit` is the inward palindrome `outer; smallerHalf; outer`.
+`inwardLadderCircuit` executes the positive-width half and then its smaller
+prefix half. In the source's `n=9,m=5` example this unfolds exactly to
+`q₁;q₂;q₃;q₄;q₃;q₂;q₁;q₂;q₃;q₄;q₃;q₂`. The Boolean-ring proof does not assume
+borrowed wires start at zero: it proves the complete update is identity on every
+non-target ambient wire and toggles the target by the conjunction of all controls.
+Basis-column extensionality then gives exact full-register unitary equality, so
+the theorem also restores arbitrary dirty-wire superpositions and external
+entanglement.
+
+The trusted `Primitive.toffoli` used here requires three pairwise-distinct wires.
+The exact syntax has `4(b+1)=4(m−2)` Toffoli macros. Both named paper cost models
+return `none` until those macros are replaced by explicit lower-level circuits;
+the Toffoli count is not mislabeled as a one-qubit+CNOT cost.
+
 ## Semantic Relations
 
 The implemented relations are deliberately noninterchangeable:

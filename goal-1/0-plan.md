@@ -407,8 +407,14 @@ Current implementation facts:
   exact controlled-root/CNOT/total macro counts from syntax.
 - `fourBitGrayCircuit` is proved exactly equal to the generated width-three
   syntax and reconstructs the source's seven-root/six-CNOT chronology. Strict
-  checks, a 3,482-job focused root/audit build, two 3,480-job full builds, and 96
-  maintained axiom prints pass. Lemma 7.2's dirty borrowed-wire ladder is next.
+  checks and its selected-root/count audits pass.
+- Lemma 7.2 now has a trusted pairwise-distinct Toffoli primitive, arbitrary-wire
+  `InwardLadderLayout`, exact recursive syntax, Boolean-ring dirty restoration,
+  full-register evaluator equality, `4(m−2)` syntax count, capacity/support
+  bounds, rejected unexpanded paper costs, and exact `m=3`/`n=9,m=5`
+  diagnostics. The latest focused root/audit build has 3,485 jobs, two full builds
+  have 3,483 jobs each, and all 106 maintained axiom prints are standard. Lemma
+  7.3's four-block dirty construction is next.
 
 ### Detailed Implementation Plan
 
