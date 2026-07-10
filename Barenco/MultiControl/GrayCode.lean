@@ -1,6 +1,7 @@
 import Mathlib.Data.Finset.SymmDiff
 import Mathlib.Data.Fintype.Fin
 import Mathlib.Data.List.Chain
+import Mathlib.Data.List.Forall2
 import Mathlib.Tactic
 
 /-!
@@ -317,6 +318,16 @@ theorem length_grayPivots_eq_grayCode (width : ℕ) :
 @[simp]
 theorem grayCode_zero : grayCode 0 = [] := rfl
 
+theorem grayCode_succ (width : ℕ) :
+    grayCode (width + 1) =
+      (grayCode width).map liftGrayMask ++
+        (fullGrayCode width).reverse.map liftGrayMaskWithLast := by
+  have hmap : (fullGrayCode width).map liftGrayMask ≠ [] := by
+    simpa using fullGrayCode_ne_nil width
+  rw [grayCode, fullGrayCode_succ, List.tail_append_of_ne_nil hmap]
+  rw [← List.map_tail]
+  rfl
+
 /-- The one-control schedule contains its unique nonempty mask. -/
 theorem grayCode_one : grayCode 1 = [{0}] := by
   decide
@@ -425,5 +436,88 @@ theorem GrayAdjacent.exists_unique_changed {width : ℕ} {first second : GrayMas
     (h : GrayAdjacent first second) :
     ∃ changed : Fin width, first ∆ second = {changed} := by
   exact Finset.card_eq_one.mp h
+
+/-! ## Maximum-mask pivots -/
+
+/-- `pivot` is a member of `mask` no smaller than any other selected position. -/
+def IsGrayPivot {width : ℕ} (mask : GrayMask width) (pivot : Fin width) : Prop :=
+  pivot ∈ mask ∧ ∀ wire ∈ mask, wire ≤ pivot
+
+theorem IsGrayPivot.nonempty {width : ℕ} {mask : GrayMask width} {pivot : Fin width}
+    (h : IsGrayPivot mask pivot) : mask.Nonempty :=
+  ⟨pivot, h.1⟩
+
+theorem IsGrayPivot.eq_max' {width : ℕ} {mask : GrayMask width} {pivot : Fin width}
+    (h : IsGrayPivot mask pivot) : mask.max' h.nonempty = pivot := by
+  apply le_antisymm
+  · exact h.2 _ (Finset.max'_mem mask h.nonempty)
+  · exact Finset.le_max' mask pivot h.1
+
+theorem IsGrayPivot.lift {width : ℕ} {mask : GrayMask width} {pivot : Fin width}
+    (h : IsGrayPivot mask pivot) :
+    IsGrayPivot (liftGrayMask mask) pivot.castSucc := by
+  constructor
+  · simp [h.1]
+  · intro wire hwire
+    rw [liftGrayMask, Finset.mem_map] at hwire
+    rcases hwire with ⟨source, _, rfl⟩
+    simpa using h.2 source (by assumption)
+
+theorem isGrayPivot_liftWithLast {width : ℕ} (mask : GrayMask width) :
+    IsGrayPivot (liftGrayMaskWithLast mask) (Fin.last width) := by
+  constructor
+  · simp
+  · intro wire _
+    exact Fin.le_last wire
+
+private theorem forall₂_liftGrayPivots {width : ℕ}
+    {masks : List (GrayMask width)} {pivots : List (Fin width)}
+    (h : List.Forall₂ IsGrayPivot masks pivots) :
+    List.Forall₂ IsGrayPivot (masks.map liftGrayMask) (pivots.map Fin.castSucc) := by
+  exact List.rel_map (fun _ _ hpivot => IsGrayPivot.lift hpivot) h
+
+private theorem forall₂_liftWithLast_replicate {width : ℕ}
+    (masks : List (GrayMask width)) :
+    List.Forall₂ IsGrayPivot
+      (masks.map liftGrayMaskWithLast)
+      (List.replicate masks.length (Fin.last width)) := by
+  induction masks with
+  | nil => simp
+  | cons mask masks ih =>
+      simp only [List.map_cons, List.length_cons, List.replicate_succ]
+      exact List.Forall₂.cons (isGrayPivot_liftWithLast mask) ih
+
+/-- Every runtime pivot is exactly the maximum selected position of its paired mask. -/
+theorem grayCode_pivots : ∀ width,
+    List.Forall₂ IsGrayPivot (grayCode width) (grayPivots width) := by
+  intro width
+  induction width with
+  | zero => simp
+  | succ width ih =>
+      rw [grayCode_succ, grayPivots_succ, ← length_fullGrayCode]
+      apply List.rel_append
+      · exact forall₂_liftGrayPivots ih
+      · simpa using forall₂_liftWithLast_replicate (fullGrayCode width).reverse
+
+/-- Accumulator pivots never move toward a lower-index control wire. -/
+theorem grayPivots_isChain : ∀ width,
+    (grayPivots width).IsChain (· ≤ ·) := by
+  intro width
+  induction width with
+  | zero => simp
+  | succ width ih =>
+      rw [grayPivots_succ]
+      apply List.IsChain.append
+      · exact List.isChain_map_of_isChain Fin.castSucc
+          (fun _ _ h => by simpa using h) ih
+      · exact List.isChain_replicate_of_rel _ le_rfl
+      · intro first _ second hsecond
+        have hpow : 0 < 2 ^ width := pow_pos (by omega) width
+        have hsecondEq : second = Fin.last width := by
+          rw [Option.mem_def] at hsecond
+          simp [hpow.ne'] at hsecond
+          exact hsecond.symm
+        subst second
+        exact Fin.le_last first
 
 end Barenco.MultiControl
