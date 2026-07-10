@@ -113,9 +113,10 @@ extra assumption, omission, or unresolved obstruction.
 - `AllMeasurementEq` intentionally quantifies arbitrary matrices/effects and is
   algebraically equivalent to channel equality. It is not a declaration that every
   such matrix is a physical state or POVM effect.
-- Clean/dirty ancilla contracts remain a Stage 8 semantic obligation. Stage 3 made
-  ambient width explicit but did not infer initialization or restoration from a
-  numeric resource field.
+- Clean/dirty ancilla contracts are now explicit rather than inferred from numeric
+  resource fields: Stage 7 proves exact full-register dirty-wire restoration, and
+  Stage 8 proves clean-zero subspace correctness, output closure, and literal
+  fixed-wire factorization.
 - Lemma 4.1's existential Euler decomposition is now proved by a canonical
   `SU(2)` entry form plus explicit determinant-phase normalization. General exact
   finite-dimensional unitary roots are now proved by finite-spectrum functional
@@ -160,7 +161,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
 - [x] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
 - [x] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
-- [ ] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
+- [x] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
 - [ ] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
 - [ ] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
 - [ ] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
@@ -473,6 +474,30 @@ Current implementation facts:
 
 Verify the paper's linear exact constructions and state their auxiliary-wire
 contracts without ambiguity.
+
+### Current Results
+
+- Lemma 7.9 now has the exact five-macro chronology on arbitrary ambient
+  registers, a selected special-unitary ABC witness, a literal one-qubit/CNOT
+  expansion, and exact logical-width profile
+  `(64n−279,48n−194,112n−473)` for `n≥7`. The source's special `W` example has
+  an explicit input-column sign and separate `BasisPhaseEq`, basis-behavior, and
+  basis-measurement theorems.
+- Lemma 7.11 now has an exact arbitrary-auxiliary basis formula, equality on the
+  entire clean-zero subspace for arbitrary superpositions, clean-zero output
+  closure, and an explicit fixed-wire factorization witness. Its primitive
+  expansion declares exactly one clean wire and has profile
+  `(64n−284,48n−198,112n−482)` for `n≥7`.
+- Both numeric count families are linked exactly to their named circuit syntax
+  and have construction-specific `IsBigOWith 112`/`O(n)` theorems. Corollary
+  7.10's dropped control and both corollaries' unsupported optimal `Θ(n)` reading
+  are corrected in C-022 and C-026.
+- Root-excluded width-seven/eight diagnostics confirm every component count,
+  prove a vector-level auxiliary-one counterexample for Pauli-X, and specialize
+  arbitrary-state factorization. Stage 8 is publicly integrated: strict and
+  trust-zero root/audit checks pass with 206 standard-only axiom entries, the
+  focused build passes with 3,505 jobs, and two final full builds pass with 3,503
+  jobs each.
 
 ### Detailed Implementation Plan
 

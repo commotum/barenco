@@ -1,7 +1,8 @@
 # 8-ANCILLA
 
-Status: in progress (semantic and primitive construction layers complete; resource
-wrappers, diagnostics, public integration, and final audits remain).
+Status: complete (Lemmas 7.9 and 7.11, corrected Corollaries 7.10 and 7.12,
+their exact primitive counts and construction-specific `O(n)` bounds, clean-wire
+contracts, phase relation, diagnostics, documentation, and audits are integrated).
 
 ## Current Facts
 
@@ -178,18 +179,18 @@ language only.
 
 ## Completion Requirements
 
-- [ ] Lemma 7.9 has an exact arbitrary-width macro evaluator, selected-SU(2)
+- [x] Lemma 7.9 has an exact arbitrary-width macro evaluator, selected-SU(2)
   wrapper, and explicit one-qubit/CNOT expansion with syntax-derived linear cost.
-- [ ] Corollary 7.10 is corrected transparently, including the printed index
+- [x] Corollary 7.10 is corrected transparently, including the printed index
   mismatch, exact threshold, construction-specific upper count, and exact phase
   relation for the source's W example.
-- [ ] Lemma 7.11 has an exact general auxiliary-bit basis formula and a clean-zero
+- [x] Lemma 7.11 has an exact general auxiliary-bit basis formula and a clean-zero
   arbitrary-state theorem that proves restoration and factorization.
-- [ ] Corollary 7.12 has a counted primitive circuit, one-clean-ancilla/width
+- [x] Corollary 7.12 has a counted primitive circuit, one-clean-ancilla/width
   contract, exact linear upper count, and reusable-output theorem.
-- [ ] Canonical smallest-width examples include the invalid auxiliary-one branch
+- [x] Canonical smallest-width examples include the invalid auxiliary-one branch
   and confirm all exact component counts.
-- [ ] Traceability, conventions, corrections, axiom audit, this stage file, and
+- [x] Traceability, conventions, corrections, axiom audit, this stage file, and
   `0-plan.md` are synchronized; focused/adjacent, strict/trust-zero, forbidden,
   diff, two full-build, and axiom-audit evidence is recorded.
 
@@ -280,3 +281,12 @@ language only.
   is inactive, so the clean-zero premise is demonstrably necessary. Strict and
   trust-zero compilation, a 3,491-job focused build, scans, and standard-only
   representative axiom checks pass.
+- Public integration adds the ten stable Stage 8 leaves to `Barenco.lean` while
+  keeping diagnostics root-excluded. The maintained audit grows from 175 to 206
+  declarations; two new arithmetic checks use `propext`/`Quot.sound`, and every
+  other new check adds only `Classical.choice`. Direct strict and trust-zero root
+  and audit compilations pass, as do the 3,505-job focused/diagnostic/root/audit
+  build, forbidden and whitespace scans, and two unchanged 3,503-job full builds.
+  Traceability rows L7.9/C7.10/L7.11/C7.12, conventions, C-010/C-022/C-026,
+  `0-plan.md`, and the axiom record now agree on the exact semantics, thresholds,
+  phase relation, ancilla contract, and construction-only linear bounds.
