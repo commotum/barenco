@@ -598,6 +598,31 @@ def mergedGrayControlledViaRootSymbolicCircuit {tail ambientWidth : ℕ}
         [coherentGrayRootEndAt layout edgeCount
           (coherentGrayFinalMask_index_lt tail)]
 
+/-- Payload-visible erased form of the general merged root schedule. -/
+def mergedGrayControlledViaRootFusionCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) : FusionCircuit ambientWidth :=
+  SymbolicCircuit.erase (grayFactorValuation V)
+    (mergedGrayControlledViaRootSymbolicCircuit layout)
+
+/-- Trusted public circuit syntax for the general merged root schedule. -/
+def mergedGrayControlledViaRootCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) : Circuit ambientWidth :=
+  (mergedGrayControlledViaRootFusionCircuit layout V).lower
+
+/-- Payload-visible selected-root circuit for an arbitrary controlled `U`. -/
+def mergedGrayControlledFusionCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) : FusionCircuit ambientWidth :=
+  mergedGrayControlledViaRootFusionCircuit layout (graySelectedRoot tail U)
+
+/-- Trusted selected-root circuit for an arbitrary fully controlled `U`. -/
+def mergedGrayControlledCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) : Circuit ambientWidth :=
+  (mergedGrayControlledFusionCircuit layout U).lower
+
 /-- One coherent signed root followed by its generated Gray CNOT. -/
 def coherentGrayTransitionPair {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth)
@@ -636,6 +661,113 @@ def coherentGrayControlledCircuit {tail ambientWidth : ℕ}
     (layout : OrderedControlLayout (tail + 1) ambientWidth)
     (U : QubitUnitary) : SymbolicCircuit GrayFactorAtom ambientWidth :=
   coherentGrayControlledViaRootCircuit layout (graySelectedRoot tail U)
+
+private theorem coherentGrayUnmergedPrefix_eq_rawPrefix_start
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges (tail + 1)).length),
+      [coherentGrayRootStartAt layout 0
+          (coherentGrayInitialMask_index_lt tail)] ++
+          coherentGrayUnmergedBoundaryPrefixCircuit layout count hcount =
+        coherentGrayTransitionPrefixCircuit layout V count hcount ++
+          [coherentGrayRootStartAt layout count
+            (coherentGrayMask_index_lt_of_prefix (by omega) hcount)] := by
+  intro count hcount
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [coherentGrayUnmergedBoundaryPrefixCircuit,
+        coherentGrayTransitionPrefixCircuit]
+      rw [← List.append_assoc, ih (by omega)]
+      simp [coherentGrayUnmergedBoundarySegment,
+        coherentGrayBoundaryAt, coherentGrayTransitionPair,
+        coherentGrayRootCircuitAt_eq_start_core_end,
+        List.append_assoc]
+
+/-- The boundary-oriented unmerged syntax is only a literal regrouping. -/
+theorem coherentGrayRegroupedViaRootCircuit_eq_raw
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    coherentGrayRegroupedViaRootCircuit layout =
+      coherentGrayControlledViaRootCircuit layout V := by
+  rw [coherentGrayRegroupedViaRootCircuit,
+    coherentGrayControlledViaRootCircuit]
+  rw [coherentGrayUnmergedPrefix_eq_rawPrefix_start layout V]
+  rw [coherentGrayRootCircuitAt_eq_start_core_end]
+  simp [List.append_assoc]
+
+/-- Normalizing an indexed boundary preserves its exact erased evaluator. -/
+@[simp]
+theorem eval_erase_coherentGrayNormalizedBoundaryAt
+    {controlCount ambientWidth : ℕ}
+    (valuation : GrayFactorAtom → QubitUnitary)
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase valuation
+          (coherentGrayNormalizedBoundaryAt layout index hindex)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase valuation
+          (coherentGrayBoundaryAt layout index hindex)) := by
+  simp [coherentGrayNormalizedBoundaryAt]
+
+/-- One executable merged segment has the exact evaluator of its raw segment. -/
+@[simp]
+theorem eval_erase_coherentGrayMergedBoundarySegment
+    {controlCount ambientWidth : ℕ}
+    (valuation : GrayFactorAtom → QubitUnitary)
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase valuation
+          (coherentGrayMergedBoundarySegment layout index hindex)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase valuation
+          (coherentGrayUnmergedBoundarySegment layout index hindex)) := by
+  rw [coherentGrayMergedBoundarySegment,
+    coherentGrayUnmergedBoundarySegment]
+  rw [erase_append, erase_append, FusionCircuit.eval_append,
+    FusionCircuit.eval_append, eval_erase_coherentGrayNormalizedBoundaryAt]
+
+/-- Exact evaluator preservation for every streaming merger prefix. -/
+theorem eval_erase_coherentGrayMergedBoundaryPrefixCircuit
+    {controlCount ambientWidth : ℕ}
+    (valuation : GrayFactorAtom → QubitUnitary)
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      FusionCircuit.eval
+          (SymbolicCircuit.erase valuation
+            (coherentGrayMergedBoundaryPrefixCircuit layout count hcount)) =
+        FusionCircuit.eval
+          (SymbolicCircuit.erase valuation
+            (coherentGrayUnmergedBoundaryPrefixCircuit layout count hcount)) := by
+  intro count hcount
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [coherentGrayMergedBoundaryPrefixCircuit,
+        coherentGrayUnmergedBoundaryPrefixCircuit]
+      rw [erase_append, erase_append, FusionCircuit.eval_append,
+        FusionCircuit.eval_append,
+        eval_erase_coherentGrayMergedBoundarySegment, ih]
+
+/-- Applying every certified boundary merger preserves the complete evaluator. -/
+theorem eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_regrouped
+    {tail ambientWidth : ℕ}
+    (valuation : GrayFactorAtom → QubitUnitary)
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase valuation
+          (mergedGrayControlledViaRootSymbolicCircuit layout)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase valuation
+          (coherentGrayRegroupedViaRootCircuit layout)) := by
+  simp only [mergedGrayControlledViaRootSymbolicCircuit,
+    coherentGrayRegroupedViaRootCircuit]
+  repeat' rw [erase_append, FusionCircuit.eval_append]
+  rw [eval_erase_coherentGrayMergedBoundaryPrefixCircuit]
 
 @[simp]
 theorem eval_erase_coherentGrayRootCircuitAt
@@ -701,6 +833,62 @@ theorem eval_erase_coherentGrayControlledViaRootCircuit_eq_macro
     eval_erase_coherentGrayTransitionPrefixCircuit,
     eval_erase_coherentGrayRootCircuitAt]
   rw [Circuit.eval_singleton]
+
+/-- The complete streaming merger is exactly evaluator-preserving. -/
+theorem eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_raw
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (mergedGrayControlledViaRootSymbolicCircuit layout)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (coherentGrayControlledViaRootCircuit layout V)) := by
+  rw [eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_regrouped,
+    coherentGrayRegroupedViaRootCircuit_eq_raw layout V]
+
+/-- The erased merged circuit has the established Lemma 7.1 macro evaluator. -/
+theorem eval_mergedGrayControlledViaRootFusionCircuit_eq_macro
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.eval (mergedGrayControlledViaRootFusionCircuit layout V) =
+      Circuit.eval (grayControlledViaRootCircuit layout V) := by
+  rw [mergedGrayControlledViaRootFusionCircuit,
+    eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_raw,
+    eval_erase_coherentGrayControlledViaRootCircuit_eq_macro]
+
+/-- The trusted lowered merged circuit preserves the same exact macro evaluator. -/
+theorem eval_mergedGrayControlledViaRootCircuit_eq_macro
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.eval (mergedGrayControlledViaRootCircuit layout V) =
+      Circuit.eval (grayControlledViaRootCircuit layout V) := by
+  rw [mergedGrayControlledViaRootCircuit, FusionCircuit.eval_lower,
+    eval_mergedGrayControlledViaRootFusionCircuit_eq_macro]
+
+/-- Exact arbitrary-register semantics of the selected-root merged fusion circuit. -/
+@[simp]
+theorem eval_mergedGrayControlledFusionCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) :
+    FusionCircuit.eval (mergedGrayControlledFusionCircuit layout U) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [mergedGrayControlledFusionCircuit,
+    eval_mergedGrayControlledViaRootFusionCircuit_eq_macro]
+  simpa [grayControlledCircuit] using eval_grayControlledCircuit layout U
+
+/-- Exact arbitrary-register semantics of the trusted merged circuit. -/
+@[simp]
+theorem eval_mergedGrayControlledCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.eval (mergedGrayControlledCircuit layout U) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [mergedGrayControlledCircuit, FusionCircuit.eval_lower,
+    eval_mergedGrayControlledFusionCircuit]
 
 /-- Exact arbitrary-register semantics of the selected-root coherent raw syntax. -/
 @[simp]

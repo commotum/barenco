@@ -340,6 +340,40 @@ theorem gateCount_eq_componentCounts (circuit : SymbolicCircuit Atom n) :
           cnotCount, cnotWeight] at ih ⊢ <;>
         omega
 
+/-! ## Chronological append resources -/
+
+@[simp]
+theorem gateCount_append (first second : SymbolicCircuit Atom n) :
+    gateCount (first ++ second) = gateCount first + gateCount second := by
+  simp [gateCount]
+
+@[simp]
+theorem oneQubitCount_append (first second : SymbolicCircuit Atom n) :
+    oneQubitCount (first ++ second) =
+      oneQubitCount first + oneQubitCount second := by
+  induction first with
+  | nil => simp only [List.nil_append, oneQubitCount_nil, Nat.zero_add]
+  | cons primitive first ih =>
+      simp only [List.cons_append, oneQubitCount_cons, ih]
+      omega
+
+@[simp]
+theorem cnotCount_append (first second : SymbolicCircuit Atom n) :
+    cnotCount (first ++ second) = cnotCount first + cnotCount second := by
+  induction first with
+  | nil => simp only [List.nil_append, cnotCount_nil, Nat.zero_add]
+  | cons primitive first ih =>
+      simp only [List.cons_append, cnotCount_cons, ih]
+      omega
+
+@[simp]
+theorem cnotTrace_append (first second : SymbolicCircuit Atom n) :
+    cnotTrace (first ++ second) = cnotTrace first ++ cnotTrace second := by
+  induction first with
+  | nil => rfl
+  | cons primitive first ih =>
+      cases primitive <;> simp [cnotTrace, ih]
+
 /-! ## Exact erasure resources -/
 
 @[simp]
