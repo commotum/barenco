@@ -1,6 +1,6 @@
 # 4-FUSION-IR
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-10).
 
 ## Current Facts
 
@@ -169,27 +169,27 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
 
 ## Completion Requirements
 
-- [ ] Closed payload-preserving node/circuit syntax plus the separate mixed barrier
+- [x] Closed payload-preserving node/circuit syntax plus the separate mixed barrier
   program and trusted lowering compile with exact kind, support, denotation,
   chronology, append, and barrier round-trip theorems.
-- [ ] Executable IR gate count, kind count, touched support, and partial cost agree
+- [x] Executable IR gate count, kind count, touched support, and partial cost agree
   exactly with the lowered `Circuit` under both named models.
-- [ ] Visible one-qubit/CNOT/two-qubit nodes retain every payload needed by Stage 5;
+- [x] Visible one-qubit/CNOT/two-qubit nodes retain every payload needed by Stage 5;
   unsupported existing primitives can enter only through exact mixed barriers and
   never inhabit `FusionPrimitive`.
-- [ ] A transparent selected arbitrary controlled-U fusion circuit lowers to the
+- [x] A transparent selected arbitrary controlled-U fusion circuit lowers to the
   parameterized six-node circuit, has exact evaluator, and literal profile
   `(oneQubit,CNOT,total) = (4,2,6)`.
-- [ ] Relative-phase A lowers exactly to its existing seven-node syntax with profile
+- [x] Relative-phase A lowers exactly to its existing seven-node syntax with profile
   `(4,3,7)` and exact evaluator transfer.
-- [ ] At least one checked Gray fusion input uses the transparent factor schedule,
+- [x] At least one checked Gray fusion input uses the transparent factor schedule,
   has an exact evaluator bridge, and matches the corresponding Goal 1 raw counts;
   any remaining parameterized schedule work is recorded precisely.
-- [ ] Barrier, width-two/nonadjacent, chronology, model-boundary, relative, and Gray
+- [x] Barrier, width-two/nonadjacent, chronology, model-boundary, relative, and Gray
   diagnostics compile without entering the public root.
-- [ ] Stable public imports and representative axiom checks are integrated; focused,
+- [x] Stable public imports and representative axiom checks are integrated; focused,
   adjacent, strict, trust-zero, forbidden/no-cheating, and diff checks pass.
-- [ ] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
+- [x] Conventions, traceability, axiom docs, this stage file, and `0-plan.md` are
   folded forward with Stage 4 marked complete and Stage 5 resumable.
 
 ## Stage Results
@@ -234,3 +234,29 @@ relative-phase and Gray inputs without inspecting opaque primitive metadata.
   `4(2^m-1)` one-qubit nodes, `3*2^m-4` CNOTs, and `7*2^m-8` total/early-model
   cost for every `m=tail+1>0`, with explicit one-, two-, and three-control checks.
   Its focused build passed with 3,469 jobs.
+- Added root-excluded `Barenco/FusionExamples.lean`. It checks canonical width two,
+  oriented nonadjacent width five, exact `U;V ↦ V*U` chronology, lossless Toffoli
+  barriers and both-model rejection, generic-`U(4)` model separation, transparent
+  controlled-U and relative-A profiles, the general Gray formulas, and the
+  one-control `(4,2,6)` boundary. Its combined focused verification passed with
+  3,478 jobs; the public root and audit contain no diagnostic import.
+- `Barenco.lean` now exports the five stable Stage 4 leaves. Twenty-nine maintained
+  checks raise `Barenco/AxiomAudit.lean` from 348 to 377 entries; every new result
+  reports only `propext`, `Classical.choice`, and `Quot.sound`. Public/audit builds
+  passed with 3,595 jobs, and the combined public/diagnostic regression passed with
+  3,596 jobs.
+- Direct warning-as-error and trust-zero warning-as-error compilation passed for
+  every new public leaf, the diagnostic, root, and audit. The adjacent regression
+  against selected controlled-U, existing relative phase, Lemma 7.1/Gray
+  expansion, cost, and lower-bound consumers passed with 3,481 jobs; final
+  `lake build` passed with 3,594 jobs.
+- Repository proof-hole, forbidden-decision, custom-axiom/opaque, constructor-
+  forgery, opaque-input, semantic-to-count, and root-exclusion scans were clean.
+  Canonical/Gray runtime code contains no use of `selectedControlledU2Circuit`,
+  `GrayExpansion`, unclassified primitives, or barrier shortcuts. Audit source and
+  documentation both contain exactly 377 entries, and `git diff --check` passed.
+- `docs/conventions.md`, `docs/traceability.md`, `docs/axiom-audit.md`, and
+  `docs/final-report.md` now record the visible/barrier boundary, transparent paper
+  inputs, raw Gray profile, current public API, build evidence, and explicit fact
+  that no disputed merger has yet been claimed. Stage 5 can start from a fully
+  compiled exact IR and must implement the executable rewrite layer itself.

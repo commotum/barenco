@@ -2,8 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–3 are complete; Stage 4 payload-preserving fusion IR is
-the first incomplete stage.
+Status: active. Stages 1–4 are complete; Stage 5 exact normalization is the first
+incomplete stage.
 
 ## Big-Picture Objective
 
@@ -140,11 +140,20 @@ collection of hand-simplified paper examples.
   counts, early-model rejection, and Section 8 cost one. Root-excluded diagnostics,
   the 3,593-job integrated regression, 3,589-job full build, strict/trust-zero
   checks, scans, and 348-entry audit pass. `Primitive` still does not retain an
-  optimizer-readable payload; Stage 4's separate IR must do so.
+  optimizer-readable payload; the completed Stage 4 layer provides that payload
+  without changing or decoding `Primitive`.
 - The optimizer architecture is a separate payload-preserving IR lowering through
   trusted smart constructors. `Primitive` changed only by the completed trusted
   two-wire constructor inside its private-constructor file; no normalizer will
   infer payloads from metadata or decide equality of arbitrary unitary matrices.
+- Stage 4 added closed `FusionPrimitive`/`FusionCircuit` syntax, a separate exact
+  `FusionProgram` barrier path, payload-preserving adjoints, and executable
+  syntax-derived resource folds with exact lowering bridges. Transparent selected
+  controlled-U, relative-A, and full parameterized Gray builders compile with
+  exact arbitrary-register evaluators and raw profiles. Root-excluded diagnostics,
+  377 maintained axiom checks, the 3,596-job integrated regression, 3,594-job full
+  build, strict/trust-zero checks, scans, and documentation synchronization pass.
+  No merger or disputed optimized count is claimed at this stage.
 
 ## Remaining Assumptions to Test
 - The relative-phase A circuit appears to split chronologically into three groups
@@ -196,7 +205,7 @@ The goal is complete only when all of the following hold:
 - [x] `1-GUARDRAILS` — freeze architecture, source claims, models, and proof boundaries.
 - [x] `2-TWO-WIRE` — certified ordered-pair semantic embeddings and algebra.
 - [x] `3-TWO-PRIMITIVE` — trusted circuit constructor, support, adjoint, and costs.
-- [ ] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
+- [x] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
 - [ ] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
 - [ ] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
 - [ ] `7-GRAY-MERGERS` — normalize the general Gray family and settle its checked count.
@@ -400,6 +409,32 @@ exactly into the established trusted `Circuit` representation.
   payload; barrier behavior has a diagnostic test.
 - Focused IR/compiler, adjacent test-input, strict, trust-zero, audit, and hygiene
   checks pass.
+
+### Stage Results
+
+- Public `Optimization.FusionIR` defines a closed visible grammar with exact
+  one-qubit, ordered CNOT, and ordered certified `U(4)` payloads, plus chronological
+  evaluation, append, support, and payload-preserving adjoints. Every branch lowers
+  only through its trusted smart constructor. A separate mixed program admits
+  arbitrary existing primitives only as exact non-reifiable barriers and has a
+  lossless all-barrier round trip.
+- Public `Optimization.FusionResources` derives literal gate/kind/component counts,
+  support, and generic partial costs from the IR and proves exact lowering,
+  append, and adjoint bridges. Section 8 costs every visible node one; the early
+  model accepts exactly visible circuits with no generic `U(4)` node. Barriers
+  inherit and propagate the original primitive's partial cost.
+- `ControlledCircuit.CanonicalSelected`, `ThreeQubit.RelativePhaseFusion`, and
+  `MultiControl.GrayFusion` expose transparent optimizer inputs. They prove exact
+  full-register evaluators and literal profiles `(4,2,6)`, `(4,3,7)`, and, for
+  `m>0` controls, `(4(2^m-1), 3*2^m-4, 7*2^m-8)` respectively. The Gray family is
+  fully parameterized and never uses the opaque selected expansion as input.
+- Root-excluded `FusionExamples` checks width-two/nonadjacent orientation,
+  chronology, barriers, model separation, relative A, and Gray boundaries. Five
+  stable leaves are public; 29 new checks raise the maintained audit to 377 and
+  use only the standard foundations. Focused/adjacent/public/full,
+  strict/trust-zero, no-cheating, root-exclusion, documentation, and diff checks
+  pass with exact evidence in `goal-2/4-FUSION-IR.md`. No normalization or disputed
+  merger result is claimed before Stage 5.
 
 ## 5-NORMALIZE
 
