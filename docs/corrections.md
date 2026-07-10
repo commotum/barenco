@@ -193,11 +193,24 @@ statement. “Open” means the repair is identified but not yet machine checked
   `Circuit.cost` returns `none` for an unsupported occurrence, and
   `Primitive.namedModels_reject_unclassified_of_mem` proves that neither model
   silently prices `.unclassified`. Append and adjoint cost laws are compiled.
-  For Corollary 5.6, `controlledVMacroU2Circuit_kindCounts` proves the structural
-  four-plus-two macro count, while
+  For Corollary 5.6, `controlledVMacroU2Circuit_gateCount` and
+  `controlledVMacroU2Circuit_kindCounts` prove the structural six-node macro
+  count—four one-qubit plus two controlled-`V` occurrences—while
   `controlledVMacroU2Circuit_oneQubitCNOTCost` proves that the Sections 3–7 model
-  rejects the unexpanded controlled-`V` occurrences. The separately expanded and
-  merged circuits carry their own syntax-derived CNOT-model costs.
+  rejects the unexpanded controlled-`V` occurrences with cost `none`.
+  `expandedVMacroU2Circuit_gateCount`,
+  `expandedVMacroU2Circuit_kindCounts`, and
+  `expandedVMacroU2Circuit_oneQubitCNOTCost` prove that literal expansion of both
+  macros has ten nodes—eight one-qubit plus two CNOT occurrences—and cost
+  `some 10`. Under `D * F = I`,
+  `eval_expandedVMacroU2Circuit_eq_controlledU2Circuit` proves the three local
+  merge groups give evaluator equality with the distinct six-node
+  `controlledU2Circuit`; `controlledU2Circuit_gateCount`,
+  `controlledU2Circuit_kindCounts`, and `controlledU2Circuit_oneQubitCNOTCost`
+  prove its four-plus-two syntax and cost `some 6`. The combined cost statement is
+  `expanded_and_mergedVMacroU2Circuit_oneQubitCNOTCosts`. Under the additional
+  equation `V = F * X * D`, `eval_expandedVMacroU2Circuit_eq_macro` also connects
+  the ten-node expansion to the six-node macro evaluator.
 - **Status:** corrected and proved at the cost-model foundation and for all
   Section 5 constructions. Every later numerical paper bound still requires a
   concrete supported circuit and its own theorem.
@@ -310,10 +323,12 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Issue:** Lemma 5.4 says that specializing Lemma 4.1 classifies a traceless
   determinant-`-1` unitary, but it does not construct the two real parameters when
   the phase-carrying off-diagonal entry is zero. Lemma 5.5's one-sentence proof
-  obtains its displayed circuit by cancelling two adjacent XORs, which proves the
-  construction direction but does not prove the converse. It also permits
-  arbitrary unitary `A,B` although the invoked Lemma 5.4 witnesses are special
-  unitary.
+  starts with a Lemma 5.4 realization, appends an XOR, and cancels the adjacent XOR
+  pair. This proves sufficiency for the displayed family as written, but never
+  starts from an arbitrary one-CNOT realization and therefore does not prove
+  necessity. It also permits arbitrary unitary `A,B`, whereas the Lemma 5.4
+  witnesses used by that argument are special unitary; the missing converse needs
+  an explicit phase-normalization step.
 - **Repair:** derive `B=A⁻¹` from the actual inactive branch `B*A=I`. Classify
   `A† X A` as a Hermitian traceless unitary with first row `(r,z)` satisfying
   `r²+‖z‖²=1`; choose `theta=2*arcsin r` and `alpha=-arg z`. The total complex polar
@@ -324,26 +339,34 @@ statement. “Open” means the repair is identified but not yet machine checked
   special controlled-`V` family.
 - **Formal evidence:** `pauliConjugate_eq_sigmaX_mul_symmetricEuler`,
   `sigmaX_mul_star_mul_sigmaX_mul_eq_symmetricEuler`,
+  `eval_twoCNOTCircuit_eq_iff`, `eval_oneCNOTCircuit_eq_iff`,
   `twoCNOTFamily_iff`, `oneCNOTSpecialFamily_iff`,
   `unitaryPauliConjugate_eq_specialUnitaryPart`, and `oneCNOTFamily_iff` compile.
-  The two topology iff theorems independently extract their inactive and active
-  branches from full-register evaluator equality.
+  The evaluator iff theorems independently extract inactive and active branches
+  from full-register equality; the family iff theorems then prove both necessity
+  and sufficiency.
 - **Status:** corrected and proved in both directions, including zero-coordinate
   cases and the paper's arbitrary-unitary quantification.
 
-## C-018 — “Rx(theta) is not of this form” has scalar endpoint exceptions
+## C-018 — “Rx(theta) is not of this form” has discrete scalar exceptions
 
 - **Source:** discussion after Lemma 5.4, manuscript p. 13; Markdown line 469.
-- **Issue:** the unconditional sentence is false when `sin(theta/2)=0`. Then the
-  displayed `Rx(theta)` is the scalar matrix `I` or `-I`, both of which belong to
-  the equal-outer-angle `Rz Ry Rz` family. The intended contrast is true only for
-  generic/non-scalar x-axis rotations.
+- **Issue:** the unconditional sentence is false when `sin(theta/2)=0`, equivalently
+  when `theta=2*pi*k` for some integer `k`. Then the displayed matrix is
+  `Rx(theta)=(-1)^k I`, so it is either `I` or `-I`; both scalars belong to the
+  equal-outer-angle `Rz Ry Rz` family. The intended contrast is true only for
+  non-scalar x-axis rotations.
 - **Repair:** state that `Rx(theta)` is outside the Lemma 5.4 family when
-  `sin(theta/2) ≠ 0`; retain the scalar endpoint cases explicitly.
+  `sin(theta/2) ≠ 0`. Retain the scalar cases explicitly:
+  `symmetricEuler 0 0 = I` and `symmetricEuler pi 0 = -I` in the library's
+  standard-column convention.
 - **Dependent impact:** illustrative examples only; no numbered construction or
   resource theorem depends on the sentence.
-- **Formal evidence:** the Section 5 diagnostic module checks the zero-angle
-  identity member of `symmetricEuler`; a complete iff for the family itself is
-  `twoCNOTFamily_iff`.
-- **Status:** corrected as an expository boundary case; the general Rx
+- **Formal evidence:** the root-excluded diagnostic theorem
+  `ControlledCircuitExamples.symmetricEuler_zero_angle` proves
+  `symmetricEuler alpha 0 = rz (2*alpha)`, which yields the two scalar cases at
+  `alpha=0` and `alpha=pi`; `twoCNOTFamily_iff` is the complete circuit-family iff.
+  The generic non-membership claim is documented here rather than needed by the
+  paper's construction chain.
+- **Status:** corrected as an expository discrete scalar exception; the general Rx
   non-membership theorem is intentionally not needed by the paper's main chain.

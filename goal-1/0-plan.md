@@ -85,6 +85,12 @@ extra assumption, omission, or unresolved obstruction.
   orientations of Lemma 4.3's A/B/C algebra, and exact certified positive `k`-th
   roots for every finite-dimensional complex unitary. The A/B/C results are still
   matrix-level; their explicit circuit semantics and counts begin in Stage 5.
+- Stage 5 now provides arbitrary-register target-block circuit semantics, exact
+  reconstructions of all four controlled-gate diagrams, both directions of the
+  Lemmas 5.1/5.4/5.5 characterizations, controlled scalar phase and controlled-Z
+  identities, and syntax-derived costs. Corollary 5.6 is repaired by separating
+  its six-node controlled-V macro library from its ten-primitive expansion and
+  six-primitive post-merge CNOT circuit.
 - The paper's main numbered chain is Lemmas 4.1–4.3; Lemmas/Corollaries 5.1–5.6;
   Lemmas/Corollaries 6.1–6.2; Lemmas/Corollaries 7.1–7.12; and the general
   synthesis/resource discussion in Section 8.
@@ -150,8 +156,8 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits.
 - [x] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
 - [x] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
-- [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts (in progress).
-- [ ] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
+- [x] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
+- [ ] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions (in progress).
 - [ ] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
 - [ ] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
 - [ ] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.

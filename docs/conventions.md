@@ -173,8 +173,10 @@ reversed column products `Cᵀ Bᵀ Aᵀ = I` and
 `Cᵀ Xᵀ Bᵀ Xᵀ Aᵀ = columnEuler α θ β`. After exact SU(2) Euler existence,
 `specialUnitary_exists_paperABC` and
 `specialUnitary_exists_columnChronologicalABC` quantify over certified SU(2)
-witnesses. These remain matrix-only results: the two-CNOT/three-one-qubit syntax,
-semantic evaluator theorem, and resource count of Lemma 5.1 are separate obligations.
+witnesses. These remain matrix-only results. The separately proved
+`controlledABCCircuit`, `eval_controlledABCCircuit_eq_iff`, and
+`controlledABCCircuit_oneQubitCNOTCost` supply the circuit and resource layers of
+Lemma 5.1; they are not consequences of the matrix identity alone.
 
 ### Exact SU(2) and U(2) Euler decompositions
 
@@ -262,14 +264,31 @@ division or nonzero assumption. Lemma 5.5's arbitrary U(2) witnesses are normali
 to `specialUnitaryPart` only after the inactive branch proves `B = A⁻¹`; the
 opposite scalar phases then cancel exactly around Pauli-X.
 
-Corollary 5.6 has two deliberately separate resource layers. The six-node macro
-circuit contains four `.oneQubit` occurrences and two
-`.controlledOneQubit 1` occurrences. It is a valid circuit over an enlarged library
-containing the selected controlled-`V`, but `CostModel.oneQubitCNOT` returns `none`
-before expansion. Expanding each controlled-`V` as `D; CNOT; F` produces ten
-Section-3 primitives before local merges; the three checked adjacent merge groups
-recover the ordinary six-primitive Corollary 5.3 circuit. A semantic equality never
-serves as the count proof: each count is evaluated on the corresponding syntax.
+The paper's one-sentence proof of Lemma 5.5 starts with the Lemma 5.4 construction,
+appends an XOR, and cancels the adjacent XOR pair. That proves sufficiency only as
+written. The formal converse instead starts from an arbitrary one-CNOT circuit,
+extracts `B * A = I`, and performs the U(2)-to-SU(2) normalization just described.
+
+The blanket source remark that `Rx(theta)` is not in the Lemma 5.4 family has scalar
+exceptions. If `sin(theta/2) = 0`, equivalently `theta = 2*pi*k` for an integer `k`,
+then `Rx(theta) = (-1)^k I`; both `I` and `-I` occur in `symmetricEuler alpha 0`.
+When `sin(theta/2) ≠ 0`, the imaginary off-diagonal entries of `Rx(theta)` rule out
+membership in the real-off-diagonal symmetric-Euler family.
+
+Corollary 5.6 has three deliberately separate syntax/resource layers:
+
+- the unexpanded macro circuit has six nodes—four `.oneQubit` and two
+  `.controlledOneQubit 1` occurrences—and `CostModel.oneQubitCNOT` returns `none`;
+- expanding both controlled-`V` macros as `D; CNOT; F` gives ten primitives—eight
+  one-qubit and two CNOT occurrences—with cost `some 10`;
+- under `D * F = I`, the three proved adjacent local merges give evaluator equality
+  with the existing six-primitive `controlledU2Circuit`; that distinct syntax has
+  four one-qubit and two CNOT occurrences and cost `some 6`.
+
+The expansion/macro evaluator equality additionally assumes `D * F = I` and
+`V = F * X * D`; the expanded/merged equality needs `D * F = I`. Semantic equality
+never serves as the count proof: the ten-node and six-node lists remain distinct,
+and every count and cost is evaluated on its own syntax.
 
 The unnumbered controlled-Z diagram is exact wire-swap symmetry, not merely a
 graphical convention or phase equivalence. `controlledZUnitary_swap` proves it for

@@ -1,6 +1,6 @@
 # 5-CONTROLLED
 
-Status: in progress.
+Status: complete.
 
 ## Current Facts
 
@@ -162,22 +162,86 @@ from those circuits under explicit primitive models.
 
 ## Completion Requirements
 
-- [ ] All four Section 5 diagrams have named chronological circuits, exact
+- [x] All four Section 5 diagrams have named chronological circuits, exact
   arbitrary-register evaluator theorems, and source/ordering documentation.
-- [ ] Lemmas 5.1, 5.4, and 5.5 compile in both directions with all unitary,
+- [x] Lemmas 5.1, 5.4, and 5.5 compile in both directions with all unitary,
   determinant, trace, and angle assumptions explicit; Lemma 5.2 is exact.
-- [ ] Corollary 5.3 has a constructed six-primitive circuit with exactly four
+- [x] Corollary 5.3 has a constructed six-primitive circuit with exactly four
   one-qubit gates, two CNOT gates, and cost `some 6` under
   `CostModel.oneQubitCNOT`.
-- [ ] Corollary 5.6 distinguishes its six-node controlled-`V` macro count from a
+- [x] Corollary 5.6 distinguishes its six-node controlled-`V` macro count from a
   fully expanded one-qubit+CNOT cost and records any merge convention.
-- [ ] Focused, adjacent, warning-as-error, shortcut scans, two full builds, and
+- [x] Focused, adjacent, warning-as-error, shortcut scans, two full builds, and
   headline axiom evidence satisfy `BUILD-PLAN.md`.
-- [ ] Traceability and corrections record exact circuit layers, both iff
+- [x] Traceability and corrections record exact circuit layers, both iff
   directions, determinant/phase facts, and the repaired “basic operation” claim.
 
 ## Stage Results
 
-- In progress. First implementation target: the target-block algebra and the
-  five-gate evaluator characterization, while the independent source audit checks
-  the special-case iff statements and Corollary 5.6 terminology.
+- `Barenco/ControlledCircuit/Block.lean` adds the proof-side/public
+  `targetBlockRaw` representation with exact application, multiplication,
+  identity, injectivity, and local/controlled/CNOT bridges. It imports only the
+  established circuit core and makes no resource claim.
+- `Barenco/ControlledCircuit/Decomposition.lean` defines the chronological
+  five-gate `controlledABCCircuit`. `eval_controlledABCCircuit_eq_iff` proves that
+  exact controlled-`W` behavior is equivalent to the inactive `C*B*A=I` and active
+  `C*X*B*X*A=W` branches on every ambient register.
+  `controlledSU2Circuit_correct_iff` proves both directions of Lemma 5.1; its
+  converse obtains `det W=1` from the active circuit branch and both `det X=-1`
+  factors. Syntax gives three one-qubit plus two CNOT gates and cost `some 5`.
+- `Barenco/ControlledCircuit/Phase.lean` certifies
+  `E(delta)=Rz(-delta)*Ph(delta/2)=diag(1,cis delta)` and proves Lemma 5.2 as exact
+  full-register equality between controlled scalar phase and the one-gate
+  control-wire circuit. It then constructs `controlledU2Circuit` and proves
+  Corollary 5.3 for every `QubitUnitary`, with exactly four one-qubit gates, two
+  CNOTs, and `oneQubitCNOT` cost `some 6`.
+- `Barenco/ControlledCircuit/SpecialTopology.lean` defines the four-node
+  `[A,CNOT,B,CNOT]` and three-node `[A,CNOT,B]` circuits, exposes both target
+  branches through iff evaluator theorems, and derives their exact costs `4` and
+  `3` from syntax.
+- `Barenco/ControlledCircuit/PauliConjugate.lean` independently classifies
+  `A†*X*A` by a total `arcsin`/`arg` construction. The zero off-diagonal and
+  endpoint cases use the total polar identity and no division or hidden nonzero
+  hypothesis. Constructive converses reuse the Stage 4 column A/B factors.
+- `Barenco/ControlledCircuit/Special.lean` combines topology and classification.
+  `twoCNOTFamily_iff` proves Lemma 5.4 in both directions.
+  `oneCNOTFamily_iff` repairs the omitted Lemma 5.5 converse, derives `B=A⁻¹` from
+  the actual inactive branch, and exactly removes the global phase of arbitrary
+  U(2) witnesses before applying the SU(2) theorem.
+- `Barenco/ControlledCircuit/Alternative.lean` proves the corrected Corollary 5.6
+  for every fixed Lemma 5.5 family member. Its six syntax nodes are four local
+  gates plus two `.controlledOneQubit 1` macros. The Sections 3–7 cost is proved
+  to be `none`, preventing the paper's terminology drift from silently pricing
+  controlled-`V` as one basic operation.
+- `Barenco/ControlledCircuit/Expansion.lean` explicitly expands the two macros to
+  a ten-primitive circuit with eight one-qubit gates and two CNOTs. Three named
+  local merge groups prove evaluator equality with the ordinary six-primitive
+  Corollary 5.3 circuit. The unmerged and merged `oneQubitCNOT` costs are derived
+  independently from their respective syntax as `some 10` and `some 6`.
+- `Barenco/ControlledCircuit/ControlledZ.lean` reconstructs the adjacent
+  controlled-Z diagram. Its arbitrary-width entry and basis-action theorems show
+  the exact relative sign, and `controlledZUnitary_swap` proves exact control/target
+  symmetry. `Barenco/ControlledCircuitExamples.lean` is diagnostic/root-excluded
+  and checks phase action, non-adjacent wires, determinant converse, all Section 5
+  costs, family endpoints, and controlled-Z signs.
+- Runtime/public declarations are the certified gates and named circuits.
+  Evaluator characterizations, classifications, iff theorems, and resource
+  equations are proof-side/public. The example module is diagnostic. No fallback,
+  temporary, or unclassified primitive enters a construction.
+- Every Section 5 source file, the diagnostic leaf, the public root, and the axiom
+  audit passed direct warning-as-error compilation. The combined focused/adjacent
+  build passed with 2,944 jobs. Two consecutive full `lake build` runs after root
+  integration passed with 2,942 jobs each.
+- The maintained audit now checks 64 declarations, including 18 new Section 5
+  headlines. Every result reports exactly `propext`, `Classical.choice`, and
+  `Quot.sound`; no project-specific axiom appears.
+- Lean-source scans found no `sorry`, `admit`, `by?`, `native_decide`,
+  `bv_decide`, project `axiom`, project `opaque`, `Primitive.unclassified`, or
+  trailing whitespace in the Stage 5 scope. `git diff --check` passed.
+- Material source repairs are recorded as C-011, C-017, and C-018: Corollary 5.6's
+  basic-operation drift, Lemma 5.5's omitted converse/U(2) normalization, and the
+  scalar endpoint exceptions to the informal Rx claim.
+- Stage 6 may directly use `unitarySquareRoot` and
+  `unitarySquareRoot_pow_two` together with the now-compiled controlled-U circuit
+  infrastructure. Relative-phase Toffoli results must use `BasisPhaseEq` or an
+  exact diagonal witness rather than global-phase language.
