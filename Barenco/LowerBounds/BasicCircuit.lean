@@ -196,7 +196,7 @@ theorem gateCount_cons {n : ℕ} (primitive : BasicPrimitive n)
 theorem oneQubitCount_append {n : ℕ} (first second : BasicCircuit n) :
     oneQubitCount (first ++ second) = oneQubitCount first + oneQubitCount second := by
   induction first with
-  | nil => rfl
+  | nil => simp
   | cons primitive first ih =>
       simp only [List.cons_append, oneQubitCount_cons, ih]
       omega
@@ -205,7 +205,7 @@ theorem oneQubitCount_append {n : ℕ} (first second : BasicCircuit n) :
 theorem cnotCount_append {n : ℕ} (first second : BasicCircuit n) :
     cnotCount (first ++ second) = cnotCount first + cnotCount second := by
   induction first with
-  | nil => rfl
+  | nil => simp
   | cons primitive first ih =>
       simp only [List.cons_append, cnotCount_cons, ih]
       omega
@@ -226,6 +226,18 @@ theorem gateCount_eq_oneQubitCount_add_cnotCount {n : ℕ}
       have hprimitive := primitive.oneQubitCount_add_cnotCount
       omega
 
+/-- CNOT occurrences form a lower bound for the total number of basic gates. -/
+theorem cnotCount_le_gateCount {n : ℕ} (circuit : BasicCircuit n) :
+    circuit.cnotCount ≤ circuit.gateCount := by
+  rw [gateCount_eq_oneQubitCount_add_cnotCount]
+  omega
+
+/-- One-qubit occurrences form a lower bound for the total number of basic gates. -/
+theorem oneQubitCount_le_gateCount {n : ℕ} (circuit : BasicCircuit n) :
+    circuit.oneQubitCount ≤ circuit.gateCount := by
+  rw [gateCount_eq_oneQubitCount_add_cnotCount]
+  omega
+
 /-! ## Exact bridges to generic structural resources -/
 
 @[simp]
@@ -234,7 +246,19 @@ theorem erase_oneQubitCount {n : ℕ} (circuit : BasicCircuit n) :
   induction circuit with
   | nil => rfl
   | cons primitive circuit ih =>
-      cases primitive <;> simp [Circuit.kindCount, oneQubitCount, ih]
+      change
+        List.countP
+            (fun erasedPrimitive : Primitive n =>
+              decide (erasedPrimitive.kind = PrimitiveKind.oneQubit))
+            (primitive.erase :: BasicCircuit.erase circuit) =
+          primitive.oneQubitCount + BasicCircuit.oneQubitCount circuit
+      change
+        List.countP
+            (fun erasedPrimitive : Primitive n =>
+              decide (erasedPrimitive.kind = PrimitiveKind.oneQubit))
+            (BasicCircuit.erase circuit) = BasicCircuit.oneQubitCount circuit at ih
+      rw [List.countP_cons, ih]
+      cases primitive <;> simp [Nat.add_comm]
 
 @[simp]
 theorem erase_cnotCount {n : ℕ} (circuit : BasicCircuit n) :
@@ -242,7 +266,19 @@ theorem erase_cnotCount {n : ℕ} (circuit : BasicCircuit n) :
   induction circuit with
   | nil => rfl
   | cons primitive circuit ih =>
-      cases primitive <;> simp [Circuit.kindCount, cnotCount, ih]
+      change
+        List.countP
+            (fun erasedPrimitive : Primitive n =>
+              decide (erasedPrimitive.kind = PrimitiveKind.cnot))
+            (primitive.erase :: BasicCircuit.erase circuit) =
+          primitive.cnotCount + BasicCircuit.cnotCount circuit
+      change
+        List.countP
+            (fun erasedPrimitive : Primitive n =>
+              decide (erasedPrimitive.kind = PrimitiveKind.cnot))
+            (BasicCircuit.erase circuit) = BasicCircuit.cnotCount circuit at ih
+      rw [List.countP_cons, ih]
+      cases primitive <;> simp [Nat.add_comm]
 
 @[simp]
 theorem erase_gateCount {n : ℕ} (circuit : BasicCircuit n) :
@@ -256,8 +292,20 @@ theorem erase_oneQubitCNOTCost {n : ℕ} (circuit : BasicCircuit n) :
   induction circuit with
   | nil => rfl
   | cons primitive circuit ih =>
-      cases primitive <;>
-        simp [Circuit.cost, Circuit.addCost, gateCount, ih]
+      cases primitive <;> simp [Circuit.addCost, gateCount, ih] <;> omega
+
+/--
+Any numeric value assigned to an erased restricted circuit by the named model is
+at least its CNOT occurrence count.
+-/
+theorem cnotCount_le_of_erase_oneQubitCNOTCost_eq_some {n cost : ℕ}
+    (circuit : BasicCircuit n)
+    (hcost : Circuit.cost CostModel.oneQubitCNOT circuit.erase = some cost) :
+    circuit.cnotCount ≤ cost := by
+  rw [erase_oneQubitCNOTCost] at hcost
+  have hgateCount : circuit.gateCount = cost := Option.some.inj hcost
+  rw [← hgateCount]
+  exact cnotCount_le_gateCount circuit
 
 /-- Cost is equivalently the sum of the two exact restricted occurrence counts. -/
 theorem erase_oneQubitCNOTCost_eq_counts {n : ℕ} (circuit : BasicCircuit n) :
