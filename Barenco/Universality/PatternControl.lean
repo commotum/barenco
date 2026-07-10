@@ -83,13 +83,14 @@ theorem eval_fullControlCircuit_patternFlipBasis (controlCount : ℕ)
         localRaw target U *ᵥ basisKet (patternFlipBasis target pattern input)
       else basisKet (patternFlipBasis target pattern input) := by
   rw [eval_fullControlCircuit]
-  change positiveControlledRaw target Finset.univ U *ᵥ
-      basisKet (patternFlipBasis target pattern input) = _
-  rw [positiveControlledRaw_truthTable]
-  rw [show (∀ wire ∈ (Finset.univ : ControlSet target),
+  rw [coe_positiveControlledUnitary, positiveControlledRaw_truthTable]
+  have hiff : (∀ wire ∈ (Finset.univ : ControlSet target),
       patternFlipBasis target pattern input wire = true) ↔
-      (splitTarget target input).2 = pattern from
-    all_true_patternFlipBasis_iff controlCount target pattern input]
+      (splitTarget target input).2 = pattern :=
+    all_true_patternFlipBasis_iff controlCount target pattern input
+  by_cases hmatch : (splitTarget target input).2 = pattern
+  · rw [if_pos hmatch, if_pos (hiff.mpr hmatch)]
+  · rw [if_neg hmatch, if_neg (fun hall => hmatch (hiff.mp hall))]
 
 /-- Exact evaluator of the mixed-polarity flip/apply/unflip construction. -/
 @[simp]
@@ -117,15 +118,17 @@ theorem eval_patternControlledCircuit (controlCount : ℕ)
       UnitaryGate (controlCount + 1)) : Gate (controlCount + 1)) *ᵥ
         basisKet input) = _
   rw [coe_patternControlledUnitary, controlledRaw_truthTable]
-  simp only [exactPatternEnabled]
-  rw [show decide ((splitTarget target input).2 = pattern) =
-      ((splitTarget target input).2 = pattern) from rfl]
+  simp only [exactPatternEnabled, decide_eq_true_eq]
+  change (((P⁻¹ : Gate (controlCount + 1)) *
+      (Circuit.eval (fullControlCircuit controlCount target U) :
+        Gate (controlCount + 1)) * (P : Gate (controlCount + 1))) *ᵥ
+      basisKet input) = _
   rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec,
     eval_patternFlipCircuit_mulVec_basisKet,
     eval_fullControlCircuit_patternFlipBasis]
   by_cases hmatch : (splitTarget target input).2 = pattern
   · rw [if_pos hmatch, if_pos hmatch]
-    change ((P⁻¹ : UnitaryGate (controlCount + 1) : Gate (controlCount + 1)) *ᵥ
+    change ((P⁻¹ : Gate (controlCount + 1)) *ᵥ
         (L : Gate (controlCount + 1)) *ᵥ
           basisKet (patternFlipBasis target pattern input)) =
       (L : Gate (controlCount + 1)) *ᵥ basisKet input
@@ -160,8 +163,18 @@ theorem patternFlipCircuit_oneQubitCNOTCost {n : ℕ} (target : Fin n)
     (pattern : ComplementBasis target) :
     Circuit.cost CostModel.oneQubitCNOT (patternFlipCircuit target pattern) =
       some (patternFlipCount pattern) := by
-  simp [patternFlipCircuit, xCircuit, patternFlipCount, Circuit.cost,
-    Circuit.addCost]
+  have hx : ∀ wires : List (Fin n),
+      Circuit.cost CostModel.oneQubitCNOT (xCircuit wires) =
+        some wires.length := by
+    intro wires
+    induction wires with
+    | nil => rfl
+    | cons wire wires ih =>
+        rw [xCircuit_cons, Circuit.cost_cons, Primitive.oneQubit_kind,
+          CostModel.oneQubitCNOT_oneQubit, ih]
+        simp [Circuit.addCost]
+        omega
+  exact hx (falsePatternWires pattern)
 
 /-- Exact accepted cost of the mixed-polarity implementation. -/
 @[simp]
@@ -171,9 +184,10 @@ theorem patternControlledCircuit_oneQubitCNOTCost (controlCount : ℕ)
     Circuit.cost CostModel.oneQubitCNOT
         (patternControlledCircuit controlCount target pattern U) =
       some (2 * patternFlipCount pattern + fullControlCircuitCost controlCount) := by
-  simp [patternControlledCircuit, Circuit.cost_append,
-    patternFlipCircuit_oneQubitCNOTCost,
-    fullControlCircuit_oneQubitCNOTCost, Circuit.cost_adjoint]
+  rw [patternControlledCircuit, Circuit.cost_append, Circuit.cost_append,
+    Circuit.cost_adjoint, patternFlipCircuit_oneQubitCNOTCost,
+    fullControlCircuit_oneQubitCNOTCost]
+  simp only [Circuit.addCost_some, Option.some.injEq]
   omega
 
 end

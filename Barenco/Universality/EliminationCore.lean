@@ -56,37 +56,54 @@ def castSucc {dimension : ℕ} (factor : FinTwoLevelFactor dimension) :
     FinTwoLevelFactor (dimension + 1) where
   first := factor.first.castSucc
   second := factor.second.castSucc
-  distinct := (Fin.castSucc_injective dimension) factor.distinct
+  distinct := by
+    intro h
+    exact factor.distinct ((Fin.castSucc_injective dimension) h)
   block := factor.block
+
+@[simp]
+theorem twoLevelCoordinate_castSucc {dimension : ℕ}
+    (first second index : Fin dimension) :
+    twoLevelCoordinate first.castSucc second.castSucc index.castSucc =
+      twoLevelCoordinate first second index := by
+  simp only [twoLevelCoordinate, Fin.castSucc_inj]
+
+@[simp]
+theorem twoLevelCoordinate_last {dimension : ℕ}
+    (first second : Fin dimension) :
+    twoLevelCoordinate first.castSucc second.castSucc (Fin.last dimension) = none := by
+  simp [twoLevelCoordinate, (Fin.castSucc_ne_last first).symm,
+    (Fin.castSucc_ne_last second).symm]
 
 @[simp]
 theorem eval_castSucc_apply_castSucc {dimension : ℕ}
     (factor : FinTwoLevelFactor dimension) (row col : Fin dimension) :
     factor.castSucc.eval row.castSucc col.castSucc = factor.eval row col := by
-  simp only [eval, castSucc, twoLevelUnitary_apply, twoLevelCoordinate]
-  split_ifs with hrowFirst hrowSecond hcolFirst hcolSecond <;>
-    simp_all only [Fin.castSucc_inj]
+  simp only [eval, castSucc, twoLevelUnitary_apply, twoLevelCoordinate_castSucc,
+    Fin.castSucc_inj]
 
 @[simp]
 theorem eval_castSucc_apply_castSucc_last {dimension : ℕ}
     (factor : FinTwoLevelFactor dimension) (row : Fin dimension) :
     factor.castSucc.eval row.castSucc (Fin.last dimension) = 0 := by
-  simp [eval, castSucc, twoLevelUnitary_apply, twoLevelCoordinate,
-    Fin.castSucc_ne_last]
+  simp only [eval, castSucc, twoLevelUnitary_apply,
+    twoLevelCoordinate_castSucc, twoLevelCoordinate_last]
+  cases h : twoLevelCoordinate factor.first factor.second row <;> simp
 
 @[simp]
 theorem eval_castSucc_apply_last_castSucc {dimension : ℕ}
     (factor : FinTwoLevelFactor dimension) (col : Fin dimension) :
     factor.castSucc.eval (Fin.last dimension) col.castSucc = 0 := by
-  simp [eval, castSucc, twoLevelUnitary_apply, twoLevelCoordinate,
-    Fin.castSucc_ne_last]
+  simp only [eval, castSucc, twoLevelUnitary_apply,
+    twoLevelCoordinate_castSucc, twoLevelCoordinate_last]
+  cases h : twoLevelCoordinate factor.first factor.second col <;> simp [
+    (Fin.castSucc_ne_last col).symm]
 
 @[simp]
 theorem eval_castSucc_apply_last_last {dimension : ℕ}
     (factor : FinTwoLevelFactor dimension) :
     factor.castSucc.eval (Fin.last dimension) (Fin.last dimension) = 1 := by
-  simp [eval, castSucc, twoLevelUnitary_apply, twoLevelCoordinate,
-    Fin.castSucc_ne_last]
+  simp [eval, castSucc, twoLevelUnitary_apply]
 
 end FinTwoLevelFactor
 
@@ -189,7 +206,8 @@ theorem factorProduct_castSuccFactors_apply_last_castSucc {dimension : ℕ}
     (factors : List (FinTwoLevelFactor dimension)) (col : Fin dimension) :
     factorProduct (castSuccFactors factors) (Fin.last dimension) col.castSucc = 0 := by
   induction factors with
-  | nil => simp [castSuccFactors, Matrix.one_apply, Fin.castSucc_ne_last]
+  | nil => simp [castSuccFactors,
+      (Fin.castSucc_ne_last col).symm]
   | cons factor factors ih =>
       rw [castSuccFactors, List.map_cons, factorProduct_cons]
       change (∑ middle : Fin (dimension + 1),
@@ -284,20 +302,19 @@ theorem isDiagonal_finSuccBlockUnitary {dimension : ℕ}
     (z : ℂ) (hz : star z * z = 1) :
     IsDiagonalUnitary (finSuccBlockUnitary U z hz) := by
   intro row col hrowCol
-  revert col
-  refine Fin.lastCases ?_ (fun row' => ?_) row
-  · intro col hrowCol
-    refine Fin.lastCases ?_ (fun col' => ?_) col
-    · exact (hrowCol rfl).elim
-    · exact finSuccBlockUnitary_apply_last_castSucc U z hz col'
-  · intro col hrowCol
-    refine Fin.lastCases ?_ (fun col' => ?_) col
-    · exact finSuccBlockUnitary_apply_castSucc_last U z hz row'
-    · rw [finSuccBlockUnitary_apply_castSucc]
-      apply hU
-      intro h
-      apply hrowCol
-      exact congrArg Fin.castSucc h
+  induction row using Fin.lastCases with
+  | last =>
+      induction col using Fin.lastCases with
+      | last => exact (hrowCol rfl).elim
+      | cast col' => exact finSuccBlockUnitary_apply_last_castSucc U z hz col'
+  | cast row' =>
+      induction col using Fin.lastCases with
+      | last => exact finSuccBlockUnitary_apply_castSucc_last U z hz row'
+      | cast col' =>
+          rw [finSuccBlockUnitary_apply_castSucc]
+          apply hU
+          intro h
+          exact hrowCol (congrArg Fin.castSucc h)
 
 end
 
