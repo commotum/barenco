@@ -219,9 +219,10 @@ matrix varies. More importantly for Lemma 7.8, the current API proves each
 power-of-two root equation independently but does not yet prove a coherent sequence
 `V_{m+1}² = V_m`, nor the operator-distance estimate
 `operatorDistance V_m I ≤ π / 2^m`. Those theorems must use the already fixed L²
-operator norm and a shared eigenphase choice. Embedding roots into the controlled
-circuits of Lemmas 6.1, 7.5, and 7.8, proving evaluator correctness, and deriving
-syntax-based gate counts remain separate circuit/resource stages.
+operator norm and a shared eigenphase choice. Section 6 now embeds the selected
+square root into the exact Lemma 6.1 circuit and its explicit sixteen-primitive
+expansion. The later coherent-root circuits of Lemmas 7.5 and 7.8 and their
+syntax-based counts remain separate circuit/resource obligations.
 
 ## Section 5 Controlled-Gate Conventions
 
@@ -295,6 +296,66 @@ graphical convention or phase equivalence. `controlledZUnitary_swap` proves it f
 arbitrary ambient width; the shared matrix contributes `-1` exactly when both named
 wires are true.
 
+## Section 6 Three-Bit Conventions
+
+All three Section 6 diagrams are stored as chronological lists: the first list
+element executes first, while the corresponding standard-column matrix product is
+written in reverse order. The Lemma 6.1 macro is
+
+`controlled-V(second,target); CNOT(first,second);`
+`controlled-V†(second,target); CNOT(first,second); controlled-V(first,target)`.
+
+`doubleControlledViaSquareCircuit` quantifies an arbitrary ambient width and three
+pairwise distinct named wires. `eval_doubleControlledViaSquareCircuit_pow_two`
+proves that its complete-register evaluator is the doubly controlled `V^2`; the
+two CNOTs therefore restore the second control and every spectator wire is fixed.
+`eval_doubleControlledRootCircuit` selects the certified `unitarySquareRoot U` and
+obtains exact doubly controlled `U`. The five syntax nodes are three
+controlled-one-qubit macros and two CNOTs, so their structural gate count is five
+but `CostModel.oneQubitCNOT` returns `none` before expansion.
+
+Corollary 6.2 uses one coordinated Section 5 factorization `S`, not three
+independent existential choices. Its twenty-node expansion is
+`S(second); K; S(second)†; K; S(first)`, with `K = CNOT(first,second)`; it contains
+twelve one-qubit gates and eight CNOTs and has cost `some 20`. The source's two
+“adjacent” inverse pairs are separated in chronological syntax by operations on
+the control wires. `eval_doubleControlledExpansion20Circuit_eq_16` explicitly
+commutes those target-local factors across the disjoint-wire operations before
+cancelling them. The resulting `doubleControlledExpansion16Circuit` has exactly
+eight one-qubit gates and eight CNOTs, cost `some 16`, and the same full-register
+evaluator. `doubleControlledUnitary_has_sixteenPrimitiveCircuit` packages this as
+an exact existence-and-resource theorem for every one-qubit unitary `U`.
+
+The two Section 6.2 source circuits are also chronological:
+
+- `A; CNOT(second,target); A; CNOT(first,target); A†;`
+  `CNOT(second,target); A†`, with `A = ry (pi/4)`;
+- `B; CZ(second,target); B†; CZ(first,target); B; CZ(second,target); B†`,
+  with `B = ry (3*pi/4)`.
+
+Both evaluate exactly to `relativeToffoliUnitary`, whose target blocks for control
+bits `00`, `01`, `10`, and `11` are respectively `I`, `I`, `Z`, and `X`.
+`eval_relativePhaseToffoliACircuit_eq_BCircuit` therefore proves exact equality of
+the two diagrams, stronger than phase-relaxed equality. Their Toffoli permutation
+has a negative input-column phase exactly on `101`. The separately discussed
+doubly controlled paper matrix `W`, translated to `wMatrix = ry pi`, instead has
+its negative Toffoli-relative phase exactly on `111`. These are distinct exact
+operators and neither relation is promoted to global-phase or all-measurement
+equality.
+
+The A circuit is an explicit seven-basic-gate syntax: four one-qubit gates and
+three CNOTs, with `oneQubitCNOT` cost `some 7`. The B source syntax has four
+one-qubit gates and three controlled-Z macros. Its structural node count is also
+seven, but its `oneQubitCNOT` cost is `none`; exact semantic equality with the A
+circuit does not transfer the A circuit's resource count to that different syntax.
+
+`relativeToffoliUnitary_sq` proves the common signed permutation is an involution,
+and the two `eval_append_relativePhaseToffoli*Circuit_self` theorems consequently
+cancel two immediately adjacent identical copies. This does not prove the stronger
+Section 7 claim that relative-phase gates separated by other operations cancel
+merely because they occur in pairs; that use still requires an ordered basis-path
+phase calculation.
+
 ## Semantic Relations
 
 The implemented relations are deliberately noninterchangeable:
@@ -328,9 +389,10 @@ normalization, real-valued probabilities, or the interval bounds `0 ≤ p ≤ 1`
 Those restrictions require separate structures and theorems. Quantifying over all
 matrices/effects is intentionally stronger and makes the trace pairing separating.
 
-Section 6's `≅` diagrams are expected to establish basis-dependent signs, not a
-global phase. The relations above now make that distinction expressible, but no
-Section 6 diagram or phase-cancellation claim has yet been proved.
+Section 6's `≅` diagrams establish the explicit basis-dependent `101` sign described
+above, not a global phase. The resulting `BasisPhaseEq`, `SameBasisBehavior`, and
+`BasisMeasurementEq` theorems are proved; no channel/all-measurement equivalence is
+claimed.
 
 ## Approximation and Probability
 
