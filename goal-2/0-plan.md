@@ -2,7 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: scaffolded; implementation has not started.
+Status: active. Stage 1 guardrails are complete; Stage 2 two-wire semantics is the
+first incomplete stage.
 
 ## Big-Picture Objective
 
@@ -101,9 +102,9 @@ collection of hand-simplified paper examples.
   certified denotation. New two-wire syntax must connect this generic operation to
   the inverse local payload.
 - The optimizer cannot safely pattern-match an existing `Primitive` back into its
-  local matrix. The expected low-risk architecture is a richer proof-carrying
+  local matrix. Stage 1 therefore selected a richer proof-carrying
   optimization IR with explicit one-wire/two-wire payloads and a proved lowering
-  into `Circuit`; Stage 1 must confirm or revise this decision with evidence.
+  into `Circuit`.
 - `selectedControlledU2Circuit` and the selected exact Toffoli expansion use
   classical choice to obtain witnesses whose specs retain semantics and aggregate
   counts but not boundary chronology. The local controlled-U factor data are
@@ -123,15 +124,15 @@ collection of hand-simplified paper examples.
 - No existing result claims that costs three, five, or thirteen are minimal. Goal
   2 concerns constructive upper counts and evaluator-preserving optimization, not
   global minimality.
+- Stage 1 selected a direct low-dependency ordered split and certified `U⊗I`
+  reindex embedding. Strict/trust-zero prototypes import only `Barenco.Semantics`
+  and cover entries, spectators, algebra, inverse, and swapped orientation.
+- The optimizer architecture is a separate payload-preserving IR lowering through
+  trusted smart constructors. `Primitive` remains unchanged except for the future
+  two-wire constructor inside its private-constructor file; no normalizer will
+  infer payloads from metadata or decide equality of arbitrary unitary matrices.
 
-## Assumptions to Test Before Depending on Them
-
-- An ordered-pair basis equivalence and block/Kronecker infrastructure already in
-  mathlib or Goal 1 may make the two-wire embedding substantially smaller than a
-  fresh entrywise unitary proof.
-- A separate optimizer IR is likely safer than changing `Primitive`, but Stage 1
-  must compare import fanout, interoperability, and the ability to expose the
-  Gray factor schedule before freezing that architecture.
+## Remaining Assumptions to Test
 - The relative-phase A circuit appears to split chronologically into three groups
   supported on two wire pairs: `A; CNOT; A`, the middle CNOT, and
   `A†; CNOT; A†`. This must be checked under the exact wire/order convention.
@@ -178,7 +179,7 @@ The goal is complete only when all of the following hold:
 
 ## Stage Index
 
-- [ ] `1-GUARDRAILS` — freeze architecture, source claims, models, and proof boundaries.
+- [x] `1-GUARDRAILS` — freeze architecture, source claims, models, and proof boundaries.
 - [ ] `2-TWO-WIRE` — certified ordered-pair semantic embeddings and algebra.
 - [ ] `3-TWO-PRIMITIVE` — trusted circuit constructor, support, adjoint, and costs.
 - [ ] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
@@ -225,6 +226,25 @@ high-fanout representation decision is made.
 - Public, proof-side, runtime, diagnostic, and temporary declarations are
   classified, with expected files and focused builds recorded.
 - Baseline focused root/audit builds and forbidden scans pass before Lean changes.
+
+### Stage Results
+
+- Selected `Barenco/TwoWire/Layout`, `Semantics`, and `ControlledBridges` as the
+  low public layers, with a root-excluded examples leaf. A strict/trust-zero
+  disposable prototype compiled the ordered split, `U⊗I` embedding, entry/locality,
+  identity/multiplication/inverse, monoid-hom, and swapped-orientation results using
+  only `Barenco.Semantics`.
+- Rejected a `Primitive` payload refactor in favor of a separate
+  `FusionPrimitive`/`FusionCircuit` IR. The trusted two-wire smart constructor will
+  be the only narrow high-fanout edit and must live in `Circuit.lean` because
+  `Primitive.mk` is private.
+- Froze exact chronology, domains, current theorem names/counts, and resolution
+  criteria for cost-three relative Toffoli, Gray post-mergers, and corrected
+  Corollary 7.4. Opaque whole-circuit choices are barriers; transparent selected
+  factors and explicit oriented expansions are required.
+- Baseline focused/root/audit build passed with 3,586 jobs; strict and trust-zero
+  root/audit compilation, the 319-entry axiom audit, forbidden scans, and
+  `git diff --check` passed. No Lean source changed in this stage.
 
 ## 2-TWO-WIRE
 
