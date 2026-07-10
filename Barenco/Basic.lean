@@ -25,6 +25,12 @@ abbrev State (n : ℕ) := Basis n → ℂ
 /-- A semantic gate carrying a proof of matrix unitarity. -/
 abbrev UnitaryGate (n : ℕ) := Matrix.unitaryGroup (Basis n) ℂ
 
+/-- A raw one-qubit matrix in the `false,true` computational order. -/
+abbrev QubitMatrix := Matrix Bool Bool ℂ
+
+/-- A certified one-qubit unitary in the `false,true` computational order. -/
+abbrev QubitUnitary := Matrix.unitaryGroup Bool ℂ
+
 /--
 The natural-number index of a bit assignment in the paper's big-endian
 lexicographic order. This bridge is descriptive; core gate semantics do not depend
@@ -46,21 +52,31 @@ example : basisIndex (twoBit true true) = 3 := by decide
 Translate a matrix written in the paper's row-vector/right-action convention to
 the library's standard column-vector/left-action convention.
 -/
-def fromPaper {n : ℕ} (U : Gate n) : Gate n := U.transpose
+def fromPaper {ι : Type*} (U : Matrix ι ι ℂ) : Matrix ι ι ℂ := U.transpose
 
 @[simp]
-theorem fromPaper_apply {n : ℕ} (U : Gate n) (row col : Basis n) :
+theorem fromPaper_apply {ι : Type*} (U : Matrix ι ι ℂ) (row col : ι) :
     fromPaper U row col = U col row := rfl
 
 /-- Transposition reverses the paper's chronological product as required. -/
-theorem fromPaper_mul {n : ℕ} (U V : Gate n) :
+theorem fromPaper_mul {ι : Type*} [Fintype ι] (U V : Matrix ι ι ℂ) :
     fromPaper (U * V) = fromPaper V * fromPaper U := by
   exact Matrix.transpose_mul U V
 
+@[simp]
+theorem fromPaper_one {ι : Type*} [DecidableEq ι] :
+    fromPaper (1 : Matrix ι ι ℂ) = 1 := by
+  simp [fromPaper]
+
+@[simp]
+theorem fromPaper_fromPaper {ι : Type*} (U : Matrix ι ι ℂ) :
+    fromPaper (fromPaper U) = U := by
+  simp [fromPaper]
+
 /-- Translating a paper matrix preserves and reflects unitarity. -/
-theorem fromPaper_mem_unitaryGroup_iff {n : ℕ} (U : Gate n) :
-    fromPaper U ∈ Matrix.unitaryGroup (Basis n) ℂ ↔
-      U ∈ Matrix.unitaryGroup (Basis n) ℂ := by
+theorem fromPaper_mem_unitaryGroup_iff {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (U : Matrix ι ι ℂ) :
+    fromPaper U ∈ Matrix.unitaryGroup ι ℂ ↔ U ∈ Matrix.unitaryGroup ι ℂ := by
   exact Matrix.transpose_mem_unitaryGroup_iff
 
 /--
@@ -95,6 +111,22 @@ theorem evalGates_append {n : ℕ} (first second : List (Gate n)) :
   | cons U first ih =>
       simp only [List.cons_append, evalGates_cons, ih]
       rw [mul_assoc]
+
+/-- The paper's row-action product lists factors in execution order. -/
+def paperProduct {n : ℕ} : List (Gate n) → Gate n
+  | [] => 1
+  | U :: circuit => U * paperProduct circuit
+
+/--
+Transposing every paper gate translates a left-to-right row-action product into
+the chronological standard-column evaluator.
+-/
+theorem fromPaper_paperProduct {n : ℕ} (circuit : List (Gate n)) :
+    fromPaper (paperProduct circuit) = evalGates (circuit.map fromPaper) := by
+  induction circuit with
+  | nil => simp [paperProduct]
+  | cons U circuit ih =>
+      simp only [paperProduct, fromPaper_mul, List.map_cons, evalGates_cons, ih]
 
 /-- Matrix multiplication has the expected identity law at the candidate gate type. -/
 theorem gate_mul_one (n : ℕ) (U : Gate n) : U * 1 = U := by

@@ -23,7 +23,7 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 | D2-control | pp. 6–7; lines 88–138 | Definition and lower-right-block matrix for `∧ₘ(U)` | `Barenco.controlled`, basis-action and lexicographic bridge (planned) | A,C,W | planned; transpose bridge required by source row action |
 | D2-Toffoli | p. 6; lines 127–138 | `∧ₘ(σx)` Boolean action | `Barenco.multiControlledX` (planned) | A,C,W | planned |
 | C2-dense | pp. 6–7; lines 146–150 | cited claim that “almost any” fixed controlled-U densely generates | no local theorem from this paper | A,C,O | intentionally excluded from paper reconstruction: source cites [29,31] and gives no proof; exact universality with all U(2) primitives is handled separately |
-| N3-diagrams | pp. 7–8; lines 158–168; image `notation-basic-gates.png` | wire/control/target notation; time left-to-right | circuit chronology and convention tests (planned) | C | planned |
+| N3-diagrams | pp. 7–8; lines 158–168; image `notation-basic-gates.png` | wire/control/target notation; time left-to-right | `Barenco.evalGates_pair`, `evalGates_append`, `fromPaper_paperProduct`; wire constructors planned | C | partial: chronology and source/semantic product translation proved; typed wires pending |
 | N3-basic | p. 8; line 166 | “basic” = arbitrary one-qubit or CNOT | `CostModel.oneQubitCNOT` (planned) | R | planned |
 
 ## Section 4 — Matrix Properties

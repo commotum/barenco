@@ -35,9 +35,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   source matrix `P` as `Pᵀ`. Chronological circuit evaluation left-multiplies gates,
   so transposition converts the paper's chronological products exactly.
 - **Dependent impact:** every paper matrix and diagram, especially Sections 4–7.
-- **Formal evidence:** convention fixed in `docs/conventions.md`; transpose and
-  chronology bridge theorems planned in the semantics layer.
-- **Status:** open until bridge theorems compile.
+- **Formal evidence:** `Barenco.fromPaper_apply`, `Barenco.fromPaper_mul`,
+  `Barenco.fromPaper_mem_unitaryGroup_iff`, `Barenco.evalGates_pair`,
+  `Barenco.evalGates_append`, and `Barenco.fromPaper_paperProduct` compile in
+  `Barenco.Basic`.
+- **Status:** corrected and proved at the convention/translation layer; every
+  downstream paper diagram must still use the bridge explicitly.
 
 ## C-003 — Corollary 7.4 partition violates Lemma 7.2 at n = 7
 
@@ -198,4 +201,3 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** central exact-universality and resource headline results.
 - **Formal evidence:** planned universality/resource stages.
 - **Status:** open.
-
