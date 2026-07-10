@@ -598,6 +598,44 @@ def mergedGrayControlledViaRootSymbolicCircuit {tail ambientWidth : ℕ}
         [coherentGrayRootEndAt layout edgeCount
           (coherentGrayFinalMask_index_lt tail)]
 
+/-- Explicit emitted normal form of one merged core/boundary segment. -/
+def coherentGrayMergedBoundaryNormalForm
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let edge := (grayCNOTEdges controlCount)[index]'hindex
+  coherentGrayRootCoreAt layout index
+      (coherentGrayMask_index_lt_of_edge hindex) ++
+    [.cnot (layout.controlWire edge.1) (layout.controlWire edge.2)
+      (layout.controlWire_ne (grayCNOTEdges_getElem_ne hindex))]
+
+/-- First `count` explicit emitted core/CNOT normal-form segments. -/
+def coherentGrayMergedBoundaryNormalFormPrefixCircuit
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    (count : ℕ) → count ≤ (grayCNOTEdges controlCount).length →
+      SymbolicCircuit GrayFactorAtom ambientWidth
+  | 0, _ => []
+  | count + 1, hcount =>
+      coherentGrayMergedBoundaryNormalFormPrefixCircuit layout count (by omega) ++
+        coherentGrayMergedBoundaryNormalForm layout count (by omega)
+
+/--
+The explicit normal form emitted by all boundary normalizations: two outer
+target endpoints, every four-node root core, and every unchanged Gray CNOT.
+-/
+def mergedGrayControlledViaRootNormalForm {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let edgeCount := (grayCNOTEdges (tail + 1)).length
+  [coherentGrayRootStartAt layout 0 (coherentGrayInitialMask_index_lt tail)] ++
+    coherentGrayMergedBoundaryNormalFormPrefixCircuit layout edgeCount le_rfl ++
+      coherentGrayRootCoreAt layout edgeCount
+          (coherentGrayFinalMask_index_lt tail) ++
+        [coherentGrayRootEndAt layout edgeCount
+          (coherentGrayFinalMask_index_lt tail)]
+
 /-- Payload-visible erased form of the general merged root schedule. -/
 def mergedGrayControlledViaRootFusionCircuit {tail ambientWidth : ℕ}
     (layout : OrderedControlLayout (tail + 1) ambientWidth)
@@ -698,6 +736,43 @@ theorem coherentGrayRegroupedViaRootCircuit_eq_raw
   rw [coherentGrayRootCircuitAt_eq_start_core_end]
   simp [List.append_assoc]
 
+/-- One executable merger step emits its explicit core/CNOT normal form. -/
+@[simp]
+theorem coherentGrayMergedBoundarySegment_eq_normalForm
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    coherentGrayMergedBoundarySegment layout index hindex =
+      coherentGrayMergedBoundaryNormalForm layout index hindex := by
+  rw [coherentGrayMergedBoundarySegment,
+    coherentGrayMergedBoundaryNormalForm,
+    coherentGrayNormalizedBoundaryAt_eq_singleton]
+
+/-- Every streaming prefix emits exactly the direct core/CNOT prefix. -/
+theorem coherentGrayMergedBoundaryPrefixCircuit_eq_normalForm
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      coherentGrayMergedBoundaryPrefixCircuit layout count hcount =
+        coherentGrayMergedBoundaryNormalFormPrefixCircuit layout count hcount := by
+  intro count hcount
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [coherentGrayMergedBoundaryPrefixCircuit,
+        coherentGrayMergedBoundaryNormalFormPrefixCircuit,
+        ih, coherentGrayMergedBoundarySegment_eq_normalForm]
+
+/-- The executable boundarywise merger emits the named explicit normal form. -/
+theorem mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    mergedGrayControlledViaRootSymbolicCircuit layout =
+      mergedGrayControlledViaRootNormalForm layout := by
+  rw [mergedGrayControlledViaRootSymbolicCircuit,
+    mergedGrayControlledViaRootNormalForm,
+    coherentGrayMergedBoundaryPrefixCircuit_eq_normalForm]
+
 /-- Normalizing an indexed boundary preserves its exact erased evaluator. -/
 @[simp]
 theorem eval_erase_coherentGrayNormalizedBoundaryAt
@@ -768,6 +843,417 @@ theorem eval_erase_mergedGrayControlledViaRootSymbolicCircuit_eq_regrouped
     coherentGrayRegroupedViaRootCircuit]
   repeat' rw [erase_append, FusionCircuit.eval_append]
   rw [eval_erase_coherentGrayMergedBoundaryPrefixCircuit]
+
+/-! ## Exact ordered CNOT chronology -/
+
+@[simp]
+theorem cnotTrace_coherentGrayNormalizedBoundaryAt
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit.cnotTrace
+        (coherentGrayNormalizedBoundaryAt layout index hindex) =
+      SymbolicCircuit.cnotTrace (coherentGrayBoundaryAt layout index hindex) := by
+  simp [coherentGrayNormalizedBoundaryAt]
+
+@[simp]
+theorem cnotTrace_coherentGrayMergedBoundarySegment
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit.cnotTrace
+        (coherentGrayMergedBoundarySegment layout index hindex) =
+      SymbolicCircuit.cnotTrace
+        (coherentGrayUnmergedBoundarySegment layout index hindex) := by
+  rw [coherentGrayMergedBoundarySegment,
+    coherentGrayUnmergedBoundarySegment,
+    SymbolicCircuit.cnotTrace_append, SymbolicCircuit.cnotTrace_append,
+    cnotTrace_coherentGrayNormalizedBoundaryAt]
+
+theorem cnotTrace_coherentGrayMergedBoundaryPrefixCircuit
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      SymbolicCircuit.cnotTrace
+          (coherentGrayMergedBoundaryPrefixCircuit layout count hcount) =
+        SymbolicCircuit.cnotTrace
+          (coherentGrayUnmergedBoundaryPrefixCircuit layout count hcount) := by
+  intro count hcount
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [coherentGrayMergedBoundaryPrefixCircuit,
+        coherentGrayUnmergedBoundaryPrefixCircuit,
+        SymbolicCircuit.cnotTrace_append, SymbolicCircuit.cnotTrace_append,
+        ih, cnotTrace_coherentGrayMergedBoundarySegment]
+
+/-- Every literal CNOT and its orientation remain in the original exact order. -/
+theorem cnotTrace_mergedGrayControlledViaRootSymbolicCircuit_eq_raw
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    SymbolicCircuit.cnotTrace
+        (mergedGrayControlledViaRootSymbolicCircuit layout) =
+      SymbolicCircuit.cnotTrace
+        (coherentGrayControlledViaRootCircuit layout V) := by
+  rw [mergedGrayControlledViaRootSymbolicCircuit,
+    ← coherentGrayRegroupedViaRootCircuit_eq_raw layout V,
+    coherentGrayRegroupedViaRootCircuit]
+  simp only [SymbolicCircuit.cnotTrace_append]
+  rw [cnotTrace_coherentGrayMergedBoundaryPrefixCircuit]
+
+/-! ## Syntax-derived post-merger resources -/
+
+@[simp]
+theorem coherentGrayRootStartAt_counts {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    SymbolicCircuit.oneQubitCount
+        [coherentGrayRootStartAt layout index hindex] = 1 ∧
+      SymbolicCircuit.cnotCount
+        [coherentGrayRootStartAt layout index hindex] = 0 ∧
+      SymbolicCircuit.gateCount
+        [coherentGrayRootStartAt layout index hindex] = 1 := by
+  by_cases hodd : Odd ((grayCode controlCount)[index]'hindex).card <;>
+    simp [coherentGrayRootStartAt, grayRootStartSymbolic, hodd,
+      SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+      SymbolicCircuit.oneQubitCount, SymbolicCircuit.oneQubitWeight,
+      SymbolicCircuit.cnotCount, SymbolicCircuit.cnotWeight,
+      SymbolicCircuit.gateCount]
+
+@[simp]
+theorem coherentGrayRootEndAt_counts {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    SymbolicCircuit.oneQubitCount
+        [coherentGrayRootEndAt layout index hindex] = 1 ∧
+      SymbolicCircuit.cnotCount
+        [coherentGrayRootEndAt layout index hindex] = 0 ∧
+      SymbolicCircuit.gateCount
+        [coherentGrayRootEndAt layout index hindex] = 1 := by
+  by_cases hodd : Odd ((grayCode controlCount)[index]'hindex).card <;>
+    simp [coherentGrayRootEndAt, grayRootEndSymbolic, hodd,
+      SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+      SymbolicCircuit.oneQubitCount, SymbolicCircuit.oneQubitWeight,
+      SymbolicCircuit.cnotCount, SymbolicCircuit.cnotWeight,
+      SymbolicCircuit.gateCount]
+
+@[simp]
+theorem coherentGrayRootCoreAt_counts {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    SymbolicCircuit.oneQubitCount
+        (coherentGrayRootCoreAt layout index hindex) = 2 ∧
+      SymbolicCircuit.cnotCount
+        (coherentGrayRootCoreAt layout index hindex) = 2 ∧
+      SymbolicCircuit.gateCount
+        (coherentGrayRootCoreAt layout index hindex) = 4 := by
+  by_cases hodd : Odd ((grayCode controlCount)[index]'hindex).card <;>
+    simp [coherentGrayRootCoreAt, grayRootCoreSymbolicCircuit, hodd,
+      SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+      SymbolicCircuit.oneQubitCount, SymbolicCircuit.oneQubitWeight,
+      SymbolicCircuit.cnotCount, SymbolicCircuit.cnotWeight,
+      SymbolicCircuit.gateCount]
+
+@[simp]
+theorem coherentGrayMergedBoundaryNormalForm_counts
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit.oneQubitCount
+        (coherentGrayMergedBoundaryNormalForm layout index hindex) = 2 ∧
+      SymbolicCircuit.cnotCount
+        (coherentGrayMergedBoundaryNormalForm layout index hindex) = 3 ∧
+      SymbolicCircuit.gateCount
+        (coherentGrayMergedBoundaryNormalForm layout index hindex) = 5 := by
+  have hmask := coherentGrayMask_index_lt_of_edge hindex
+  by_cases hodd : Odd ((grayCode controlCount)[index]'hmask).card <;>
+    simp [coherentGrayMergedBoundaryNormalForm, coherentGrayRootCoreAt,
+      grayRootCoreSymbolicCircuit, hodd,
+      SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+      SymbolicCircuit.oneQubitCount, SymbolicCircuit.oneQubitWeight,
+      SymbolicCircuit.cnotCount, SymbolicCircuit.cnotWeight,
+      SymbolicCircuit.gateCount]
+
+/-- Every emitted core/CNOT prefix has its exact constructor-folded profile. -/
+theorem coherentGrayMergedBoundaryNormalFormPrefixCircuit_counts
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      SymbolicCircuit.oneQubitCount
+          (coherentGrayMergedBoundaryNormalFormPrefixCircuit
+            layout count hcount) = 2 * count ∧
+        SymbolicCircuit.cnotCount
+          (coherentGrayMergedBoundaryNormalFormPrefixCircuit
+            layout count hcount) = 3 * count ∧
+        SymbolicCircuit.gateCount
+          (coherentGrayMergedBoundaryNormalFormPrefixCircuit
+            layout count hcount) = 5 * count := by
+  intro count hcount
+  induction count with
+  | zero => exact ⟨rfl, rfl, rfl⟩
+  | succ count ih =>
+      rw [coherentGrayMergedBoundaryNormalFormPrefixCircuit]
+      rcases ih (by omega) with ⟨hone, hcnot, hgate⟩
+      rw [SymbolicCircuit.oneQubitCount_append,
+        SymbolicCircuit.cnotCount_append,
+        SymbolicCircuit.gateCount_append,
+        hone, hcnot, hgate]
+      simp only [coherentGrayMergedBoundaryNormalForm_counts]
+      omega
+
+@[simp]
+theorem mergedGrayControlledViaRootNormalForm_oneQubitCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit.oneQubitCount
+        (mergedGrayControlledViaRootNormalForm layout) =
+      2 * 2 ^ (tail + 1) := by
+  rw [mergedGrayControlledViaRootNormalForm]
+  simp only [SymbolicCircuit.oneQubitCount_append]
+  rcases coherentGrayMergedBoundaryNormalFormPrefixCircuit_counts layout
+      (grayCNOTEdges (tail + 1)).length le_rfl with ⟨hone, _, _⟩
+  rcases coherentGrayRootStartAt_counts layout 0
+      (coherentGrayInitialMask_index_lt tail) with ⟨hstart, _, _⟩
+  rcases coherentGrayRootCoreAt_counts layout
+      (grayCNOTEdges (tail + 1)).length
+      (coherentGrayFinalMask_index_lt tail) with ⟨hcore, _, _⟩
+  rcases coherentGrayRootEndAt_counts layout
+      (grayCNOTEdges (tail + 1)).length
+      (coherentGrayFinalMask_index_lt tail) with ⟨hend, _, _⟩
+  rw [hstart, hone, hcore, hend, length_grayCNOTEdges]
+  have hpow : 0 < 2 ^ tail := pow_pos (by omega) tail
+  simp only [pow_succ]
+  omega
+
+@[simp]
+theorem mergedGrayControlledViaRootNormalForm_cnotCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit.cnotCount
+        (mergedGrayControlledViaRootNormalForm layout) =
+      3 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootNormalForm]
+  simp only [SymbolicCircuit.cnotCount_append]
+  rcases coherentGrayMergedBoundaryNormalFormPrefixCircuit_counts layout
+      (grayCNOTEdges (tail + 1)).length le_rfl with ⟨_, hcnot, _⟩
+  rcases coherentGrayRootStartAt_counts layout 0
+      (coherentGrayInitialMask_index_lt tail) with ⟨_, hstart, _⟩
+  rcases coherentGrayRootCoreAt_counts layout
+      (grayCNOTEdges (tail + 1)).length
+      (coherentGrayFinalMask_index_lt tail) with ⟨_, hcore, _⟩
+  rcases coherentGrayRootEndAt_counts layout
+      (grayCNOTEdges (tail + 1)).length
+      (coherentGrayFinalMask_index_lt tail) with ⟨_, hend, _⟩
+  rw [hstart, hcnot, hcore, hend, length_grayCNOTEdges]
+  have hpow : 0 < 2 ^ tail := pow_pos (by omega) tail
+  simp only [pow_succ]
+  omega
+
+@[simp]
+theorem mergedGrayControlledViaRootNormalForm_gateCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit.gateCount
+        (mergedGrayControlledViaRootNormalForm layout) =
+      5 * 2 ^ (tail + 1) - 4 := by
+  rw [SymbolicCircuit.gateCount_eq_componentCounts,
+    mergedGrayControlledViaRootNormalForm_oneQubitCount,
+    mergedGrayControlledViaRootNormalForm_cnotCount]
+  have hpow : 0 < 2 ^ tail := pow_pos (by omega) tail
+  simp only [pow_succ]
+  omega
+
+@[simp]
+theorem mergedGrayControlledViaRootSymbolicCircuit_oneQubitCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit.oneQubitCount
+        (mergedGrayControlledViaRootSymbolicCircuit layout) =
+      2 * 2 ^ (tail + 1) := by
+  rw [mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm,
+    mergedGrayControlledViaRootNormalForm_oneQubitCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootSymbolicCircuit_cnotCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit.cnotCount
+        (mergedGrayControlledViaRootSymbolicCircuit layout) =
+      3 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm,
+    mergedGrayControlledViaRootNormalForm_cnotCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootSymbolicCircuit_gateCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit.gateCount
+        (mergedGrayControlledViaRootSymbolicCircuit layout) =
+      5 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm,
+    mergedGrayControlledViaRootNormalForm_gateCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootFusionCircuit_oneQubitCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.oneQubitCount
+        (mergedGrayControlledViaRootFusionCircuit layout V) =
+      2 * 2 ^ (tail + 1) := by
+  rw [mergedGrayControlledViaRootFusionCircuit,
+    SymbolicCircuit.erase_oneQubitCount,
+    mergedGrayControlledViaRootSymbolicCircuit_oneQubitCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootFusionCircuit_cnotCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.cnotCount
+        (mergedGrayControlledViaRootFusionCircuit layout V) =
+      3 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootFusionCircuit,
+    SymbolicCircuit.erase_cnotCount,
+    mergedGrayControlledViaRootSymbolicCircuit_cnotCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootFusionCircuit_twoQubitCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.twoQubitCount
+        (mergedGrayControlledViaRootFusionCircuit layout V) = 0 := by
+  simp [mergedGrayControlledViaRootFusionCircuit]
+
+@[simp]
+theorem mergedGrayControlledViaRootFusionCircuit_gateCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.gateCount
+        (mergedGrayControlledViaRootFusionCircuit layout V) =
+      5 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootFusionCircuit,
+    SymbolicCircuit.erase_gateCount,
+    mergedGrayControlledViaRootSymbolicCircuit_gateCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.cost CostModel.oneQubitCNOT
+        (mergedGrayControlledViaRootFusionCircuit layout V) =
+      some (5 * 2 ^ (tail + 1) - 4) := by
+  rw [mergedGrayControlledViaRootFusionCircuit,
+    SymbolicCircuit.erase_oneQubitCNOTCost,
+    mergedGrayControlledViaRootSymbolicCircuit_gateCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootFusionCircuit_arbitraryTwoQubitCost
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.cost CostModel.arbitraryTwoQubit
+        (mergedGrayControlledViaRootFusionCircuit layout V) =
+      some (5 * 2 ^ (tail + 1) - 4) := by
+  rw [FusionCircuit.arbitraryTwoQubit_cost_eq_gateCount,
+    mergedGrayControlledViaRootFusionCircuit_gateCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootCircuit_oneQubitCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.kindCount .oneQubit
+        (mergedGrayControlledViaRootCircuit layout V) =
+      2 * 2 ^ (tail + 1) := by
+  rw [mergedGrayControlledViaRootCircuit,
+    FusionCircuit.oneQubitCount_lower,
+    mergedGrayControlledViaRootFusionCircuit_oneQubitCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootCircuit_cnotCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.kindCount .cnot
+        (mergedGrayControlledViaRootCircuit layout V) =
+      3 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootCircuit,
+    FusionCircuit.cnotCount_lower,
+    mergedGrayControlledViaRootFusionCircuit_cnotCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootCircuit_twoQubitCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.kindCount .arbitraryTwoQubit
+        (mergedGrayControlledViaRootCircuit layout V) = 0 := by
+  rw [mergedGrayControlledViaRootCircuit,
+    FusionCircuit.twoQubitCount_lower,
+    mergedGrayControlledViaRootFusionCircuit_twoQubitCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootCircuit_gateCount
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.gateCount (mergedGrayControlledViaRootCircuit layout V) =
+      5 * 2 ^ (tail + 1) - 4 := by
+  rw [mergedGrayControlledViaRootCircuit,
+    FusionCircuit.gateCount_lower,
+    mergedGrayControlledViaRootFusionCircuit_gateCount]
+
+@[simp]
+theorem mergedGrayControlledViaRootCircuit_oneQubitCNOTCost
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (mergedGrayControlledViaRootCircuit layout V) =
+      some (5 * 2 ^ (tail + 1) - 4) := by
+  rw [mergedGrayControlledViaRootCircuit,
+    FusionCircuit.cost_lower,
+    mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost]
+
+@[simp]
+theorem mergedGrayControlledViaRootCircuit_arbitraryTwoQubitCost
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    Circuit.cost CostModel.arbitraryTwoQubit
+        (mergedGrayControlledViaRootCircuit layout V) =
+      some (5 * 2 ^ (tail + 1) - 4) := by
+  rw [mergedGrayControlledViaRootCircuit,
+    FusionCircuit.cost_lower,
+    mergedGrayControlledViaRootFusionCircuit_arbitraryTwoQubitCost]
+
+/-- The selected-root fusion family has the complete checked merged profile. -/
+theorem mergedGrayControlledFusionCircuit_profile
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) :
+    FusionCircuit.oneQubitCount (mergedGrayControlledFusionCircuit layout U) =
+        2 * 2 ^ (tail + 1) ∧
+      FusionCircuit.cnotCount (mergedGrayControlledFusionCircuit layout U) =
+        3 * 2 ^ (tail + 1) - 4 ∧
+      FusionCircuit.twoQubitCount (mergedGrayControlledFusionCircuit layout U) = 0 ∧
+      FusionCircuit.gateCount (mergedGrayControlledFusionCircuit layout U) =
+        5 * 2 ^ (tail + 1) - 4 ∧
+      FusionCircuit.cost CostModel.oneQubitCNOT
+          (mergedGrayControlledFusionCircuit layout U) =
+        some (5 * 2 ^ (tail + 1) - 4) := by
+  simp only [mergedGrayControlledFusionCircuit]
+  exact
+    ⟨mergedGrayControlledViaRootFusionCircuit_oneQubitCount layout _,
+      mergedGrayControlledViaRootFusionCircuit_cnotCount layout _,
+      mergedGrayControlledViaRootFusionCircuit_twoQubitCount layout _,
+      mergedGrayControlledViaRootFusionCircuit_gateCount layout _,
+      mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost layout _⟩
 
 @[simp]
 theorem eval_erase_coherentGrayRootCircuitAt
