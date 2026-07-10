@@ -69,7 +69,7 @@ theorem expandedRecursiveRetainedShell_oneQubitCount {p ambientWidth : ℕ}
   rw [expandedRecursiveRetainedShell, recursiveSubstitutionCircuit_kindCount]
   simp only [expandedLastControlledTargetCircuit_oneQubitCount,
     expandedRecursivePrefixXCircuit_oneQubitCount]
-  simp only [Circuit.kindCount]
+  simp only [Circuit.kindCount, List.countP_nil, Nat.add_zero]
   omega
 
 /-- Exact CNOT count of one retained primitive shell. -/
@@ -82,7 +82,7 @@ theorem expandedRecursiveRetainedShell_cnotCount {p ambientWidth : ℕ}
   rw [expandedRecursiveRetainedShell, recursiveSubstitutionCircuit_kindCount]
   simp only [expandedLastControlledTargetCircuit_cnotCount,
     expandedRecursivePrefixXCircuit_cnotCount]
-  simp only [Circuit.kindCount]
+  simp only [Circuit.kindCount, List.countP_nil, Nat.add_zero]
   omega
 
 /-- Exact primitive count of one retained primitive shell. -/
@@ -95,7 +95,7 @@ theorem expandedRecursiveRetainedShell_gateCount {p ambientWidth : ℕ}
   rw [expandedRecursiveRetainedShell, recursiveSubstitutionCircuit_gateCount]
   simp only [expandedLastControlledTargetCircuit_gateCount,
     expandedRecursivePrefixXCircuit_gateCount]
-  simp only [Circuit.gateCount]
+  simp only [Circuit.gateCount, List.length_nil, Nat.add_zero]
   omega
 
 /-- Exact accepted one-qubit/CNOT cost of one retained primitive shell. -/
@@ -191,6 +191,249 @@ theorem eval_expandedTruncatedRecursiveCircuit
         (expandedTruncatedRecursiveCircuit residualDepth depth layout U) =
       Circuit.eval (truncatedRecursiveCircuit residualDepth depth layout U) := by
   simp [expandedTruncatedRecursiveCircuit, truncatedRecursiveCircuit]
+
+/-! ## Exact syntax recurrences and closed counts -/
+
+/-- One-qubit count added by the outer retained shell. -/
+theorem expandedTruncatedRecursiveCircuitFrom_oneQubitCount_succ
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + (depth + 1)) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .oneQubit
+        (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth (depth + 1)
+          layout U) =
+      Circuit.kindCount .oneQubit
+          (expandedTruncatedRecursiveCircuitFrom (rootIndex + 1) residualDepth
+            depth layout.prefixTargetLayout U) +
+        (64 * residualDepth + 64 * depth + 232) := by
+  rw [expandedTruncatedRecursiveCircuitFrom_succ, Circuit.kindCount_append,
+    expandedRecursiveRetainedShell_oneQubitCount]
+  omega
+
+/-- CNOT count added by the outer retained shell. -/
+theorem expandedTruncatedRecursiveCircuitFrom_cnotCount_succ
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + (depth + 1)) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .cnot
+        (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth (depth + 1)
+          layout U) =
+      Circuit.kindCount .cnot
+          (expandedTruncatedRecursiveCircuitFrom (rootIndex + 1) residualDepth
+            depth layout.prefixTargetLayout U) +
+        (48 * residualDepth + 48 * depth + 188) := by
+  rw [expandedTruncatedRecursiveCircuitFrom_succ, Circuit.kindCount_append,
+    expandedRecursiveRetainedShell_cnotCount]
+  omega
+
+/-- Primitive count added by the outer retained shell. -/
+theorem expandedTruncatedRecursiveCircuitFrom_gateCount_succ
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + (depth + 1)) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.gateCount
+        (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth (depth + 1)
+          layout U) =
+      Circuit.gateCount
+          (expandedTruncatedRecursiveCircuitFrom (rootIndex + 1) residualDepth
+            depth layout.prefixTargetLayout U) +
+        (112 * residualDepth + 112 * depth + 420) := by
+  rw [expandedTruncatedRecursiveCircuitFrom_succ, Circuit.gateCount_append,
+    expandedRecursiveRetainedShell_gateCount]
+  omega
+
+/-- Exact one-qubit count of the retained-shell syntax. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuitFrom_oneQubitCount
+    {ambientWidth : ℕ} :
+    ∀ (rootIndex residualDepth depth : ℕ)
+      (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+      (U : QubitUnitary),
+      Circuit.kindCount .oneQubit
+          (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth depth
+            layout U) =
+        32 * depth ^ 2 + (64 * residualDepth + 200) * depth
+  | _rootIndex, _residualDepth, 0, _layout, _U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_zero]
+      rfl
+  | rootIndex, residualDepth, depth + 1, layout, U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_oneQubitCount_succ,
+        expandedTruncatedRecursiveCircuitFrom_oneQubitCount]
+      ring
+
+/-- Exact CNOT count of the retained-shell syntax. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuitFrom_cnotCount
+    {ambientWidth : ℕ} :
+    ∀ (rootIndex residualDepth depth : ℕ)
+      (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+      (U : QubitUnitary),
+      Circuit.kindCount .cnot
+          (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth depth
+            layout U) =
+        24 * depth ^ 2 + (48 * residualDepth + 164) * depth
+  | _rootIndex, _residualDepth, 0, _layout, _U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_zero]
+      rfl
+  | rootIndex, residualDepth, depth + 1, layout, U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_cnotCount_succ,
+        expandedTruncatedRecursiveCircuitFrom_cnotCount]
+      ring
+
+/-- Exact primitive count of the retained-shell syntax. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuitFrom_gateCount
+    {ambientWidth : ℕ} :
+    ∀ (rootIndex residualDepth depth : ℕ)
+      (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+      (U : QubitUnitary),
+      Circuit.gateCount
+          (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth depth
+            layout U) =
+        56 * depth ^ 2 + (112 * residualDepth + 364) * depth
+  | _rootIndex, _residualDepth, 0, _layout, _U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_zero]
+      rfl
+  | rootIndex, residualDepth, depth + 1, layout, U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_gateCount_succ,
+        expandedTruncatedRecursiveCircuitFrom_gateCount]
+      ring
+
+/-- Exact accepted one-qubit/CNOT cost of the retained-shell syntax. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuitFrom_oneQubitCNOTCost
+    {ambientWidth : ℕ} :
+    ∀ (rootIndex residualDepth depth : ℕ)
+      (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+      (U : QubitUnitary),
+      Circuit.cost CostModel.oneQubitCNOT
+          (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth depth
+            layout U) =
+        some (56 * depth ^ 2 + (112 * residualDepth + 364) * depth)
+  | _rootIndex, _residualDepth, 0, _layout, _U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_zero]
+      rfl
+  | rootIndex, residualDepth, depth + 1, layout, U => by
+      rw [expandedTruncatedRecursiveCircuitFrom_succ, Circuit.cost_append,
+        expandedRecursiveRetainedShell_oneQubitCNOTCost,
+        expandedTruncatedRecursiveCircuitFrom_oneQubitCNOTCost,
+        Circuit.addCost_some]
+      rw [show 112 * (residualDepth + 6 + depth) - 252 =
+        112 * residualDepth + 112 * depth + 420 by omega]
+      exact congrArg some (by ring)
+
+/-- Root-index-zero exact one-qubit count. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuit_oneQubitCount
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .oneQubit
+        (expandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      32 * depth ^ 2 + (64 * residualDepth + 200) * depth := by
+  simp [expandedTruncatedRecursiveCircuit]
+
+/-- Root-index-zero exact CNOT count. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuit_cnotCount
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .cnot
+        (expandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      24 * depth ^ 2 + (48 * residualDepth + 164) * depth := by
+  simp [expandedTruncatedRecursiveCircuit]
+
+/-- Root-index-zero exact primitive count. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuit_gateCount
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.gateCount
+        (expandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      56 * depth ^ 2 + (112 * residualDepth + 364) * depth := by
+  simp [expandedTruncatedRecursiveCircuit]
+
+/-- Root-index-zero exact accepted one-qubit/CNOT cost. -/
+@[simp]
+theorem expandedTruncatedRecursiveCircuit_oneQubitCNOTCost
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (expandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      some (56 * depth ^ 2 + (112 * residualDepth + 364) * depth) := by
+  simp [expandedTruncatedRecursiveCircuit]
+
+/-! ## Operator-distance preservation -/
+
+/--
+The primitive expansion has the same exact residual-root error as the macro
+truncation, at an arbitrary coherent-root index.
+-/
+theorem operatorDistance_expandedTruncatedRecursiveCircuitFrom_eq_residual
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    operatorDistance
+        (positiveControlledUnitary layout.targetWire layout.controlSet
+          (powerTwoRoot rootIndex U) : Gate ambientWidth)
+        (Circuit.eval
+          (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth depth
+            layout U) : Gate ambientWidth) =
+      operatorDistance (powerTwoRoot (rootIndex + depth) U : QubitMatrix)
+        (1 : QubitMatrix) := by
+  rw [eval_expandedTruncatedRecursiveCircuitFrom]
+  exact layout.operatorDistance_truncatedRecursiveCircuitFrom_eq_residual
+    rootIndex residualDepth depth U
+
+/-- Root-index-zero exact residual-root error identity. -/
+theorem operatorDistance_expandedTruncatedRecursiveCircuit_eq_residual
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    operatorDistance
+        (positiveControlledUnitary layout.targetWire layout.controlSet U :
+          Gate ambientWidth)
+        (Circuit.eval
+          (expandedTruncatedRecursiveCircuit residualDepth depth layout U) :
+            Gate ambientWidth) =
+      operatorDistance (powerTwoRoot depth U : QubitMatrix)
+        (1 : QubitMatrix) := by
+  rw [eval_expandedTruncatedRecursiveCircuit]
+  exact layout.operatorDistance_truncatedRecursiveCircuit_eq_residual
+    U
+
+/-- General-root primitive truncation error is at most `pi / 2^(rootIndex+depth)`. -/
+theorem operatorDistance_expandedTruncatedRecursiveCircuitFrom_le
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    operatorDistance
+        (positiveControlledUnitary layout.targetWire layout.controlSet
+          (powerTwoRoot rootIndex U) : Gate ambientWidth)
+        (Circuit.eval
+          (expandedTruncatedRecursiveCircuitFrom rootIndex residualDepth depth
+            layout U) : Gate ambientWidth) ≤
+      Real.pi / (2 ^ (rootIndex + depth) : ℝ) := by
+  rw [layout.operatorDistance_expandedTruncatedRecursiveCircuitFrom_eq_residual]
+  exact powerTwoRoot_operatorDistance_one_le (rootIndex + depth) U
+
+/-- Root-index-zero primitive truncation error is at most `pi / 2^depth`. -/
+theorem operatorDistance_expandedTruncatedRecursiveCircuit_le
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    operatorDistance
+        (positiveControlledUnitary layout.targetWire layout.controlSet U :
+          Gate ambientWidth)
+        (Circuit.eval
+          (expandedTruncatedRecursiveCircuit residualDepth depth layout U) :
+            Gate ambientWidth) ≤
+      Real.pi / (2 ^ depth : ℝ) := by
+  rw [layout.operatorDistance_expandedTruncatedRecursiveCircuit_eq_residual]
+  exact powerTwoRoot_operatorDistance_one_le depth U
 
 /-! ## Optional exact primitive completion -/
 

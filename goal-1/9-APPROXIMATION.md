@@ -77,6 +77,18 @@ resource layers remain).
   the full depth-`r+k` count componentwise. The public safe boundary remains
   `k≤n-7`; one extra bare omission level is semantically possible but lacks the
   existing exact residual fallback and is intentionally outside the main API.
+- The source-aligned total depth selector can be defined directly as
+  `Nat.ceil (Real.logb 2 (pi / epsilon))`. For `0 < epsilon`, pinned mathlib
+  proves the exact equivalence `depth epsilon ≤ k ↔ pi / 2^k ≤ epsilon`, so it
+  is the least depth certified by this principal-root bound. It is not claimed
+  to be the minimum possible circuit depth. At logical width `n≥7`, use the
+  truncated primitive circuit only when this depth is at most `n-7`; otherwise
+  use the established exact recursive circuit. Capping the depth while retaining
+  an epsilon claim would be false.
+- The corrected logarithmic statement will be a finite construction-specific
+  upper bound in the explicit regime `0 < epsilon ≤ 1`, plus a bivariate
+  `IsBigOWith 112` theorem for the exact truncated count versus logical width
+  times retained depth. No `Theta` or synthesis-optimality theorem is justified.
 
 ## Source Claim Audit
 
