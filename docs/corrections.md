@@ -69,9 +69,12 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Formal evidence:** `InwardLadderLayout.slotCount_le_ambientWidth`,
   `inwardLadderCircuit`, `eval_inwardLadderCircuit`, and the exact
   `inwardLadderCircuit_toffoliCount` now establish the Lemma 7.2 ingredient on
-  arbitrary layouts. The repaired floor partition and Lemma 7.3 composition
-  remain to be formalized.
-- **Status:** partial: Lemma 7.2 is proved; the corrected Corollary 7.4 partition is open.
+  arbitrary layouts. `FourBlockLayout.eval_fourBlockCircuit` proves Lemma 7.3's
+  exact dirty-wire composition, and `eval_fourBlockSubstitutionCircuit` provides
+  the checked expansion boundary. The repaired floor partition and concrete
+  ladder substitution remain to be formalized.
+- **Status:** partial: Lemmas 7.2–7.3 are proved; the corrected Corollary 7.4
+  partition/expansion is open.
 
 ## C-004 — Corollary 7.4 remainder has an arithmetic error
 
@@ -184,10 +187,12 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** Corollaries 7.4, 7.10, 7.12 and downstream reuse of ancillas.
 - **Formal evidence:** `inwardLadderUpdate_eq_update`,
   `inwardLadderUpdate_apply_borrowedWire`, and `eval_inwardLadderCircuit` prove
-  Lemma 7.2 as exact full-register equality with arbitrary dirty borrowed inputs.
-  Lemma 7.3's dirty composition and Lemma 7.11's clean-zero subspace theorem remain
-  open.
-- **Status:** partial: Lemma 7.2's dirty contract is proved; Lemmas 7.3/7.11 remain.
+  Lemma 7.2 as exact full-register equality with arbitrary dirty borrowed inputs;
+  `fourBlockUpdate_eq_update`, `fourBlockUpdate_apply_dirtyWire`, and
+  `eval_fourBlockCircuit` do the same for Lemma 7.3's single borrowed wire.
+  Lemma 7.11's clean-zero subspace theorem remains open.
+- **Status:** partial: the dirty contracts of Lemmas 7.2–7.3 are proved; Lemma 7.11
+  remains open.
 
 ## C-011 — “Basic operation” changes and drifts
 

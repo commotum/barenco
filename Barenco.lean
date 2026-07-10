@@ -18,6 +18,7 @@ import Barenco.ThreeQubit.RelativePhase
 import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
+import Barenco.MultiControl.FourBlock
 
 /-!
 # Barenco

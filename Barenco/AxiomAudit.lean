@@ -15,6 +15,7 @@ import Barenco.ThreeQubit.RelativePhase
 import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
+import Barenco.MultiControl.FourBlock
 
 /-!
 # Kernel axiom audit
@@ -129,3 +130,9 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.InwardLadderLayout.eval_inwardLadderCircuit
 #print axioms Barenco.MultiControl.InwardLadderLayout.touchedSupport_inwardLadderCircuit_subset
 #print axioms Barenco.MultiControl.InwardLadderLayout.inwardLadderCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.FourBlockLayout.sourceSplit_bounds
+#print axioms Barenco.MultiControl.FourBlockLayout.logicalWidth_le_ambientWidth
+#print axioms Barenco.MultiControl.FourBlockLayout.fourBlockUpdate_eq_update
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_fourBlockCircuit
+#print axioms Barenco.MultiControl.FourBlockLayout.fourBlockSubstitutionCircuit_gateCount
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_fourBlockSubstitutionCircuit

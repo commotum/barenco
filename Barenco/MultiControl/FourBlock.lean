@@ -253,6 +253,21 @@ def dataLayout {l r n : ℕ} (layout : FourBlockLayout l r n) :
     | inr right =>
         simp [dataControlSlotEmbedding, dataControlSumEmbedding, hcontrol]
 
+@[simp]
+theorem aLayout_controlSet_card {l r n : ℕ} (layout : FourBlockLayout l r n) :
+    layout.aLayout.controlSet.card = l + 2 := by
+  exact OrderedControlLayout.card_controlSet layout.aLayout
+
+@[simp]
+theorem bLayout_controlSet_card {l r n : ℕ} (layout : FourBlockLayout l r n) :
+    layout.bLayout.controlSet.card = r + 2 := by
+  simp
+
+@[simp]
+theorem dataLayout_controlSet_card {l r n : ℕ} (layout : FourBlockLayout l r n) :
+    layout.dataLayout.controlSet.card = l + r + 3 := by
+  simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-! ## Four-node chronological syntax -/
 
 /-- Compute/uncompute block on the dirty wire. -/
@@ -535,13 +550,13 @@ private theorem positiveControlledPauliX_mulVec_basisKet {controlCount n : ℕ}
     rw [hproduct, update_add_false_eq_self]
 
 @[simp]
-theorem orderedControlProduct_aLayout {l r n : ℕ}
+private theorem orderedControlProduct_aLayout {l r n : ℕ}
     (layout : FourBlockLayout l r n) (input : Basis n) :
     orderedControlProduct layout.aLayout input = layout.leftProduct input := by
   rfl
 
 @[simp]
-theorem orderedControlProduct_bLayout {l r n : ℕ}
+private theorem orderedControlProduct_bLayout {l r n : ℕ}
     (layout : FourBlockLayout l r n) (input : Basis n) :
     orderedControlProduct layout.bLayout input =
       layout.rightProduct input * input layout.dirtyWire := by
@@ -550,7 +565,7 @@ theorem orderedControlProduct_bLayout {l r n : ℕ}
     bControlSumEmbedding, rightProduct, dirtyWire, rightControlWire]
 
 @[simp]
-theorem orderedControlProduct_dataLayout {l r n : ℕ}
+private theorem orderedControlProduct_dataLayout {l r n : ℕ}
     (layout : FourBlockLayout l r n) (input : Basis n) :
     orderedControlProduct layout.dataLayout input =
       layout.leftProduct input * layout.rightProduct input := by
@@ -610,6 +625,47 @@ theorem eval_fourBlockCircuit {l r n : ℕ} (layout : FourBlockLayout l r n) :
   have haction := positiveControlledPauliX_mulVec_basisKet layout.dataLayout input
   rw [orderedControlProduct_dataLayout] at haction
   simpa [dataLayout] using haction.symm
+
+/-! ## Substitution by checked implementations -/
+
+/-- Replace the two macro kinds by supplied chronological implementations. -/
+def fourBlockSubstitutionCircuit {n : ℕ}
+    (aImplementation bImplementation : Circuit n) : Circuit n :=
+  Circuit.append aImplementation
+    (Circuit.append bImplementation
+      (Circuit.append aImplementation bImplementation))
+
+@[simp]
+theorem fourBlockSubstitutionCircuit_gateCount {n : ℕ}
+    (aImplementation bImplementation : Circuit n) :
+    Circuit.gateCount (fourBlockSubstitutionCircuit aImplementation bImplementation) =
+      2 * Circuit.gateCount aImplementation +
+        2 * Circuit.gateCount bImplementation := by
+  simp [fourBlockSubstitutionCircuit]
+  omega
+
+@[simp]
+theorem fourBlockSubstitutionCircuit_kindCount {n : ℕ}
+    (kind : PrimitiveKind) (aImplementation bImplementation : Circuit n) :
+    Circuit.kindCount kind
+        (fourBlockSubstitutionCircuit aImplementation bImplementation) =
+      2 * Circuit.kindCount kind aImplementation +
+        2 * Circuit.kindCount kind bImplementation := by
+  simp [fourBlockSubstitutionCircuit]
+  omega
+
+/-- Checked A/B implementations may be substituted without changing semantics. -/
+theorem eval_fourBlockSubstitutionCircuit {l r n : ℕ}
+    (layout : FourBlockLayout l r n)
+    (aImplementation bImplementation : Circuit n)
+    (ha : Circuit.eval aImplementation = layout.blockA.denotation)
+    (hb : Circuit.eval bImplementation = layout.blockB.denotation) :
+    Circuit.eval (fourBlockSubstitutionCircuit aImplementation bImplementation) =
+      positiveControlledUnitary layout.targetWire layout.dataLayout.controlSet pauliX := by
+  rw [fourBlockSubstitutionCircuit, Circuit.eval_append, Circuit.eval_append,
+    Circuit.eval_append, ha, hb]
+  rw [← eval_fourBlockCircuit layout]
+  simp [fourBlockCircuit, Circuit.eval, mul_assoc]
 
 end FourBlockLayout
 

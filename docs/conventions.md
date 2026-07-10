@@ -527,8 +527,13 @@ and whether they are uniform, worst-case, or for a particular construction.
 - Width is the total number of wires. Ancilla count and initialization assumptions
   are separate resource fields.
 
-Lemmas 7.2–7.3 are expected to use dirty borrowed wires. Lemma 7.11 uses one clean
-zero ancilla and must be stated as a subspace/input-contract theorem.
+Lemmas 7.2–7.3 use dirty borrowed wires and are proved as exact full-register
+operator equalities. `InwardLadderLayout` restores every ladder workspace wire,
+while `FourBlockLayout` restores its single unknown dirty wire after the exact
+chronology `A;B;A;B`. The latter uses control-group sizes `l+2` and `r+1`, so the
+two macro arities are `l+2` and `r+2` and the final gate has `l+r+3` controls in
+logical width `l+r+5`. Lemma 7.11 instead uses one clean zero ancilla and must be
+stated as a subspace/input-contract theorem.
 
 ## Circuit Syntax and Cost Models
 
@@ -563,6 +568,12 @@ only through an explicit syntactic optimization theorem, and label exact count,
 constructed upper bound, optimal lower bound, and asymptotic statement separately.
 The word `Θ` is not exported for an optimal synthesis problem unless both bounds are
 proved for the same cost model and target relation.
+
+For the Lemma 7.3 four-block syntax, `gateCount = 4` and the public substitution
+theorem counts any supplied implementations as `2*A + 2*B`. Separate claims that
+each controlled-one-qubit *kind* occurs twice are intentionally avoided: when the
+two arities coincide, both macro names have the same `PrimitiveKind`, so that kind
+occurs four times.
 
 ## API Evidence and Representation Decision
 
