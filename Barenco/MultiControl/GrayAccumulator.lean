@@ -400,6 +400,13 @@ theorem runXorEdges_cons {width : ℕ} (edge : Fin width × Fin width)
       runXorEdges edges (xorWireUpdate edge.1 edge.2 state) := by
   simp [runXorEdges, List.foldl_cons]
 
+/-- Execution over concatenated edge lists is sequential composition. -/
+theorem runXorEdges_append {width : ℕ} (first second : List (Fin width × Fin width))
+    (state : Fin width → Bool) :
+    runXorEdges (first ++ second) state =
+      runXorEdges second (runXorEdges first state) := by
+  simp [runXorEdges, List.foldl_append]
+
 /--
 Register state in which `pivot` stores the XOR parity of `mask` and every other
 wire retains its original input value.
@@ -486,5 +493,204 @@ theorem xorWireUpdate_parityAccumulator_transfer {width : ℕ}
   · subst wire
     simp [parityAccumulatorState, xorParity, h, add_comm]
   · simp [xorWireUpdate, parityAccumulatorState, hwire]
+
+/-- At a strict pivot increase, the toggle is the new pivot and both masks are fixed. -/
+theorem GrayCNOTStep.strict_shape {width : ℕ}
+    {first second : GrayMask width} {changed oldPivot newPivot : Fin width}
+    {edge : Fin width × Fin width}
+    (h : GrayCNOTStep first second changed oldPivot newPivot edge)
+    (hlt : oldPivot < newPivot) :
+    changed = newPivot ∧ first = {oldPivot} ∧ second = {oldPivot, newPivot} := by
+  have hfirstEq : first = {oldPivot} := h.previous_singleton hlt
+  have hnewNotFirst : newPivot ∉ first := by
+    rw [hfirstEq]
+    simpa using ne_of_gt hlt
+  have hnewDiff : newPivot ∈ first ∆ second :=
+    Finset.mem_symmDiff.mpr (Or.inr ⟨h.second_pivot.1, hnewNotFirst⟩)
+  rw [h.change_eq] at hnewDiff
+  have hchangedEq : changed = newPivot := by
+    exact (by simpa using hnewDiff : newPivot = changed).symm
+  have hsecondFromDiff : second = first ∆ {changed} := by
+    calc
+      second = first ∆ (first ∆ second) :=
+        (symmDiff_symmDiff_cancel_left first second).symm
+      _ = first ∆ {changed} := by rw [h.change_eq]
+  have hsecondEq : second = {oldPivot, newPivot} := by
+    rw [hfirstEq, hchangedEq] at hsecondFromDiff
+    calc
+      second = {oldPivot} ∆ {newPivot} := hsecondFromDiff
+      _ = {oldPivot, newPivot} := by
+        ext wire
+        simp only [Finset.mem_symmDiff, Finset.mem_singleton, Finset.mem_insert]
+        constructor
+        · rintro (⟨hwire, _⟩ | ⟨hwire, _⟩)
+          · exact Or.inl hwire
+          · exact Or.inr hwire
+        · rintro (hwire | hwire)
+          · exact Or.inl ⟨hwire, fun hnew =>
+              (ne_of_lt hlt) (hwire.symm.trans hnew)⟩
+          · exact Or.inr ⟨hwire, fun hold =>
+              (ne_of_lt hlt) (hold.symm.trans hwire)⟩
+  exact ⟨hchangedEq, hfirstEq, hsecondEq⟩
+
+/-- Every edge satisfying the generated-step specification has distinct wires. -/
+theorem GrayCNOTStep.edge_ne {width : ℕ}
+    {first second : GrayMask width} {changed oldPivot newPivot : Fin width}
+    {edge : Fin width × Fin width}
+    (h : GrayCNOTStep first second changed oldPivot newPivot edge) :
+    edge.1 ≠ edge.2 := by
+  by_cases hpivot : oldPivot = newPivot
+  · subst newPivot
+    rw [h.edge_eq, if_pos rfl]
+    exact changed_ne_common_member h.change_eq
+      h.first_pivot.1 h.second_pivot.1
+  · rw [h.edge_eq, if_neg hpivot]
+    exact hpivot
+
+/-- One specified generated edge advances the parity-accumulator invariant exactly. -/
+theorem GrayCNOTStep.xorWireUpdate_parityAccumulator {width : ℕ}
+    {first second : GrayMask width} {changed oldPivot newPivot : Fin width}
+    {edge : Fin width × Fin width}
+    (h : GrayCNOTStep first second changed oldPivot newPivot edge)
+    (input : Fin width → Bool) :
+    xorWireUpdate edge.1 edge.2
+        (parityAccumulatorState first oldPivot input) =
+      parityAccumulatorState second newPivot input := by
+  by_cases hpivot : oldPivot = newPivot
+  · subst newPivot
+    rw [h.edge_eq, if_pos rfl]
+    exact xorWireUpdate_parityAccumulator_samePivot h.change_eq
+      h.first_pivot.1 h.second_pivot.1 input
+  · have hpivotLt : oldPivot < newPivot := lt_of_le_of_ne h.pivot_le hpivot
+    rcases h.strict_shape hpivotLt with ⟨_, hfirstEq, hsecondEq⟩
+    rw [h.edge_eq, if_neg hpivot, hfirstEq, hsecondEq]
+    exact xorWireUpdate_parityAccumulator_transfer oldPivot newPivot hpivot input
+
+private theorem grayCode_transition_index_lt_of_edge {width index : ℕ}
+    (hindex : index < (grayCNOTEdges width).length) :
+    index + 1 < (grayCode width).length := by
+  rw [length_grayCNOTEdges] at hindex
+  rw [length_grayCode]
+  omega
+
+/-- The control and target of every indexed generated CNOT edge are distinct. -/
+theorem grayCNOTEdges_getElem_ne {width index : ℕ}
+    (hindex : index < (grayCNOTEdges width).length) :
+    ((grayCNOTEdges width)[index]'hindex).1 ≠
+      ((grayCNOTEdges width)[index]'hindex).2 := by
+  exact (grayCNOTEdges_getElem_spec
+    (grayCode_transition_index_lt_of_edge hindex)).edge_ne
+
+/-- Every member of the generated schedule is a valid distinct-wire CNOT edge. -/
+theorem grayCNOTEdges_wires_ne {width : ℕ} {edge : Fin width × Fin width}
+    (hedge : edge ∈ grayCNOTEdges width) : edge.1 ≠ edge.2 := by
+  rcases List.mem_iff_getElem.mp hedge with ⟨index, hindex, hedgeEq⟩
+  rw [← hedgeEq]
+  exact grayCNOTEdges_getElem_ne hindex
+
+/-- One indexed generated edge advances its paired mask/pivot accumulator state. -/
+theorem xorWireUpdate_grayCNOTEdges_getElem {width index : ℕ}
+    (hindex : index + 1 < (grayCode width).length)
+    (input : Fin width → Bool) :
+    xorWireUpdate
+        ((grayCNOTEdges width)[index]'(grayCNOTEdge_index_lt hindex)).1
+        ((grayCNOTEdges width)[index]'(grayCNOTEdge_index_lt hindex)).2
+        (parityAccumulatorState
+          ((grayCode width)[index]'(by omega))
+          ((grayPivots width)[index]'(grayPivot_index_lt (by omega))) input) =
+      parityAccumulatorState
+        ((grayCode width)[index + 1]'hindex)
+        ((grayPivots width)[index + 1]'(grayPivot_index_lt hindex)) input := by
+  exact (grayCNOTEdges_getElem_spec hindex).xorWireUpdate_parityAccumulator input
+
+private theorem head?_grayCode_succ : ∀ width,
+    (grayCode (width + 1)).head? = some {0} := by
+  intro width
+  induction width with
+  | zero => simp [grayCode_one]
+  | succ width ih =>
+      rw [grayCode_succ, List.head?_append, List.head?_map, ih]
+      simp [liftGrayMask]
+
+private theorem parityAccumulatorState_grayCode_head (width : ℕ)
+    (input : Fin (width + 1) → Bool) :
+    parityAccumulatorState
+        ((grayCode (width + 1))[0]'(by simp))
+        ((grayPivots (width + 1))[0]'(by simp)) input = input := by
+  have hhead := head?_grayCode_succ width
+  have hmaskEq : (grayCode (width + 1))[0]'(by simp) = {0} := by
+    apply Option.some.inj
+    rw [← List.getElem?_eq_getElem (by simp), ← List.head?_eq_getElem?]
+    exact hhead
+  have hpivot := grayCode_getElem_isGrayPivot (width := width + 1)
+    (index := 0) (by simp)
+  have hpivotEq : (grayPivots (width + 1))[0]'(by simp) = 0 := by
+    have hpivotMem := hpivot.1
+    rw [hmaskEq] at hpivotMem
+    simpa using hpivotMem
+  rw [hmaskEq, hpivotEq]
+  exact parityAccumulatorState_singleton 0 input
+
+/--
+After any valid prefix of the generated CNOT schedule, the current generated
+pivot stores exactly the parity of the corresponding Gray mask, and every other
+wire still contains its original input bit.
+-/
+theorem runXorEdges_take_grayCNOTEdges {width count : ℕ}
+    (hwidth : 0 < width) (hcount : count < (grayCode width).length)
+    (input : Fin width → Bool) :
+    runXorEdges ((grayCNOTEdges width).take count) input =
+      parityAccumulatorState
+        ((grayCode width)[count]'hcount)
+        ((grayPivots width)[count]'(grayPivot_index_lt hcount)) input := by
+  obtain ⟨width, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hwidth)
+  induction count with
+  | zero =>
+      simpa using (parityAccumulatorState_grayCode_head width input).symm
+  | succ count ih =>
+      have htransition : count + 1 < (grayCode (width + 1)).length := by
+        simpa using hcount
+      have hedgeIndex := grayCNOTEdge_index_lt htransition
+      rw [List.take_succ_eq_append_getElem hedgeIndex, runXorEdges_append]
+      simp only [runXorEdges_cons, runXorEdges_nil]
+      rw [ih (by omega)]
+      exact xorWireUpdate_grayCNOTEdges_getElem htransition input
+
+/-- The complete generated CNOT schedule restores every input control wire. -/
+theorem runXorEdges_grayCNOTEdges (width : ℕ) (input : Fin width → Bool) :
+    runXorEdges (grayCNOTEdges width) input = input := by
+  cases width with
+  | zero => rfl
+  | succ width =>
+      have hlastIndex :
+          (grayCNOTEdges (width + 1)).length <
+            (grayCode (width + 1)).length := by
+        rw [length_grayCNOTEdges, length_grayCode]
+        have hpow : 0 < 2 ^ (width + 1) := pow_pos (by omega) _
+        omega
+      have hrun := runXorEdges_take_grayCNOTEdges
+        (width := width + 1) (count := (grayCNOTEdges (width + 1)).length)
+        (by omega) hlastIndex input
+      rw [List.take_length] at hrun
+      have hlastIndexEq :
+          (grayCNOTEdges (width + 1)).length =
+            (grayCode (width + 1)).length - 1 := by
+        rw [length_grayCNOTEdges, length_grayCode]
+        omega
+      have hlastMask :
+          (grayCode (width + 1))[(grayCNOTEdges (width + 1)).length]'hlastIndex =
+            {Fin.last width} := by
+        have hlast := getLast?_grayCode_succ width
+        rw [List.getLast?_eq_getElem?, ← hlastIndexEq,
+          List.getElem?_eq_getElem hlastIndex] at hlast
+        exact Option.some.inj hlast
+      have hpivot := grayCode_getElem_isGrayPivot hlastIndex
+      have hlastPivot :
+          (grayPivots (width + 1))[(grayCNOTEdges (width + 1)).length]'
+              (grayPivot_index_lt hlastIndex) = Fin.last width := by
+        rw [hlastMask] at hpivot
+        simpa using hpivot.1
+      rw [hlastMask, hlastPivot, parityAccumulatorState_singleton] at hrun
+      exact hrun
 
 end Barenco.MultiControl

@@ -59,6 +59,19 @@ private theorem prod_zpow_eq_zpow_sum (V : QubitUnitary) :
       simp only [List.map_cons, List.prod_cons, List.sum_cons, ih]
       rw [zpow_add]
 
+/-- Root or inverse-root chosen by the alternating cardinality sign of one mask. -/
+def signedGrayRoot {controlCount : ℕ} (mask : GrayMask controlCount)
+    (V : QubitUnitary) : QubitUnitary :=
+  V ^ ((-1 : ℤ) ^ (mask.card - 1))
+
+/-- A controlled signed root contributes its signed power exactly when parity is true. -/
+theorem signedGrayRoot_factor {controlCount : ℕ} (mask : GrayMask controlCount)
+    (V : QubitUnitary) (bits : Fin controlCount → Bool) :
+    (if xorParity mask bits then signedGrayRoot mask V else 1) =
+      V ^ signedParityContribution mask bits := by
+  cases hparity : xorParity mask bits <;>
+    simp [signedGrayRoot, signedParityContribution, xorParityInt, boolInt, hparity]
+
 /-- Product of the controlled-root factors selected by all Gray parities. -/
 def grayRootProduct (controlCount : ℕ) (V : QubitUnitary)
     (bits : Fin controlCount → Bool) : QubitUnitary :=
@@ -82,6 +95,26 @@ theorem grayRootProduct_succ_formula (controlCount : ℕ) (V : QubitUnitary)
       if (∀ control, bits control = true) then V ^ ((2 : ℤ) ^ controlCount) else 1 := by
   rw [grayRootProduct_eq_zpow, grayExponentSum_succ_formula]
   by_cases hall : ∀ control, bits control = true <;> simp [hall]
+
+/-- Selected exact root for a register with `controlCount + 1` controls. -/
+noncomputable def graySelectedRoot (controlCount : ℕ) (U : QubitUnitary) : QubitUnitary :=
+  OneQubit.unitaryRoot (2 ^ controlCount) U
+
+/-- The selected root's complete Gray product is exactly controlled-`U` branchwise. -/
+theorem grayRootProduct_selectedRoot_formula (controlCount : ℕ) (U : QubitUnitary)
+    (bits : Fin (controlCount + 1) → Bool) :
+    grayRootProduct (controlCount + 1) (graySelectedRoot controlCount U) bits =
+      if (∀ control, bits control = true) then U else 1 := by
+  rw [grayRootProduct_succ_formula]
+  by_cases hall : ∀ control, bits control = true
+  · rw [if_pos hall, if_pos hall]
+    have hcast : (2 : ℤ) ^ controlCount = ((2 ^ controlCount : ℕ) : ℤ) := by
+      norm_cast
+    rw [hcast, zpow_natCast]
+    exact
+      OneQubit.unitaryRoot_pow (2 ^ controlCount)
+        (pow_pos (by omega) controlCount) U
+  · rw [if_neg hall, if_neg hall]
 
 /-- Ambient computational-basis update of one logical-control CNOT. -/
 def embeddedCNOTUpdate {controlCount ambientWidth : ℕ}
