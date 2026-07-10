@@ -25,6 +25,8 @@ import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
 import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.Recursive
+import Barenco.MultiControl.RecursiveExpansion
+import Barenco.MultiControl.Resources
 
 /-!
 # Barenco

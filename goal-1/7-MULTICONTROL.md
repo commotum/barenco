@@ -1,10 +1,9 @@
 # 7-MULTICONTROL
 
-Status: in progress (Lemmas 7.1–7.5 and the full recursive primitive expansion
-are complete; corrected Corollary 7.4 is complete through an exact literal
-primitive upper bound; the corrected Corollary 7.6 recurrence/asymptotic wrapper
-and final integration are in progress; the optimized source count remains
-unresolved).
+Status: complete (Lemmas 7.1–7.5, corrected Corollary 7.4, and the corrected
+construction-specific Corollary 7.6 recurrence/`O(n²)` theorem are proved through
+explicit syntax and integrated; the source's optimized `48n−204` subclaim remains
+a documented exact obstruction, not an exported theorem).
 
 ## Current Facts
 
@@ -332,12 +331,15 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
 7. Define Lemma 7.5 as a five-macro chronological circuit and prove its evaluator
    equality by the same parity/conjugation structure as Lemma 6.1, with exact
    boundary/base cases. Expand recursive calls only in a separate syntax layer.
+   **Implemented:** semantic macro circuit, zero/one-control boundaries, generic
+   substitution, ambient prefix-X expansion, terminating primitive recursion,
+   exact evaluator, component recurrences, and closed costs all compile.
 8. Define a natural-number recurrence from the constructed circuits, prove an
    exact finite upper formula and `O(n²)`, and label any two-sided `Θ` theorem as
    the count of this algorithm only. Do not import the later lower-bound claim.
-   **In progress:** counted syntax and closed depth formulas compile; the remaining
-   leaf exposes Nat-safe source-width formulas, exact width recurrence, and the
-   cast-to-real asymptotic theorem.
+   **Implemented:** counted syntax and closed depth formulas compile;
+   `Resources.lean` exposes Nat-safe source-width formulas, exact component/total
+   width recurrences, and cast-to-real `IsBigOWith`/`IsBigO` theorems.
 9. Add low-dimensional diagnostics: the seven-mask n=4 sequence, all sixteen
    basis inputs for the diagram, smallest legal Lemma 7.2/7.3 instances, dirty
    borrowed wires in both basis values, the repaired `n=7` partition, nonadjacent
@@ -486,15 +488,15 @@ pivot invariant, not merely Hamming adjacency.
 - [x] Corollary 7.4 uses the repaired partition, proves `8(n−5)` Toffoli macros,
   proves contextual relative-phase cancellation, and either proves or explicitly
   corrects `48n−204` from an expanded circuit.
-- [ ] Lemma 7.5 has exact evaluator/root theorems with explicit base cases, and
+- [x] Lemma 7.5 has exact evaluator/root theorems with explicit base cases, and
   Corollary 7.6 is replaced by an exact construction recurrence and justified
   quadratic upper bound.
-- [ ] Later claims 7.7–7.12 retain explicit routing and dependency assumptions;
+- [x] Later claims 7.7–7.12 retain explicit routing and dependency assumptions;
   no Stage 9/10 theorem or clean-ancilla theorem is claimed prematurely.
-- [ ] Focused and adjacent builds, warning-as-error checks, two full post-root
+- [x] Focused and adjacent builds, warning-as-error checks, two full post-root
   builds, forbidden-shortcut scans, `git diff --check`, and headline axiom audits
   pass and are recorded.
-- [ ] Conventions, traceability, corrections (including the Corollary 7.10 index
+- [x] Conventions, traceability, corrections (including the Corollary 7.10 index
   issue), axiom audit, this stage file, and `0-plan.md` are synchronized before
   Stage 7 is marked complete.
 
@@ -641,6 +643,22 @@ pivot invariant, not merely Hamming adjacency.
   depth-zero/depth-one evaluators, and matching `(252,188,440)` / `(484,376,860)`
   resource profiles. Strict warning-as-error compilation and its 3,484-job
   focused build pass.
+- `Resources.lean` packages the exact syntax counts as depth- and source-width
+  functions, proves circuit kind/gate/cost linkage, all zero/successor recurrences,
+  Nat-safe width identities, and the exact total width increment `112n−364`.
+  After casting to `ℝ`, it proves `IsBigOWith 860` in depth and the sharper
+  `IsBigOWith 56` in logical source width, plus ordinary `IsBigO` corollaries.
+  Its documentation explicitly denies an optimal-synthesis `Θ(n²)` conclusion.
+  Strict and trust-zero warning-as-error checks, a 3,483-job focused build,
+  forbidden/diff scans, representative standard-only axiom checks, and an
+  independent read-only review all pass.
+- Final public integration imports `RecursiveExpansion` and `Resources` from
+  `Barenco.lean`. Direct warning-as-error and trust-zero root/audit compilations
+  pass; the maintained audit contains 175 checks, all within `propext`,
+  `Classical.choice`, and `Quot.sound` (three new arithmetic checks omit choice).
+  The integrated focused build passed with 3,495 jobs, and two consecutive final
+  full builds passed with 3,493 jobs each. The project-wide forbidden scan and
+  `git diff --check` are clean.
 - Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
   `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
   proves the source's original `n=9,m=5` split exhausts A's right workspace and

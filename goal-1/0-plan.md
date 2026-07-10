@@ -431,9 +431,14 @@ Current implementation facts:
   remains unresolved because no explicit evaluator-preserving normalization
   establishes it. Lemma 7.5 now has an exact arbitrary-width five-node evaluator,
   selected square-root wrapper, explicit zero/one-control boundaries, and a
-  generic checked substitution theorem. Its recursive primitive expansion and
-  the corrected construction-specific Corollary 7.6 recurrence are in progress;
-  the direct six-control base is exactly `(252,188,440)`.
+  generic checked substitution theorem. Its complete primitive recursion now
+  embeds corrected Corollary 7.4 circuits into arbitrary ambient layouts while
+  borrowing/restoring the unitary target, and proves exact evaluator equality.
+  For `d=n−7`, its checked one-qubit/CNOT/total profiles are
+  `32d²+200d+252`, `24d²+164d+188`, and `56d²+364d+440`. The corrected
+  Corollary 7.6 API proves the Nat-safe width formula
+  `56n²+636−420n`, exact increment `112n−364`, and a construction-specific
+  `IsBigOWith 56`/`O(n²)` theorem. No optimal `Θ(n²)` claim is exported.
 
 ### Detailed Implementation Plan
 

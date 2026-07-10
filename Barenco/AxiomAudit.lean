@@ -22,6 +22,8 @@ import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
 import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.Recursive
+import Barenco.MultiControl.RecursiveExpansion
+import Barenco.MultiControl.Resources
 
 /-!
 # Kernel axiom audit
@@ -190,3 +192,18 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.OrderedControlLayout.eval_zeroControlCircuit
 #print axioms Barenco.MultiControl.OrderedControlLayout.eval_recursiveSubstitutionCircuit_pow_two
 #print axioms Barenco.MultiControl.OrderedControlLayout.recursiveSubstitutionCircuit_cost_of_eq
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrefixFourBlockLayout_dirtyWire
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_expandedRecursivePrefixXCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.expandedRecursivePrefixXCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.eval_recursivePrimitiveCircuit
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_gateCount_succ
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_oneQubitCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_cnotCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_gateCount
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_oneQubitCNOTCost_eq_resource
+#print axioms Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_eq
+#print axioms Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_succ
+#print axioms Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_le_sq
+#print axioms Barenco.MultiControl.recursivePrimitiveTotalCount_isBigOWith_depth
+#print axioms Barenco.MultiControl.recursivePrimitiveTotalCount_isBigOWith_width

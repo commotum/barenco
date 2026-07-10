@@ -264,6 +264,14 @@ step can use the corrected Corollary 7.4 construction for its prefix-controlled
 X. Its natural closed forms are indexed by `d = registerWidth − 7`; keeping the
 shift avoids misleading truncated subtraction in `ℕ`.
 
+The implemented literal primitive construction has exact profile
+`(32d²+200d+252, 24d²+164d+188)` for one-qubit and CNOT gates, respectively,
+and accepted total cost `56d²+364d+440`. For source width `n≥7`, the Nat-safe
+total is `56n²+636−420n`. These are counts of this named syntax and an
+`O(n²)` upper bound; they do not assert that optimal exact synthesis is
+quadratic. The coefficient 56 uses the literal checked Corollary 7.4 expansion,
+not the source's unresolved optimized count.
+
 ## Section 5 Controlled-Gate Conventions
 
 `Barenco.ControlledCircuit.targetBlockRaw` exposes the existing arbitrary-target

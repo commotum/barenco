@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 160 `#print axioms` checks, with one
+The maintained audit module currently contains 175 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -194,6 +194,21 @@ row below for each checked declaration.
 | `Barenco.MultiControl.OrderedControlLayout.eval_zeroControlCircuit` | `Barenco.MultiControl.Recursive` | `propext`, `Classical.choice`, `Quot.sound` | genuine zero-control local-gate base is proved separately; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.OrderedControlLayout.eval_recursiveSubstitutionCircuit_pow_two` | `Barenco.MultiControl.Recursive` | `propext`, `Classical.choice`, `Quot.sound` | five supplied implementation circuits preserve the recursive evaluator; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.OrderedControlLayout.recursiveSubstitutionCircuit_cost_of_eq` | `Barenco.MultiControl.Recursive` | `propext`, `Classical.choice`, `Quot.sound` | accepted substitution costs add exactly from the concrete syntax; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrefixFourBlockLayout_dirtyWire` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | the ambient unitary target is exactly the dirty restored Corollary 7.4 workspace wire; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.eval_expandedRecursivePrefixXCircuit` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-register expanded prefix-controlled X exactly replaces its recursive macro; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.expandedRecursivePrefixXCircuit_gateCount` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived literal prefix-X count `56p−132`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.eval_recursivePrimitiveCircuit` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | exact arbitrary-width evaluator of the fully primitive recursive construction; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_gateCount_succ` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived exact successor increment `112d+420`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_oneQubitCount` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | exact constructed one-qubit count `32d²+200d+252`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_cnotCount` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | exact constructed CNOT count `24d²+164d+188`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_gateCount` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | exact constructed total count `56d²+364d+440`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.RecursiveExpansion` | `propext`, `Classical.choice`, `Quot.sound` | one-qubit/CNOT model accepts the entire recursive syntax at its exact total; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursivePrimitiveCircuit_oneQubitCNOTCost_eq_resource` | `Barenco.MultiControl.Resources` | `propext`, `Classical.choice`, `Quot.sound` | numerical resource function is exactly linked to circuit cost; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_eq` | `Barenco.MultiControl.Resources` | `propext`, `Quot.sound` | Nat-safe source-width formula `56n²+636−420n`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_succ` | `Barenco.MultiControl.Resources` | `propext`, `Quot.sound` | exact width recurrence adds `112n−364`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.recursivePrimitiveTotalCountAtWidth_le_sq` | `Barenco.MultiControl.Resources` | `propext`, `Quot.sound` | legal-width count is bounded above by `56n²`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.recursivePrimitiveTotalCount_isBigOWith_depth` | `Barenco.MultiControl.Resources` | `propext`, `Classical.choice`, `Quot.sound` | explicit depth-indexed `IsBigOWith 860` theorem; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.recursivePrimitiveTotalCount_isBigOWith_width` | `Barenco.MultiControl.Resources` | `propext`, `Classical.choice`, `Quot.sound` | explicit construction-specific width-indexed `IsBigOWith 56` theorem; no project axiom | 2026-07-10 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 
@@ -233,5 +248,9 @@ row below for each checked declaration.
 | Stage 7 contextual/raw Corollary 7.4 focused/root/audit build | `lake build Barenco.MultiControl.RelativeHalf Barenco.MultiControl.RelativePhase Barenco.MultiControl.Corollary74Expansion Barenco.AxiomAudit Barenco` | successful, 3,489 jobs, 2026-07-10 |
 | Stage 7 contextual/raw Corollary 7.4 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,488 jobs each, 2026-07-10 |
 | Stage 7 Lemma 7.5 semantic/base integration | strict root and audit compilation after adding `Selected.lean`, `GrayExpansion.lean`, and `Recursive.lean` | successful; the maintained audit printed 160 declarations and all seventeen new checks use only `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Stage 7 Lemma 7.5/Corollary 7.6 warning-as-error root/audit | direct strict compilation after adding `RecursiveExpansion.lean` and `Resources.lean` | successful; the maintained audit printed 175 declarations: three new Nat arithmetic checks use `propext` and `Quot.sound`, and the other twelve new checks use those plus `Classical.choice`, 2026-07-10 |
+| Stage 7 Lemma 7.5/Corollary 7.6 focused/root/audit build | `lake build Barenco.MultiControl.RecursiveExpansion Barenco.MultiControl.Resources Barenco.MultiControl.RecursiveExamples Barenco.AxiomAudit Barenco` | successful, 3,495 jobs, 2026-07-10 |
+| Stage 7 Lemma 7.5/Corollary 7.6 trust-zero root/audit | direct `lake env lean -t0 -DwarningAsError=true` compilation of `Barenco.lean` and `AxiomAudit.lean` | both successful; all 175 maintained checks remain within the recorded standard axioms, 2026-07-10 |
+| Stage 7 Lemma 7.5/Corollary 7.6 full builds | two consecutive `lake build` runs after final public-root integration | both successful, 3,493 jobs each, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

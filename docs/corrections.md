@@ -133,8 +133,18 @@ statement. “Open” means the repair is identified but not yet machine checked
   state optimal synthesis only between the separately proved linear lower and
   quadratic upper bounds.
 - **Dependent impact:** Corollary 7.6, Section 8 per-two-level and total estimates.
-- **Formal evidence:** planned recurrence and lower-bound modules.
-- **Status:** open.
+- **Formal evidence:** `recursivePrimitiveCircuit` is an explicit one-qubit/CNOT
+  syntax whose evaluator is proved exactly. Its structural theorems give
+  `32d²+200d+252` one-qubit gates, `24d²+164d+188` CNOTs, and accepted cost
+  `56d²+364d+440`, where `d=n−7`. `Resources.lean` proves exact successor
+  recurrences, the Nat-safe width form `56n²+636−420n`, and
+  `recursivePrimitiveTotalCount_isBigOWith_width` with constant 56. No optimal
+  lower bound or two-sided synthesis theorem is exported. The leading constant
+  differs from the paper because C-004's advertised optimized Corollary 7.4
+  circuit remains unproved; every present coefficient comes from literal checked
+  syntax.
+- **Status:** corrected and proved as an exact construction count and quadratic
+  upper bound; optimal-synthesis `Θ(n²)` intentionally not claimed.
 
 ## C-006 — Lemma 7.8 cites the wrong recursive lemma
 
@@ -564,11 +574,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   base. `recursiveSubstitutionCircuit` proves evaluator and additive resource
   preservation for five supplied implementations. `sixControlExpandedGrayCircuit`
   supplies the separately proved recursive resource base with exact
-  `(252,188,440)` one-qubit/CNOT/total counts. The remaining primitive recursion
-  and closed recurrence are isolated in the planned expansion/resource leaves.
-- **Status:** corrected and proved for semantic boundaries and macro
-  substitution; primitive recursive termination/count linkage remains in
-  progress.
+  `(252,188,440)` one-qubit/CNOT/total counts. `recursivePrimitiveCircuit` then
+  recurses only from that legal six-control base, has an exact evaluator at every
+  depth, and proves all component/count/cost recurrences. `Resources.lean`
+  separates depth and source-width indexing and states every lower threshold.
+- **Status:** corrected and proved, including semantic boundaries, terminating
+  primitive recursion, explicit base, and exact resource linkage.
 
 ## C-024 — Lemma 7.1 has a useful one-control extension but no zero-control Gray case
 
