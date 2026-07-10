@@ -165,7 +165,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
 - [x] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
 - [x] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
-- [ ] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
+- [x] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
 - [ ] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
 - [ ] `11-UNIVERSALITY` — two-level unitary synthesis and exact universality.
 - [ ] `12-RESOURCES` — recurrences, asymptotics, and cost-model separation.
@@ -554,8 +554,10 @@ dependence.
   norm-at-most-one pure input obey a stronger cardinality-free constant-one bound;
   the paper's constant-two statement is an immediate corollary. No arbitrary-POVM
   claim is made.
-- Boundary examples, public integration, maintained axiom-audit entries, final
-  scans, and full builds remain before Stage 9 is marked complete.
+- Boundary examples cover the empty, exact-fallback, maximum one-shell, and exact
+  completion cases. Stable modules are publicly integrated; strict/trust-zero,
+  focused, forbidden-token, diff, 235-entry axiom-audit, and two full-build
+  checks pass. Stage 9 is complete.
 
 ### Detailed Implementation Plan
 

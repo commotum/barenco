@@ -582,9 +582,10 @@ claimed.
 
 - `operatorDistance A B = ‖A - B‖` uses mathlib's scoped L² induced operator norm
   (spectral/operator norm), not a Frobenius, entrywise, or unspecified matrix norm.
-- `Barenco.Equivalence.OperatorNorm` alone opens
-  `Matrix.Norms.L2Operator`; the norm instance is not opened in the algebraic phase,
-  measurement, circuit, or cost modules.
+- Norm-specific proof leaves—`OperatorNorm`, `CoherentRoots`,
+  `ControlledDistance`, and `EventProbability`—open
+  `Matrix.Norms.L2Operator` locally. The general algebraic phase, circuit, and cost
+  cores do not open that norm scope.
 - The compiled API proves nonnegativity, separation, symmetry, the triangle
   inequality, left/right multiplication bounds, invariance under certified unitary
   multiplication, additive error for a product of two unitary factors, the
@@ -595,9 +596,13 @@ claimed.
 - `operatorDistance_basisOutcomeProbability_le` proves the paper's `2ε` constant
   for one computational-basis outcome: for certified unitaries and a state with
   Euclidean norm at most one, the absolute difference of the two squared output
-  amplitudes is at most twice the operator distance. This is not silently promoted
-  to a bound for a multi-outcome event, coarse-graining, or arbitrary POVM effect;
-  those require a separately stated physical measurement theorem.
+  amplitudes is at most twice the operator distance.
+- `operatorDistance_eventProbability_le` separately proves a stronger,
+  cardinality-free constant-one bound for every finite computational-basis event,
+  and `operatorDistance_eventProbability_le_two_mul` records the paper-facing
+  constant-two corollary. These explicit projective coarse-grainings are not
+  silently generalized to arbitrary projectors, POVM effects, or mixed states;
+  those would require additional definitions and theorems.
 
 Exact and approximate synthesis have different theorem names and result types.
 Bounds in two variables (`n` and `ε`) state their domains, integer recursion depth,
@@ -754,10 +759,11 @@ Mathlib 4.31.0 contains no quantum-circuit or ready-made Gray-code framework and
 unitary Givens decomposition. Exact finite-matrix roots are now supplied by
 `Barenco.OneQubit.Roots` through a proved finite-spectrum functional-calculus
 construction, so root existence is no longer an outstanding stage. Coherent
-recursive roots with norm decay and Givens-style general-unitary elimination remain
-explicit project stages. The project now supplies its own finite-mask reflected
-Gray code, pivot/transition proofs, Boolean accumulator semantics, and exact
-controlled-root circuit construction.
+recursive principal roots, exact adjacent squaring, and L² operator-norm decay are
+now supplied by `Barenco.OneQubit.CoherentRoots`. Givens-style general-unitary
+elimination remains a later project stage. The project now supplies its own
+finite-mask reflected Gray code, pivot/transition proofs, Boolean accumulator
+semantics, and exact controlled-root circuit construction.
 
 The selected core basis is `Fin n → Bool`, rather than `Fin (2^n)` or `BitVec n`:
 it makes arbitrary controls, wire updates, and untouched-wire proofs direct.

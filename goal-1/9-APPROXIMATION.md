@@ -1,7 +1,7 @@
 # 9-APPROXIMATION
 
-Status: in progress (mathematical, circuit, expansion, and resource layers are
-implemented; examples, public integration, and final audits remain).
+Status: complete (2026-07-10). Mathematical, circuit, primitive-expansion,
+resource, boundary-example, documentation, build, and axiom-audit layers pass.
 
 ## Current Facts
 
@@ -103,8 +103,10 @@ implemented; examples, public integration, and final audits remain).
 - `Barenco/MultiControl/ApproximationResources.lean`: epsilon/depth selection,
   legal cap, exact-fallback statement, and construction-specific asymptotic upper
   language, including explicit large-epsilon and insufficient-width branches.
-- `Barenco/MultiControl/ApproximationExamples.lean`: planned root-excluded
-  zero-depth, maximum-depth, large-epsilon, and width-seven fallback diagnostics.
+- `Barenco/MultiControl/ApproximationExamples.lean`: root-excluded diagnostics
+  for the literal empty large-epsilon circuit, width-seven exact fallback,
+  width-eight maximum one-shell truncation, exact completion, component costs,
+  operator error, and a representative finite-event consequence.
 
 ## Detailed Implementation Plan
 
@@ -123,7 +125,7 @@ implemented; examples, public integration, and final audits remain).
 7. Constant-one and paper-facing constant-two finite computational-basis-event
    consequences are proved for the selected circuit.
 8. Boundary diagnostics, public integration, documentation/audit synchronization,
-   and the final verification protocol remain.
+   and the final verification protocol are complete.
 
 ## Boundary and No-Cheating Checks
 
@@ -149,17 +151,17 @@ implemented; examples, public integration, and final audits remain).
 
 ## Completion Requirements
 
-- [ ] Principal power-of-two roots are coherent and have a proved
+- [x] Principal power-of-two roots are coherent and have a proved
   `pi/2^k` operator-distance bound.
-- [ ] Controlled-block distance is linked exactly to target distance.
-- [ ] Truncated recursive syntax has an exact arbitrary-register evaluator and a
+- [x] Controlled-block distance is linked exactly to target distance.
+- [x] Truncated recursive syntax has an exact arbitrary-register evaluator and a
   proved epsilon-error theorem with explicit integer depth and capacity branch.
-- [ ] Primitive expansion has exact component/total/cost counts and a corrected
+- [x] Primitive expansion has exact component/total/cost counts and a corrected
   construction-specific `n`/epsilon upper bound with exact fallback.
-- [ ] Any-event probability error is proved for its precise pure-state and
+- [x] Any-event probability error is proved for its precise pure-state and
   computational-basis-event hypotheses.
-- [ ] Zero/maximum depth, large-epsilon, and smallest-width diagnostics compile.
-- [ ] C-006–C-008, traceability, conventions, axiom audit, this file, and
+- [x] Zero/maximum depth, large-epsilon, and smallest-width diagnostics compile.
+- [x] C-006–C-008, traceability, conventions, axiom audit, this file, and
   `0-plan.md` are synchronized; focused/adjacent, strict/trust-zero, forbidden,
   diff, two full-build, and axiom-audit evidence is recorded.
 
@@ -188,5 +190,16 @@ implemented; examples, public integration, and final audits remain).
   syntax/count/cost linkage, the uniform
   `440+112*n*min(principalRootBoundDepth epsilon,n-7)` upper bound, and the
   explicit `0<epsilon≤1` logarithmic-regime upper theorem.
-- Boundary examples, public-root/audit integration, final scans, and full builds
-  remain before this stage can be marked complete.
+- `ApproximationExamples` checks the depth selectors `0` and `1`, the literal
+  empty width-seven circuit at tolerance `pi`, the exact width-seven fallback at
+  tolerance `pi/2` with profile `(252,188,440)`, the maximum one-shell width-eight
+  truncation with profile `(232,188,420)`, its exact completion with profile
+  `(484,376,860)`, and a finite-event error theorem.
+- `Barenco.lean` exports all stable Stage 9 modules while keeping the diagnostic
+  examples root-excluded. `Barenco/AxiomAudit.lean` contains 235 maintained
+  checks, including 29 Stage 9 declarations; every new result uses only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- Warning-as-error and trust-zero compilation pass for the public root and axiom
+  audit. The focused Stage 9/diagnostic/root/audit build passes at 3,523 jobs;
+  forbidden-token and diff scans are clean; two consecutive full builds pass at
+  3,521 jobs each.
