@@ -381,6 +381,33 @@ private theorem coherentGrayMask_index_lt_of_edge {controlCount index : ℕ}
   rw [length_grayCode]
   omega
 
+private theorem coherentGrayNextMask_index_lt_of_edge {controlCount index : ℕ}
+    (hindex : index < (grayCNOTEdges controlCount).length) :
+    index + 1 < (grayCode controlCount).length := by
+  rw [length_grayCNOTEdges] at hindex
+  rw [length_grayCode]
+  omega
+
+private theorem coherentGrayMask_index_lt_of_prefix {controlCount count : ℕ}
+    (hpositive : 0 < controlCount)
+    (hcount : count ≤ (grayCNOTEdges controlCount).length) :
+    count < (grayCode controlCount).length := by
+  rw [length_grayCNOTEdges] at hcount
+  rw [length_grayCode]
+  cases controlCount with
+  | zero => omega
+  | succ width =>
+      simp only [pow_succ]
+      have hpow : 0 < 2 ^ width := pow_pos (by omega) width
+      omega
+
+private theorem coherentGrayInitialMask_index_lt (tail : ℕ) :
+    0 < (grayCode (tail + 1)).length := by
+  rw [length_grayCode]
+  simp only [pow_succ]
+  have hpow : 0 < 2 ^ tail := pow_pos (by omega) tail
+  omega
+
 private theorem coherentGrayFinalMask_index_lt (tail : ℕ) :
     (grayCNOTEdges (tail + 1)).length <
       (grayCode (tail + 1)).length := by
@@ -399,6 +426,177 @@ def coherentGrayRootCircuitAt {controlCount ambientWidth : ℕ}
     (coherentGrayPivot_index_lt_of_mask hindex)
   coherentGrayRootSymbolicCircuit mask (layout.controlWire pivot)
     layout.targetWire (layout.control_ne_target pivot)
+
+/-- Initial target endpoint of one indexed coherent root block. -/
+def coherentGrayRootStartAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    SymbolicPrimitive GrayFactorAtom ambientWidth :=
+  grayRootStartSymbolic ((grayCode controlCount)[index]'hindex)
+    layout.targetWire
+
+/-- Four-node middle of one indexed coherent root block. -/
+def coherentGrayRootCoreAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let mask := (grayCode controlCount)[index]'hindex
+  let pivot := (grayPivots controlCount)[index]'
+    (coherentGrayPivot_index_lt_of_mask hindex)
+  grayRootCoreSymbolicCircuit mask (layout.controlWire pivot)
+    layout.targetWire (layout.control_ne_target pivot)
+
+/-- Final target endpoint of one indexed coherent root block. -/
+def coherentGrayRootEndAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCode controlCount).length) :
+    SymbolicPrimitive GrayFactorAtom ambientWidth :=
+  grayRootEndSymbolic ((grayCode controlCount)[index]'hindex)
+    layout.targetWire
+
+/-- Indexed coherent roots decompose into their explicit endpoints and core. -/
+theorem coherentGrayRootCircuitAt_eq_start_core_end
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) (index : ℕ)
+    (hindex : index < (grayCode controlCount).length) :
+    coherentGrayRootCircuitAt layout V index hindex =
+      [coherentGrayRootStartAt layout index hindex] ++
+        coherentGrayRootCoreAt layout index hindex ++
+          [coherentGrayRootEndAt layout index hindex] := by
+  simpa [coherentGrayRootCircuitAt, coherentGrayRootStartAt,
+    coherentGrayRootCoreAt, coherentGrayRootEndAt] using
+      coherentGrayRootSymbolicCircuit_eq_start_core_end
+        ((grayCode controlCount)[index]'hindex)
+        (layout.controlWire
+          ((grayPivots controlCount)[index]'
+            (coherentGrayPivot_index_lt_of_mask hindex)))
+        layout.targetWire
+        (layout.control_ne_target
+          ((grayPivots controlCount)[index]'
+            (coherentGrayPivot_index_lt_of_mask hindex)))
+
+/-! ## Executable normalization at every Gray boundary -/
+
+/-- The literal outgoing-endpoint/Gray-CNOT/incoming-endpoint boundary. -/
+def coherentGrayBoundaryAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let edge := (grayCNOTEdges controlCount)[index]'hindex
+  [coherentGrayRootEndAt layout index
+      (coherentGrayMask_index_lt_of_edge hindex),
+    .cnot (layout.controlWire edge.1) (layout.controlWire edge.2)
+      (layout.controlWire_ne (grayCNOTEdges_getElem_ne hindex)),
+    coherentGrayRootStartAt layout (index + 1)
+      (coherentGrayNextMask_index_lt_of_edge hindex)]
+
+/-- Actual target-exposure/free-group normalization of one generated boundary. -/
+def coherentGrayNormalizedBoundaryAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  SymbolicCircuit.normalizeAtWire layout.targetWire
+    (coherentGrayBoundaryAt layout index hindex)
+
+/-- Every generated boundary normalizes to its unchanged literal Gray CNOT. -/
+@[simp]
+theorem coherentGrayNormalizedBoundaryAt_eq_singleton
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    coherentGrayNormalizedBoundaryAt layout index hindex =
+      let edge := (grayCNOTEdges controlCount)[index]'hindex
+      [.cnot (layout.controlWire edge.1) (layout.controlWire edge.2)
+        (layout.controlWire_ne (grayCNOTEdges_getElem_ne hindex))] := by
+  have hadjacent :
+      GrayAdjacent
+        ((grayCode controlCount)[index]'
+          (coherentGrayMask_index_lt_of_edge hindex))
+        ((grayCode controlCount)[index + 1]'
+          (coherentGrayNextMask_index_lt_of_edge hindex)) :=
+    (grayCode_isChain controlCount).getElem index
+      (coherentGrayNextMask_index_lt_of_edge hindex)
+  let edge := (grayCNOTEdges controlCount)[index]'hindex
+  simpa [coherentGrayNormalizedBoundaryAt, coherentGrayBoundaryAt,
+    coherentGrayRootEndAt, coherentGrayRootStartAt, edge] using
+    normalizeAtWire_grayBoundary hadjacent
+      (layout.controlWire edge.1) (layout.controlWire edge.2)
+      layout.targetWire
+      (layout.controlWire_ne (grayCNOTEdges_getElem_ne hindex))
+      (layout.control_ne_target edge.1).symm
+      (layout.control_ne_target edge.2).symm
+
+/-- One unmerged core followed by its literal boundary triple. -/
+def coherentGrayUnmergedBoundarySegment {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  coherentGrayRootCoreAt layout index
+      (coherentGrayMask_index_lt_of_edge hindex) ++
+    coherentGrayBoundaryAt layout index hindex
+
+/-- One core followed by the executable normalized form of its boundary. -/
+def coherentGrayMergedBoundarySegment {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (index : ℕ) (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  coherentGrayRootCoreAt layout index
+      (coherentGrayMask_index_lt_of_edge hindex) ++
+    coherentGrayNormalizedBoundaryAt layout index hindex
+
+/-- First `count` unmerged core/boundary segments. -/
+def coherentGrayUnmergedBoundaryPrefixCircuit
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    (count : ℕ) → count ≤ (grayCNOTEdges controlCount).length →
+      SymbolicCircuit GrayFactorAtom ambientWidth
+  | 0, _ => []
+  | count + 1, hcount =>
+      coherentGrayUnmergedBoundaryPrefixCircuit layout count (by omega) ++
+        coherentGrayUnmergedBoundarySegment layout count (by omega)
+
+/--
+Streaming merger over the first `count` Gray boundaries.  Every step invokes
+the actual target-exposure/free-group normalizer on that boundary triple.
+-/
+def coherentGrayMergedBoundaryPrefixCircuit
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    (count : ℕ) → count ≤ (grayCNOTEdges controlCount).length →
+      SymbolicCircuit GrayFactorAtom ambientWidth
+  | 0, _ => []
+  | count + 1, hcount =>
+      coherentGrayMergedBoundaryPrefixCircuit layout count (by omega) ++
+        coherentGrayMergedBoundarySegment layout count (by omega)
+
+/-- Literal regrouping of the coherent raw schedule around all boundaries. -/
+def coherentGrayRegroupedViaRootCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let edgeCount := (grayCNOTEdges (tail + 1)).length
+  [coherentGrayRootStartAt layout 0 (coherentGrayInitialMask_index_lt tail)] ++
+    coherentGrayUnmergedBoundaryPrefixCircuit layout edgeCount le_rfl ++
+      coherentGrayRootCoreAt layout edgeCount
+          (coherentGrayFinalMask_index_lt tail) ++
+        [coherentGrayRootEndAt layout edgeCount
+          (coherentGrayFinalMask_index_lt tail)]
+
+/--
+The general post-merger Gray syntax.  It is built by applying the executable
+normalizer independently at every certified Gray boundary, then concatenating
+the untouched root cores and the two outer endpoints.
+-/
+def mergedGrayControlledViaRootSymbolicCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let edgeCount := (grayCNOTEdges (tail + 1)).length
+  [coherentGrayRootStartAt layout 0 (coherentGrayInitialMask_index_lt tail)] ++
+    coherentGrayMergedBoundaryPrefixCircuit layout edgeCount le_rfl ++
+      coherentGrayRootCoreAt layout edgeCount
+          (coherentGrayFinalMask_index_lt tail) ++
+        [coherentGrayRootEndAt layout edgeCount
+          (coherentGrayFinalMask_index_lt tail)]
 
 /-- One coherent signed root followed by its generated Gray CNOT. -/
 def coherentGrayTransitionPair {controlCount ambientWidth : ℕ}
