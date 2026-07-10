@@ -486,6 +486,123 @@ theorem eval_completedExpandedTruncatedRecursiveCircuit
       positiveControlledUnitary layout.targetWire layout.controlSet U := by
   simp [completedExpandedTruncatedRecursiveCircuit]
 
+/-! ## Exact-completion resources -/
+
+/--
+The completed syntax has the established full-depth one-qubit count at combined
+depth `residualDepth + depth`.
+-/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuitFrom_oneQubitCount
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .oneQubit
+        (completedExpandedTruncatedRecursiveCircuitFrom rootIndex residualDepth
+          depth layout U) =
+      32 * (residualDepth + depth) ^ 2 +
+        200 * (residualDepth + depth) + 252 := by
+  rw [completedExpandedTruncatedRecursiveCircuitFrom, Circuit.kindCount_append,
+    expandedTruncatedRecursiveCircuitFrom_oneQubitCount,
+    recursivePrimitiveCircuit_oneQubitCount]
+  ring
+
+/-- Completed CNOT count at combined depth `residualDepth + depth`. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuitFrom_cnotCount
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .cnot
+        (completedExpandedTruncatedRecursiveCircuitFrom rootIndex residualDepth
+          depth layout U) =
+      24 * (residualDepth + depth) ^ 2 +
+        164 * (residualDepth + depth) + 188 := by
+  rw [completedExpandedTruncatedRecursiveCircuitFrom, Circuit.kindCount_append,
+    expandedTruncatedRecursiveCircuitFrom_cnotCount,
+    recursivePrimitiveCircuit_cnotCount]
+  ring
+
+/-- Completed primitive count at combined depth `residualDepth + depth`. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuitFrom_gateCount
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.gateCount
+        (completedExpandedTruncatedRecursiveCircuitFrom rootIndex residualDepth
+          depth layout U) =
+      56 * (residualDepth + depth) ^ 2 +
+        364 * (residualDepth + depth) + 440 := by
+  rw [completedExpandedTruncatedRecursiveCircuitFrom, Circuit.gateCount_append,
+    expandedTruncatedRecursiveCircuitFrom_gateCount,
+    recursivePrimitiveCircuit_gateCount]
+  ring
+
+/-- Completed accepted one-qubit/CNOT cost at the combined full depth. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuitFrom_oneQubitCNOTCost
+    {ambientWidth : ℕ} (rootIndex residualDepth depth : ℕ)
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (completedExpandedTruncatedRecursiveCircuitFrom rootIndex residualDepth
+          depth layout U) =
+      some (56 * (residualDepth + depth) ^ 2 +
+        364 * (residualDepth + depth) + 440) := by
+  rw [completedExpandedTruncatedRecursiveCircuitFrom, Circuit.cost_append,
+    expandedTruncatedRecursiveCircuitFrom_oneQubitCNOTCost,
+    recursivePrimitiveCircuit_oneQubitCNOTCost, Circuit.addCost_some]
+  exact congrArg some (by ring)
+
+/-- Root-index-zero completed one-qubit count. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuit_oneQubitCount
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .oneQubit
+        (completedExpandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      32 * (residualDepth + depth) ^ 2 +
+        200 * (residualDepth + depth) + 252 := by
+  simp [completedExpandedTruncatedRecursiveCircuit]
+
+/-- Root-index-zero completed CNOT count. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuit_cnotCount
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.kindCount .cnot
+        (completedExpandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      24 * (residualDepth + depth) ^ 2 +
+        164 * (residualDepth + depth) + 188 := by
+  simp [completedExpandedTruncatedRecursiveCircuit]
+
+/-- Root-index-zero completed primitive count. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuit_gateCount
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.gateCount
+        (completedExpandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      56 * (residualDepth + depth) ^ 2 +
+        364 * (residualDepth + depth) + 440 := by
+  simp [completedExpandedTruncatedRecursiveCircuit]
+
+/-- Root-index-zero completed accepted one-qubit/CNOT cost. -/
+@[simp]
+theorem completedExpandedTruncatedRecursiveCircuit_oneQubitCNOTCost
+    {ambientWidth residualDepth depth : ℕ}
+    (layout : OrderedControlLayout ((residualDepth + 6) + depth) ambientWidth)
+    (U : QubitUnitary) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (completedExpandedTruncatedRecursiveCircuit residualDepth depth layout U) =
+      some (56 * (residualDepth + depth) ^ 2 +
+        364 * (residualDepth + depth) + 440) := by
+  simp [completedExpandedTruncatedRecursiveCircuit]
+
 end OrderedControlLayout
 
 end
