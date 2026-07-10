@@ -94,7 +94,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 3 warning-as-error builds | direct `lake env lean -DwarningAsError=true` compilation of `Phase`, `Measurement`, `OperatorNorm`, `Cost`, the diagnostic example, the audit, and the root | all successful, 2026-07-09 |
 | Stage 3 focused/adjacent build | `lake build Barenco.Equivalence.Phase Barenco.Equivalence.Measurement Barenco.Equivalence.OperatorNorm Barenco.Cost Barenco.EquivalenceExamples Barenco Barenco.AxiomAudit` | successful, 2,372 jobs, 2026-07-09 |
 | Stage 4 warning-as-error audit | `lake env lean -DwarningAsError=true Barenco/AxiomAudit.lean` | successful; forty-six declarations printed, including all seventeen new Stage 4 checks; every result is exactly the standard trio shown above, 2026-07-09 |
-| Stage 4 focused/adjacent build | all Section 4 one-qubit leaves, diagnostics, root, and axiom audit | successful; exact final integration job count pending Stage 4 closeout |
-| Stage 4 full build | `lake build` | final closeout run pending; job count pending |
+| Stage 4 focused/adjacent build | `lake build Barenco.OneQubit.Matrix Barenco.OneQubit.Certified Barenco.OneQubit.Decomposition Barenco.OneQubit.Euler Barenco.OneQubit.GlobalPhase Barenco.OneQubit.U2Euler Barenco.OneQubit.Lemma43 Barenco.OneQubit.Roots Barenco.OneQubit.CircuitBridge Barenco.OneQubitExamples Barenco.AxiomAudit Barenco` | successful, 2,935 jobs, 2026-07-09 |
+| Stage 4 full builds | two consecutive `lake build` runs after the public-root change | both successful, 2,933 jobs each, 2026-07-09 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

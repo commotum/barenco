@@ -1,6 +1,6 @@
 # 4-ONE-QUBIT
 
-Status: in progress.
+Status: complete.
 
 ## Current Facts
 
@@ -24,8 +24,16 @@ Status: in progress.
   `Matrix.specialUnitaryGroup`, complex argument/exponential facts, real inverse
   trigonometric facts, and the trigonometric addition laws needed here.
 - The paper's proof of the special-unitary Euler case suppresses degenerate
-  zero-entry phase choices. Its global phase argument also needs the explicit fact
-  `det (Ph δ) = exp(2 i δ)`; `det = 1` permits both scalar phases `1` and `-1`.
+  zero-entry phase choices. The completed proof covers them with total
+  `Complex.arg` choices and a canonical `SU(2)` entry theorem. Its global-phase
+  argument is repaired using the explicit fact `det (Ph δ) = exp(2 i δ)`;
+  `det = 1` permits both scalar phases `1` and `-1`, and the latter is absorbed by
+  a checked `2*pi` shift of a Z angle.
+- Exact positive `k`-th roots now exist for every finite-dimensional certified
+  complex unitary. The construction uses finite-spectrum continuous functional
+  calculus, certifies unitarity, and proves the exact power equation. It does not
+  claim continuity in the input unitary or the coherent approximation estimates
+  needed later in Section 7.
 - `BUILD-PLAN.md` requires narrow module ownership and focused/adjacent evidence;
   the heavy Euler and root arguments must not block compilation of elementary
   Section 4 identities.
@@ -38,11 +46,12 @@ Status: in progress.
 - Paper-facing matrices and standard-column semantic gates will both be public,
   with explicit transpose bridge theorems. Future circuits use only the semantic
   versions unless a theorem explicitly states a paper-row product.
-- Euler existence must either choose phases through `Complex.arg` with explicit
-  zero-entry branches or prove a canonical SU(2) entry form first. Parameterized
-  reconstruction is useful independently and should compile before surjectivity.
-- Arbitrary one-qubit unitary roots are a separate spectral/axis-angle obligation;
-  halving the Euler angles is invalid because the factors do not commute.
+- Euler existence chooses phases through total `Complex.arg` after proving a
+  canonical `SU(2)` entry form; the zero-entry cases are covered without division
+  by amplitudes.
+- Arbitrary finite-dimensional unitary roots are supplied by a spectral
+  functional-calculus construction. Halving Euler angles remains invalid because
+  the factors do not commute.
 
 ## Big Picture Objective
 
@@ -127,22 +136,76 @@ required by later controlled-gate stages.
 
 ## Completion Requirements
 
-- [ ] Explicit paper and semantic matrices, bridge theorems, determinants,
+- [x] Explicit paper and semantic matrices, bridge theorems, determinants,
   adjoints, unitarity/SU certificates, and all six Lemma 4.2 identities compile.
-- [ ] Parameterized and existential SU(2) Euler theorems compile with degenerate
+- [x] Parameterized and existential SU(2) Euler theorems compile with degenerate
   cases covered.
-- [ ] The U(2) Euler theorem compiles with its determinant/global-phase argument.
-- [ ] Parameterized and existential Lemma 4.3 decompositions compile in both raw
+- [x] The U(2) Euler theorem compiles with its determinant/global-phase argument.
+- [x] Parameterized and existential Lemma 4.3 decompositions compile in both raw
   paper order and translated semantic/chronological order.
-- [ ] The strongest established arbitrary-unitary root API is recorded; every later
+- [x] The strongest established arbitrary-unitary root API is recorded; every later
   dependency either uses its proved constructor or exposes an explicit root
   hypothesis.
-- [ ] Focused, adjacent, warning-as-error, scan, two full-build, and headline axiom
+- [x] Focused, adjacent, warning-as-error, scan, two full-build, and headline axiom
   evidence is recorded under `BUILD-PLAN.md`.
-- [ ] Traceability and corrections distinguish proved identities, conditional
+- [x] Traceability and corrections distinguish proved identities, conditional
   statements, remaining root/Euler obstructions, and all row/column differences.
 
 ## Stage Results
 
-- In progress. First implementation target: `Barenco/OneQubit/Matrix.lean`, using
-  the compiled scratch probe rather than re-discovering the elementary algebra.
+- `Barenco/OneQubit/Matrix.lean` defines the displayed paper-row matrices
+  `paperRy`, `paperRz`, `paperPhase`, and `paperX`, proves their entries,
+  determinants, adjoints, zero-angle laws, and all six exact identities of Lemma
+  4.2. These are raw matrix statements and do not claim circuit semantics.
+- `Barenco/OneQubit/Certified.lean` introduces
+  `QubitSpecialUnitary := Matrix.specialUnitaryGroup Bool ℂ`, certified paper gates,
+  and the standard-column semantic gates `ry`, `rz`, `phaseShift`, and `sigmaX`.
+  Explicit transpose/sign bridges make the paper's row-vector convention visible.
+- `Barenco/OneQubit/Decomposition.lean` proves the parameterized Lemma 4.3
+  identities `paperA_mul_paperB_mul_paperC` and
+  `paperA_mul_X_mul_paperB_mul_X_mul_paperC`, then proves the reversed column
+  products `C*B*A=I` and `C*X*B*X*A=columnEuler`. The result is circuit-ready
+  algebra, not yet a `Circuit` or resource theorem.
+- `Barenco/OneQubit/Euler.lean` proves a canonical `SU(2)` entry form, exact
+  parameterized Euler entries, and existential paper/column Euler decompositions
+  with the middle angle in `[0, pi]`. The proof handles vanishing entries with
+  total argument choices; it has no hidden nonzero hypothesis.
+- `Barenco/OneQubit/GlobalPhase.lean` chooses
+  `delta = arg(det U)/2` in `(-pi/2, pi/2]`, removes the certified scalar phase,
+  proves determinant one, and exactly reconstructs `U`.
+  `Barenco/OneQubit/U2Euler.lean` combines this with the `SU(2)` theorem to prove
+  full exact `U(2)` Euler existence. It also proves the paper's omitted `-1`
+  absorption step through `paperPhase_pi_mul_paperRz`.
+- `Barenco/OneQubit/Lemma43.lean` derives existential raw and chronological-column
+  A/B/C witnesses for every special unitary. An independent audit checked the
+  reversed factor order and confirmed that no circuit/resource conclusion is
+  claimed at this layer.
+- `Barenco/OneQubit/Roots.lean` defines `unitaryRoot k U` for any finite index type
+  using finite-spectrum continuous functional calculus. For `0 < k`,
+  `unitaryRoot_pow` proves `(unitaryRoot k U)^k = U`; square and iterated
+  power-of-two corollaries are exported. The construction is exact and certified,
+  including zero-width matrices, but it does not supply a continuous choice or a
+  coherent root sequence with Section 7 approximation bounds.
+- `Barenco/OneQubit/CircuitBridge.lean` proves the semantic Pauli-X names and local
+  embeddings coincide with the earlier circuit core. `Barenco/OneQubitExamples.lean`
+  is diagnostic only and checks `pi` signs, Pauli-X, zero-angle A/B/C order,
+  square/iterated roots, zero-width root behavior, and the outer-angle reversal.
+- Declaration classification: matrices/certified gates/factor and root constructors
+  are runtime/public; algebra, Euler, determinant, decomposition, and power laws
+  are proof-side/public; `OneQubitExamples` is diagnostic and is excluded from the
+  public root. No fallback or temporary declaration is exported.
+- Every Stage 4 source file, the public root, and `Barenco/AxiomAudit.lean` passed
+  `lake env lean -DwarningAsError=true`. The combined focused/adjacent build passed
+  with 2935 jobs. After the public-root change, two consecutive full
+  `lake build` runs passed with 2933 jobs each.
+- The maintained audit now checks 46 headline declarations. All Stage 4 additions,
+  including Euler existence, determinant normalization, Lemma 4.3, roots, and the
+  Pauli bridge, depend only on Lean/mathlib's `propext`, `Classical.choice`, and
+  `Quot.sound`; no project-specific axiom appears.
+- Repository scans found no `sorry`, `admit`, `by?`, `native_decide`, `bv_decide`,
+  project `axiom`, or project `opaque` declaration in Lean sources. Lean trailing
+  whitespace and `git diff --check` were clean.
+- The next stage must promote the A/B/C algebra into explicit two-wire circuits,
+  prove evaluator equality by control-basis cases, and derive Section 5 costs from
+  syntax. Exact unitary-root existence is available for later stages; coherent
+  approximation/norm claims remain a Stage 9 obligation.

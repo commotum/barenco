@@ -79,6 +79,12 @@ extra assumption, omission, or unresolved obstruction.
   all-effect equality, the scoped L² operator distance with a single-outcome
   factor-two probability bound, and syntax-only width/count/support/partial-cost
   projections under two distinct paper cost models.
+- Stage 4 now provides the paper's displayed one-qubit matrices and their
+  standard-column transposes, certified U(2)/SU(2) gates, all Lemma 4.2 identities,
+  exact SU(2) and U(2) Euler surjectivity including degenerate entry cases, both
+  orientations of Lemma 4.3's A/B/C algebra, and exact certified positive `k`-th
+  roots for every finite-dimensional complex unitary. The A/B/C results are still
+  matrix-level; their explicit circuit semantics and counts begin in Stage 5.
 - The paper's main numbered chain is Lemmas 4.1–4.3; Lemmas/Corollaries 5.1–5.6;
   Lemmas/Corollaries 6.1–6.2; Lemmas/Corollaries 7.1–7.12; and the general
   synthesis/resource discussion in Section 8.
@@ -103,9 +109,12 @@ extra assumption, omission, or unresolved obstruction.
 - Clean/dirty ancilla contracts remain a Stage 8 semantic obligation. Stage 3 made
   ambient width explicit but did not infer initialization or restoration from a
   numeric resource field.
-- The existential Euler decomposition in Lemma 4.1 and general unitary-root
-  existence may need independent finite-dimensional spectral results; early
-  modules should not depend on those hard existence theorems unnecessarily.
+- Lemma 4.1's existential Euler decomposition is now proved by a canonical
+  `SU(2)` entry form plus explicit determinant-phase normalization. General exact
+  finite-dimensional unitary roots are now proved by finite-spectrum functional
+  calculus. Later approximation work still needs a coherent root sequence and
+  quantitative operator-norm estimates; exact existence alone does not supply
+  those claims.
 - Some Section 8 “lower bounds” are heuristic parameter counts rather than proved
   topological lower bounds and may need to remain explicitly non-theorem claims.
 
@@ -140,8 +149,8 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `1-GUARDRAILS` — pin the project, audit sources/APIs, and freeze conventions.
 - [x] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits.
 - [x] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
-- [ ] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots (in progress).
-- [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
+- [x] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
+- [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts (in progress).
 - [ ] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
 - [ ] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
 - [ ] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.

@@ -32,15 +32,17 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 
 | ID | Source | Paper content | Lean counterpart | Layers | Status / notes |
 |---|---|---|---|---|---|
-| L4.1 | p. 8; line 172 | Euler/global-phase decomposition of U(2), SU(2) case | `u2_euler`, `su2_euler` (planned) | A | planned; existential angle boundary cases require independent proof |
-| L4.2 | p. 9; line 269 | `Ry`, `Rz`, phase, and Pauli-X identities | rotation identity family (planned) | A | planned |
-| L4.3 | pp. 9–10; line 278 | `A B C = I` and `A X B X C = W` for `W∈SU(2)` | `su2_abc_decomposition` (planned) | A | planned; translated column order documented |
+| L4.1-SU | pp. 8–9; lines 172–267 | exact `Rz Ry Rz` form for every SU(2) matrix | `QubitSpecialUnitary`; `specialUnitary_canonical`; `paperEuler_entry_formula`; `specialUnitary_exists_paperEuler`; `specialUnitary_exists_columnEuler`; `specialUnitary_exists_rz_mul_ry_mul_rz` | A | corrected and proved: total `Complex.arg` choices cover zero entries, the middle angle lies in `[0,π]`, and paper-row versus semantic-column outer-factor order is explicit |
+| L4.1-U2 | pp. 8–9; lines 172–267 | scalar phase times an SU(2) Euler form for every U(2) matrix | `determinantPhaseAngle`, `specialUnitaryPart`, `phaseShift_mul_specialUnitaryPart`, `unitary_exists_paperPhase_mul_paperEuler`, `unitary_exists_phaseShift_mul_rz_mul_ry_mul_rz`; `paperPhase_pi_mul_paperRz` | A | corrected and proved: the principal half-argument branch is explicit, reconstruction is exact, and the possible scalar `-I` is absorbed by a `2π` Z-angle shift rather than silently setting the phase to zero |
+| L4.2 | p. 9; line 269 | six `Ry`, `Rz`, scalar-phase, and Pauli-X identities | raw `paperRy_mul`, `paperRz_mul`, `paperPhase_mul`, `paperX_sq`, and two `paperX` conjugation theorems; semantic `ry_mul`, `rz_mul`, `phaseShift_mul`, `sigmaX_sq`, and two `sigmaX` conjugation theorems; certified gate packages | A | proved as stated for all real parameters in both conventions; exact matrix identities only, with no circuit syntax or resource conclusion |
+| L4.3 | pp. 9–10; lines 278–341 | `A B C = I` and `A X B X C = W` for `W∈SU(2)` | `paperA`, `paperB`, `paperC` and SU certificates; parameterized raw/column identities; `specialUnitary_exists_paperABC`; `specialUnitary_exists_columnChronologicalABC` | A | proved as stated at the algebraic layer: raw order is `A B C`, while chronological standard-column semantics is the reversed `Cᵀ Bᵀ Aᵀ`; no `Circuit` or count theorem follows |
+| I4-root | root choices used at pp. 14–24; lines 530–544, 718–722, 782–827 | existence of square, iterated, and approximation roots | finite-index `unitaryRoot`, `unitaryRoot_pow`, `exists_unitary_pow_eq`, `unitarySquareRoot_pow_two`, `unitaryRoot_pow_two_pow` | A | corrected and proved in a stronger finite-index exact form for every `k>0`; individual roots are certified, but a coherent successive-root sequence, its L² operator-norm decay, and every dependent circuit/resource theorem remain open |
 
 ## Section 5 — Two-Bit Networks
 
 | ID | Source | Paper content | Lean counterpart | Layers | Status / notes |
 |---|---|---|---|---|---|
-| L5.1 | pp. 10–11; line 347; image `lemma-5-1-controlled-su2.png` | two-CNOT/three-one-qubit circuit iff target is SU(2) | `controlledSU2Circuit_correct_iff` (planned) | A,C,W,R | planned; both directions required |
+| L5.1 | pp. 10–11; line 347; image `lemma-5-1-controlled-su2.png` | two-CNOT/three-one-qubit circuit iff target is SU(2) | algebraic witnesses `specialUnitary_exists_columnChronologicalABC`; `controlledSU2Circuit_correct_iff` and cost theorem planned | A,C,W,R | partial: the exact SU(2) A/B/C matrix witnesses are proved; circuit syntax, full-register evaluator equality, the converse, and the two-CNOT/three-one-qubit count remain |
 | L5.2 | p. 11; line 361; image `lemma-5-2-controlled-phase.png` | controlled scalar phase equals a phase gate on control | `controlledScalar_eq_phaseControl` (planned) | A,C,W,R | planned |
 | C5.3 | p. 11; line 391 | controlled U(2) uses ≤4 one-qubit + 2 CNOT | `controlledU2_cost` (planned) | C,R | planned; constructed upper bound |
 | L5.4 | pp. 12–13; line 408; image `lemma-5-4-two-xor-special-case.png` | characterization of two-CNOT/two-inverse-gate family | `twoCNOTFamily_iff` (planned) | A,C,R | planned |
@@ -52,10 +54,10 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 
 | ID | Source | Paper content | Lean counterpart | Layers | Status / notes |
 |---|---|---|---|---|---|
-| L6.1 | pp. 14–15; line 526; image `lemma-6-1-controlled-controlled-u.png` | exact doubly controlled U from V, V†, CNOT with `V²=U` | `ccuCircuit_correct` (planned) | A,C,W,R | planned; root existence separated from conditional identity |
+| L6.1 | pp. 14–15; line 526; image `lemma-6-1-controlled-controlled-u.png` | exact doubly controlled U from V, V†, CNOT with `V²=U` | exact witness `unitarySquareRoot` / `unitarySquareRoot_pow_two`; `ccuCircuit_correct` planned | A,C,W,R | partial: a certified exact `V` now exists for every finite unitary; the displayed circuit, full-register correctness, wire preservation, and count remain planned |
 | C6.2 | p. 15; line 548 | ≤8 one-qubit + 8 CNOT | `ccuCircuit_oneQubitCNOTCost` (planned) | C,R | planned upper bound |
 | U6.2-W | pp. 15–16; lines 552–566 | `∧₂(W)` has Toffoli basis behavior with a relative sign | exact diagonal-phase witness (planned) | A,C | planned; not global phase |
-| U6.2-A | p. 16; lines 567–575; image `relative-phase-toffoli-a.png` | A-rotation relative-phase Toffoli circuit | `relativeToffoliA_correct` (planned) | A,C,W,R | planned; phase of `|101⟩` to be checked |
+| U6.2-A | p. 16; lines 567–575; image `relative-phase-toffoli-a.png` | A-rotation relative-phase Toffoli circuit | `relativeToffoliA_correct` (planned) | A,C,W,R | planned; phase on computational-basis input 101 to be checked |
 | U6.2-B | p. 16; lines 577–583; image `relative-phase-toffoli-b.png` | alternate B-rotation circuit with same phases | `relativeToffoliB_correct` (planned) | A,C,W,R | planned |
 
 ## Section 7 — n-Bit Networks
@@ -67,12 +69,12 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 | L7.2 | pp. 18–19; line 668; image `lemma-7-2-linear-multi-control.png` | dirty-wire multi-X from `4(m−2)` Toffolis | `borrowedMultiXCircuit_correct` (planned) | C,W,R | planned; full equality must cover entangled borrowed wires |
 | L7.3 | pp. 19–20; line 682; image `lemma-7-3-four-block-construction.png` | four-block dirty-wire construction | `fourBlockMultiX_correct` (planned) | C,W,R | planned; source proof only “by inspection” |
 | C7.4 | p. 20; line 688 | `8(n−5)` Toffolis and `48n−204` early-basic upper bound | repaired partition/cost theorem (planned) | C,W,R,O | planned correction; see C-003/C-004/C-005 |
-| L7.5 | p. 21; line 718; image `lemma-7-5-quadratic-general-control.png` | recursive fully controlled U using square root | `recursiveControlledCircuit_correct` (planned) | C,W,R | planned |
+| L7.5 | p. 21; line 718; image `lemma-7-5-quadratic-general-control.png` | recursive fully controlled U using square root | exact `unitarySquareRoot`; `recursiveControlledCircuit_correct` planned | A,C,W,R | partial: square-root existence is proved; recursive circuit semantics, wire obligations, and structural cost are not |
 | C7.6 | pp. 21–22; line 724 | claimed `Θ(n²)` and `48n²+O(n)` | construction recurrence upper bound (planned) | R,O | planned correction; no optimal quadratic lower bound in paper |
 | L7.7 | p. 22; line 750 | nonscalar fully controlled U needs ≥`n−1` CNOTs | `fullyControlled_cnotLowerBound` (planned) | C,R,O | planned; formal dependency/connectivity invariant required |
 | D7-approx | pp. 22–23; line 770 | distance induced by the Euclidean vector norm | `operatorDistance` using scoped `Matrix.Norms.L2Operator`; metric laws, multiplication bounds, unitary invariance, product-error/state-action bounds; `operatorDistance_basisOutcomeProbability_le` | A | corrected and proved for the exact L² induced operator norm, including the paper's factor-two bound for a single basis outcome; no approximation circuit or arbitrary-event theorem is implied |
 | P7-approx | pp. 22–23; line 772 | event probabilities differ by ≤`2ε` | `eventProbability_sub_le` (planned) | A | planned; hypotheses/constant to verify |
-| L7.8 | pp. 23–24; line 774 | recursive-root approximate controlled U in claimed `Θ(n log(1/ε))` | capped-depth corrected upper bound (planned) | A,C,R,O | planned correction; see C-007–C-010 |
+| L7.8 | pp. 23–24; line 774 | recursive-root approximate controlled U in claimed `Θ(n log(1/ε))` | individual exact roots `unitaryRoot_pow_two_pow` plus the established `operatorDistance` API; coherent-root/norm/circuit theorem planned | A,C,R,O | partial correction: exact positive roots and the norm framework are proved, but `V_{k+1}²=V_k`, `operatorDistance V_k I≤π/2^k`, bounded recursion depth, circuit correctness, and any asymptotic upper bound remain; see C-007–C-010 |
 | L7.9 | p. 24; line 854; image `lemma-7-9-linear-su2-control.png` | multi-control SU(2) ABC circuit | `controlledSU2Linear_correct` (planned) | A,C,W,R | planned |
 | C7.10 | p. 24; line 862 | claimed linear `∧_{n−2}(W)` construction | explicit linear upper bound (planned) | C,W,R,O | planned correction: width/borrowed-wire threshold explicit |
 | L7.11 | p. 25; line 879; image `lemma-7-11-one-fixed-bit.png` | general controlled U with one zero fixed/restored wire | `controlledWithCleanAncilla_correct` (planned) | C,W,R | planned; subspace theorem, source proof only “by inspection” |

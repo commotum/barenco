@@ -127,6 +127,100 @@ Definitions should accept certified unitary gates when later conclusions need
 unitarity. Pure matrix identities may remain generalized over weaker rings when that
 improves reuse without obscuring the quantum statement.
 
+## Section 4 One-Qubit Matrices, Euler Forms, and Roots
+
+### Paper-row displays and semantic-column gates
+
+`Barenco.OneQubit.Matrix` preserves the manuscript's displayed matrices under
+paper-facing names: `paperRy`, `paperRz`, `paperPhase`, and `paperX`. In particular,
+
+`paperRy θ = [[cos(θ/2), sin(θ/2)],[-sin(θ/2), cos(θ/2)]]`.
+
+These are raw row-action displays, not the library's semantic gates.
+`Barenco.OneQubit.Certified` defines the standard-column matrices explicitly by
+translation:
+
+- `ry θ = fromPaper (paperRy θ) = paperRy (-θ)`;
+- `rz α = fromPaper (paperRz α) = paperRz α`;
+- `phaseShift δ = fromPaper (paperPhase δ) = paperPhase δ`;
+- `sigmaX = fromPaper paperX = paperX`.
+
+Only `Ry` changes its displayed entries under transposition. `sigmaX` is also proved
+equal, as a certified unitary, to the Boolean-permutation `pauliX`; their
+`localUnitary` embeddings agree on every target. This bridge is still a semantic
+matrix equality, not a `Primitive` or `Circuit` construction.
+
+`QubitSpecialUnitary` abbreviates
+`Matrix.specialUnitaryGroup Bool ℂ`. The Y and Z rotations are packaged both as
+ordinary certified unitaries and as special unitaries. Scalar phase and Pauli-X are
+packaged as unitaries; their determinants are respectively `cis (2 * δ)` and `-1`.
+
+All six identities in Lemma 4.2 are proved both for the raw paper displays and for
+the semantic matrices: addition of Y angles, addition of Z angles, addition of
+scalar phases, `X²=I`, and the two X-conjugation laws. These are exact matrix
+identities for every real parameter. They do not by themselves construct or count
+a circuit.
+
+For Lemma 4.3, the paper-facing definitions are
+
+- `paperA α θ = paperRz α * paperRy (θ/2)`;
+- `paperB α θ β = paperRy (-θ/2) * paperRz (-(α+β)/2)`;
+- `paperC α β = paperRz ((β-α)/2)`.
+
+Each factor has a special-unitary certificate. The parameterized raw theorems prove
+`A B C = I` and `A X B X C = paperEuler α θ β`. Transposing gives the explicitly
+reversed column products `Cᵀ Bᵀ Aᵀ = I` and
+`Cᵀ Xᵀ Bᵀ Xᵀ Aᵀ = columnEuler α θ β`. After exact SU(2) Euler existence,
+`specialUnitary_exists_paperABC` and
+`specialUnitary_exists_columnChronologicalABC` quantify over certified SU(2)
+witnesses. These remain matrix-only results: the two-CNOT/three-one-qubit syntax,
+semantic evaluator theorem, and resource count of Lemma 5.1 are separate obligations.
+
+### Exact SU(2) and U(2) Euler decompositions
+
+The SU(2) proof first establishes the canonical entry form and then uses the total
+`Complex.arg` function, so zero entries do not introduce an undefined phase.
+`specialUnitary_exists_paperEuler` proves exact paper-row `Rz Ry Rz` existence with
+the middle angle in `[0,π]`. `specialUnitary_exists_columnEuler` records the
+transposed outer-factor order, while `specialUnitary_exists_rz_mul_ry_mul_rz`
+renames the outer witnesses to expose the usual semantic product
+`rz α * ry θ * rz β`.
+
+For an arbitrary `QubitUnitary U`,
+`determinantPhaseAngle U = Complex.arg (det U) / 2` selects the half-open principal
+representative `(-π/2,π/2]`. Because a scalar two-by-two phase has determinant
+`cis (2 * δ)`, this choice gives the determinant of `U` exactly. Removing the phase
+produces `specialUnitaryPart U`, and `phaseShift_mul_specialUnitaryPart` reconstructs
+`U` exactly. The choice is discontinuous across the principal-argument branch cut;
+no continuity is claimed.
+
+This determinant calculation repairs an imprecision in the paper: determinant one
+does not force the scalar representative to be `1`; `-I` is also possible. The
+formal SU(2) theorem absorbs that representative into a Z angle, and
+`paperPhase_pi_mul_paperRz` records the corresponding `2π` shift. The exported U(2)
+theorems are `unitary_exists_paperPhase_mul_paperEuler` and
+`unitary_exists_phaseShift_mul_rz_mul_ry_mul_rz`, both exact and both retaining a
+middle angle in `[0,π]`.
+
+### Exact finite-index unitary roots and their boundary
+
+For every finite index type `ι`, positive natural `k`, and
+`U : Matrix.unitaryGroup ι ℂ`, `unitaryRoot k U` is a certified exact root and
+`unitaryRoot_pow` proves `(unitaryRoot k U)^k = U`. The public API also includes
+`exists_unitary_pow_eq`, `unitarySquareRoot`, and the power-of-two specialization
+`unitaryRoot_pow_two_pow`. The implementation applies principal-argument scalar
+roots to the finite spectrum using continuous functional calculus. Correctness is
+asserted only for `0 < k`; the total definition at `k=0` is not a zeroth-root theorem.
+
+The selected scalar branch is noncanonical and is not globally continuous as the
+matrix varies. More importantly for Lemma 7.8, the current API proves each
+power-of-two root equation independently but does not yet prove a coherent sequence
+`V_{m+1}² = V_m`, nor the operator-distance estimate
+`operatorDistance V_m I ≤ π / 2^m`. Those theorems must use the already fixed L²
+operator norm and a shared eigenphase choice. Embedding roots into the controlled
+circuits of Lemmas 6.1, 7.5, and 7.8, proving evaluator correctness, and deriving
+syntax-based gate counts remain separate circuit/resource stages.
+
 ## Semantic Relations
 
 The implemented relations are deliberately noninterchangeable:
@@ -254,11 +348,16 @@ compiling smoke module:
   `Matrix.trace_single_mul` for phase and measurement algebra;
 - `BitVec` XOR/get/equivalence APIs for later Gray-code support;
 - `Matrix.toEuclideanCLM`, `Matrix.l2_opNorm_mulVec`, and
-  `Matrix.l2_opNorm_mul` under the scoped L² norm.
+  `Matrix.l2_opNorm_mul` under the scoped L² norm;
+- `CStarMatrix`, finite matrix spectra, and continuous functional calculus on a
+  finite spectrum for the exact `unitaryRoot` construction.
 
-Mathlib 4.31.0 contains no quantum-circuit or Gray-code framework, no directly
-usable general-unitary spectral theorem/root constructor, and no ready unitary
-Givens decomposition. Those remain explicit project stages.
+Mathlib 4.31.0 contains no quantum-circuit or Gray-code framework and no ready
+unitary Givens decomposition. Exact finite-matrix roots are now supplied by
+`Barenco.OneQubit.Roots` through a proved finite-spectrum functional-calculus
+construction, so root existence is no longer an outstanding stage. Coherent
+recursive roots with norm decay, circuit synthesis, Gray-code infrastructure, and
+Givens-style general-unitary elimination remain explicit project stages.
 
 The selected core basis is `Fin n → Bool`, rather than `Fin (2^n)` or `BitVec n`:
 it makes arbitrary controls, wire updates, and untouched-wire proofs direct.
