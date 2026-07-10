@@ -82,11 +82,13 @@ language only.
 
 ## Proposed Lean Architecture
 
-- `Barenco/StateSupport.lean`: low-dependency public support predicates for
-  finite-basis amplitude vectors, a theorem lifting basis-column equality to all
-  supported states, fixed-wire embedding/projection/factorization, and preservation
-  of a fixed non-target wire by a controlled target unitary. This is general
-  infrastructure, not paper-specific circuit syntax.
+- `Barenco/State/CleanWire.lean`: low-dependency public `fixedWireSubspace` and
+  `cleanZeroSubspace : Submodule ℂ (State n)`, a theorem lifting basis-column
+  equality to every subspace member, and a split-target linear equivalence
+  `(ComplementBasis aux → ℂ) ≃ₗ[ℂ] cleanZeroSubspace aux`. Include
+  predicate/membership simp lemmas and preservation by a controlled gate whose
+  target differs from the fixed wire. This makes factorization/no-entanglement a
+  literal theorem, not only prose around a support predicate.
 - `Barenco/OneQubit/SelectedABC.lean`: a compact selected
   column-chronological ABC factorization record for a `QubitSpecialUnitary`, with
   the exact inactive and active product equations.
@@ -101,12 +103,14 @@ language only.
   chronology, exact target-product/four-case evaluator, selected ABC wrapper, and
   structural macro counts/cost rejection.
 - `Barenco/MultiControl/SpecialUnitaryExpansion.lean`: substitute three selected
-  six-node controlled circuits and two swapped-layout expanded MCXs; prove exact
+  five-node controlled-SU(2) circuits and two swapped-layout expanded MCXs; prove exact
   evaluator preservation and component/total/cost formulas.
-- `Barenco/MultiControl/CleanAncilla.lean`: a layout with ordered data controls,
-  one distinct auxiliary, and one distinct target; exact arbitrary-auxiliary basis
-  action; clean-zero supported-state correctness; restoration/factorization; and
-  macro resources.
+- `Barenco/MultiControl/CleanAncilla.lean`: reuse
+  `OrderedControlLayout (p+1) ambientWidth` with its first `p` controls interpreted
+  as data and its last control interpreted as the auxiliary; expose clean names
+  rather than introducing a duplicate structure. Prove the exact
+  arbitrary-auxiliary basis action, clean-zero subspace correctness,
+  restoration/factorization, and macro resources.
 - `Barenco/MultiControl/CleanAncillaExpansion.lean`: substitute two existing
   expanded prefix MCXs and one selected controlled-U circuit, retaining all clean
   subspace/restoration theorems and proving exact primitive resources.
@@ -120,8 +124,9 @@ language only.
 
 1. Finish the independent source/count/API audits and record any additional
    correction entries before code.
-2. Implement and strict-build `StateSupport.lean`; prove supported-state lifting
-   and fixed-wire factorization without quantum-circuit dependencies.
+2. Implement and strict-build `State/CleanWire.lean`; prove supported-state
+   lifting and the explicit clean-wire linear equivalence without circuit-syntax
+   dependencies.
 3. Implement the last-control/target swap and exact expanded prefix-to-main-target
    X bridge, with arbitrary ambient wires and inherited exact counts.
 4. Package a selected ABC factorization and prove the exact Lemma 7.9 macro
@@ -187,3 +192,11 @@ language only.
 - Stage file created before Stage 8 implementation. Initial audit fixes the two
   diagram chronologies, the clean-subspace boundary, the `n≥7` expansion threshold,
   and the raw syntax count targets above.
+- Independent PDF/diagram, API, and count audits agree on every chronology,
+  boundary, and raw formula. They additionally establish determinant-one as
+  necessary for Lemma 7.9's five-macro topology, identify the stronger five-node
+  controlled-SU(2) subexpansion, and require a literal clean-wire subspace/linear
+  factorization API. C-010 and C-022 have been expanded accordingly, and new
+  C-026 records why the two printed `Θ(n)` statements are construction upper
+  bounds rather than optimal-synthesis theorems. No Stage 8 Lean file was changed
+  during these audits.

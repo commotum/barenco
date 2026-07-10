@@ -223,7 +223,11 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Source:** Lemmas 7.2–7.3 and 7.11, manuscript pp. 18–20 and 25.
 - **Issue:** the constructions mix borrowed arbitrary wires and a fixed-zero wire,
   while prose says only that bits “incur no net change.” This does not by itself
-  express correctness on superpositions or restoration of entanglement.
+  express correctness on superpositions or restoration of entanglement. For
+  Lemma 7.11 the exact firing condition on a basis input is
+  `aux xor conjunction(dataControls)`: the auxiliary is restored for either
+  classical value, but the intended controlled-U behavior holds only when it
+  begins at zero. A superposed auxiliary can become entangled with the data.
 - **Repair:** prove full-register equality for dirty borrowed wires. State Lemma 7.11
   as equality on the clean-zero input subspace, quantified over arbitrary data
   states, and prove output factorization/restoration.
@@ -233,7 +237,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   Lemma 7.2 as exact full-register equality with arbitrary dirty borrowed inputs;
   `fourBlockUpdate_eq_update`, `fourBlockUpdate_apply_dirtyWire`, and
   `eval_fourBlockCircuit` do the same for Lemma 7.3's single borrowed wire.
-  Lemma 7.11's clean-zero subspace theorem remains open.
+  Stage 7's `expandedRecursivePrefixXCircuit` is the checked primitive dependency
+  for Lemma 7.11: each compute/uncompute MCX may use the U target as a dirty wire
+  and restores it. Stage 8 must add an actual clean-zero subspace, equality on all
+  its arbitrary state vectors, output closure, and an explicit factorization
+  witness. Semantic syntax is valid from logical width two; the selected linear
+  expansion using Corollary 7.4 requires width at least seven.
 - **Status:** partial: the dirty contracts of Lemmas 7.2–7.3 are proved; Lemma 7.11
   remains open.
 
@@ -540,9 +549,13 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** Corollary 7.10, its phase-relaxed n-bit Toffoli example,
   and later synthesis/resource estimates that use a linear special-unitary
   multi-control construction.
-- **Formal evidence:** planned Stage 8 circuit syntax, exact evaluator theorem,
-  and syntax-derived linear resource bound; no corrected Corollary 7.10 theorem
-  is currently exported.
+- **Formal evidence:** source audit fixes the exact chronology as
+  `C(c,A,t);MCX(P,t);C(c,B,t);MCX(P,t);C(c,C,t)` and its four target products as
+  `I`, `X²`, `CBA`, and `CXBXA`. Determinant one is necessary for this topology.
+  With selected five-node controlled-SU(2) witnesses and the checked raw Stage 7
+  MCX expansion, the Stage 8 syntax target is exactly `64n−279` one-qubit plus
+  `48n−194` CNOT operations, total `112n−473`, for `n≥7`. These remain audit
+  targets until the named circuit compiles.
 - **Status:** open.
 
 ## C-023 — Lemma 7.5 omits its recursive width and base cases
@@ -631,3 +644,26 @@ statement. “Open” means the repair is identified but not yet machine checked
   adjoint-A, and full contextual arguments. The balanced wrapper proves four exact
   and `8n−44` relative occurrences.
 - **Status:** corrected and proved.
+
+## C-026 — Corollaries 7.10 and 7.12 do not prove optimal linear synthesis
+
+- **Source:** Corollaries 7.10 and 7.12, manuscript pp. 24–25; Markdown lines
+  862–889.
+- **Issue:** both corollaries use `Θ(n)` after exhibiting a linear-size circuit,
+  but no matching lower bound is proved in the same gate/ancilla model. Read as a
+  statement about minimum cost uniformly over the target gate, it is immediately
+  false for the identity, which needs no operations. Corollary 7.12 additionally
+  changes the available resource by assuming one clean reusable bit.
+- **Repair:** give exact component and total counts for each named syntax, then
+  state an `O(n)` upper bound if asymptotic packaging is useful. Reserve a
+  two-sided theorem for the executed count of that fixed unoptimized algorithm,
+  or for a future matching lower bound with the same target-family and ancilla
+  assumptions. Do not call either result optimal synthesis.
+- **Dependent impact:** the intended corrected Corollary 7.10, the clean-ancilla
+  Corollary 7.12, and any later comparison between no-ancilla and clean-ancilla
+  resource models.
+- **Formal evidence:** Stage 8 source/count audit identifies exact raw targets
+  `112n−473` for the fully controlled SU(2) construction and `112n−482` for
+  the clean-ancilla arbitrary-U construction at `n≥7`. The Lean syntax/count
+  theorems and any `O(n)` wrappers remain to be implemented.
+- **Status:** correction accepted; formal construction counts in progress.
