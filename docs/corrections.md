@@ -71,10 +71,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   `inwardLadderCircuit_toffoliCount` now establish the Lemma 7.2 ingredient on
   arbitrary layouts. `FourBlockLayout.eval_fourBlockCircuit` proves Lemma 7.3's
   exact dirty-wire composition, and `eval_fourBlockSubstitutionCircuit` provides
-  the checked expansion boundary. The repaired floor partition and concrete
-  ladder substitution remain to be formalized.
-- **Status:** partial: Lemmas 7.2–7.3 are proved; the corrected Corollary 7.4
-  partition/expansion is open.
+  the checked expansion boundary. `balancedLeftTail`, `balancedRightTail`,
+  `balancedLayout`, and `balancedCorollary74Circuit` now implement the repaired
+  floor partition and concrete ladder substitution, with exact operator equality,
+  `n−2` controls, and `8(n−5)` Toffoli macros for every `n≥7`.
+- **Status:** corrected and proved at the exact Toffoli-macro layer; the dependent
+  contextual phase/basic-operation expansion remains separate under C-004.
 
 ## C-004 — Corollary 7.4 remainder has an arithmetic error
 
@@ -87,7 +89,12 @@ statement. “Open” means the repair is identified but not yet machine checked
   reconstructed syntactically.
 - **Dependent impact:** exact early-basic count in Corollary 7.4 and leading counts
   derived from it.
-- **Formal evidence:** planned syntax count; no claim yet that `48n−204` is correct.
+- **Formal evidence:** `corollary74Circuit_toffoliCount` and
+  `balancedCorollary74Circuit_gateCount` establish `8(n−5)=8n−40` from explicit
+  syntax; `balancedLayout_targetWire_not_mem_aImplementation_touchedSupport`
+  establishes the phase-ready target exclusion. No claim yet that `48n−204` is
+  correct, and the exact four special occurrences still require a B-ladder
+  occurrence theorem plus contextual phase cancellation.
 - **Additional structural requirement:** a generic minimally capacitated Lemma 7.3
   substitution may borrow the final target inside an A ladder, causing additional
   Toffolis to touch it. The repaired balanced partition satisfies a stronger

@@ -417,8 +417,14 @@ Current implementation facts:
   explicit Boolean-ring dirty restoration, full-register operator equality, four
   macro occurrences, and checked A/B substitution with exact doubled counts. The
   latest focused root/audit build has 3,485 jobs and all 112 maintained axiom
-  prints are standard; two post-root full builds have 3,484 jobs each. Corrected
-  Corollary 7.4 ladder substitution is next.
+  prints are standard; two post-root full builds have 3,484 jobs each.
+- Corrected Corollary 7.4 now has explicit shared-register ladder substitution,
+  exact arbitrary-placement semantics, a canonical exact-width circuit for every
+  `n≥7`, `n−2` controls, exact `8(n−5)` Toffoli count, the `n=7` boundary, honest
+  unexpanded cost rejection, and a phase-ready theorem that A never touches the
+  final target. The focused root/audit build has 3,486 jobs and all 122 maintained
+  prints are standard; two post-root full builds have 3,485 jobs each. Contextual
+  relative-phase/basic-operation expansion is next.
 
 ### Detailed Implementation Plan
 

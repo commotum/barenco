@@ -143,6 +143,16 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.MultiControl.FourBlockLayout.eval_fourBlockCircuit` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-width exact Lemma 7.3 operator equality; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.FourBlockLayout.fourBlockSubstitutionCircuit_gateCount` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | exact syntax-derived doubled implementation count; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.FourBlockLayout.eval_fourBlockSubstitutionCircuit` | `Barenco.MultiControl.FourBlock` | `propext`, `Classical.choice`, `Quot.sound` | checked A/B expansion preserves exact full-register semantics; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.aInwardLadderLayout_orderedControlLayout` | `Barenco.MultiControl.Corollary74` | `propext`, `Quot.sound` | A-ladder control set and target exactly match the four-block A macro; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_corollary74Circuit` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | exact arbitrary-placement Corollary 7.4 Toffoli-macro evaluator; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.corollary74Circuit_toffoliCount` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived generic `8(ℓ+r+2)` Toffoli count; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.targetWire_not_mem_corollary74AImplementation_touchedSupport` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | stronger-capacity A ladder excludes the final target from touched support; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedTails_add_seven` | `Barenco.MultiControl.Corollary74` | `propext`, `Quot.sound` | repaired floor partition has exact logical width; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedLayout_dataControlCount` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | canonical circuit has exactly `n−2` controls; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedLayout_targetWire_not_mem_aImplementation_touchedSupport` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | repaired balanced A implementation is phase-ready and target-free; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_balancedCorollary74Circuit` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | canonical exact-width corrected Corollary 7.4 evaluator; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedCorollary74Circuit_gateCount` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | exact syntax-derived `8(n−5)` count including the repaired boundary; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedCorollary74Circuit_oneQubitCNOTCost` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | partial early-basic model rejects the unexpanded Toffoli syntax; no project axiom | 2026-07-10 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 
@@ -175,5 +185,8 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 7 Lemma 7.3 warning-as-error/root/audit | direct strict compilation of `FourBlock.lean`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 112 declarations, all within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
 | Stage 7 Lemma 7.3 focused/root/audit build | `lake build Barenco.MultiControl.FourBlock Barenco.AxiomAudit Barenco` | successful, 3,485 jobs, 2026-07-10 |
 | Stage 7 Lemma 7.3 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,484 jobs each, 2026-07-10 |
+| Stage 7 corrected Corollary 7.4 warning-as-error/root/audit | direct strict compilation of `Corollary74.lean`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 122 declarations, all within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
+| Stage 7 corrected Corollary 7.4 focused/root/audit build | `lake build Barenco.MultiControl.Corollary74 Barenco.AxiomAudit Barenco` | successful, 3,486 jobs, 2026-07-10 |
+| Stage 7 corrected Corollary 7.4 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,485 jobs each, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

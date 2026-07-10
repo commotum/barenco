@@ -1,6 +1,7 @@
 # 7-MULTICONTROL
 
-Status: in progress (Lemmas 7.1–7.3 complete; corrected Corollary 7.4 next).
+Status: in progress (Lemmas 7.1–7.3 and corrected Corollary 7.4's exact
+Toffoli-macro layer complete; contextual phase/basic expansion next).
 
 ## Current Facts
 
@@ -75,14 +76,15 @@ Status: in progress (Lemmas 7.1–7.3 complete; corrected Corollary 7.4 next).
   `fourBlockSubstitutionCircuit` permits checked A/B implementations with exact
   count `2*A+2*B`. General Lemma 7.3 counts four controlled-X macros only; its
   Corollary 7.4 ladder expansion is a separate syntax theorem.
-- For the repaired Corollary 7.4 expansion, use Lemma 7.2 borrowed-count tails
+- The repaired Corollary 7.4 exact expansion now uses Lemma 7.2 borrowed-count tails
   `ℓ,r`, so the two macro control counts are `ℓ+3,r+3` and logical width is
   `ℓ+r+7`. The exact capacity assumptions reduce to `ℓ≤r+2` and `r≤ℓ+2`, while
   the expanded count is subtraction-free:
   `2·4(ℓ+1)+2·4(r+1)=8(ℓ+r+2)`. The source-facing wrapper for `n≥7` chooses
-  `ℓ=n/2−3`, `r=n−n/2−4`; then logical width is `n`, both capacities hold, and
-  the count is `8(n−5)`. Ambient spectator width must not replace logical width
-  in this formula.
+  `ℓ=n/2−3`, `r=n−n/2−4`; `balancedLayout` constructs an actual exact-width
+  placement, both capacities hold, the data-control set has card `n−2`, and the
+  syntax has exactly `8(n−5)` Toffolis. Ambient spectator width must not replace
+  logical width in this formula.
 - The generic minimal A-ladder capacity `ℓ≤r+2` may force A to use the final
   target as dirty workspace at the endpoint; exact Lemma 7.2 semantics make that
   safe, but it invalidates any generic claim that only four Toffolis touch the
@@ -99,7 +101,7 @@ Status: in progress (Lemmas 7.1–7.3 complete; corrected Corollary 7.4 next).
 | Lemma 7.1 | For `n≥3`, `∧_{n−1}(U)` uses `2^(n−1)−1` controlled `V`/`V†` gates and `2^(n−1)−2` CNOTs, with `V^(2^(n−2))=U`; proof omitted. After expansion/merging the paper claims `3·2^(n−1)−4` CNOTs and `2·2^(n−1)` one-qubit gates. | The macro count is plausible but needs a constructed schedule, accumulator invariant, root equation, and exact evaluator proof. The expanded count needs coordinated Section 5 decompositions and explicit merges; it does not follow from the semantic theorem. Stage 7. |
 | Lemma 7.2 | For `n≥5` and `3≤m≤⌈n/2⌉`, a `∧ₘ(X)` gate uses `4(m−2)` three-bit Toffolis while borrowing `m−2` arbitrary wires and restoring them. | Corrected and proved as exact full-register equality through `InwardLadderLayout`: `b+1=m−2>0`, capacity is `2m−1≤n`, all dirty/spectator wires are restored, and the syntax count is exactly `4(b+1)=4(m−2)`. The layout-parametric theorem supports arbitrary nonadjacent placements. |
 | Lemma 7.3 | For `n≥5` and `2≤m≤n−3`, a `∧_{n−2}(X)` gate is `A;B;A;B`, where `A=∧ₘ(X)` computes into one borrowed wire and `B=∧_{n−m−1}(X)` uses it with the remaining controls. Proof is only “by inspection.” | Corrected and proved by explicit Boolean-ring algebra, exact basis action, and full arbitrary-width operator equality. The borrowed wire begins arbitrarily and is restored; syntax and substitution counts are exact. |
-| Corollary 7.4 | For `n≥7`, compose Lemmas 7.2–7.3 to obtain `8(n−5)` Toffolis and allegedly `48n−204` early-basic operations; four Toffolis are exact and the rest may be relative-phase implementations. | The `8(n−5)` macro count is repairable with the partition in C-003. The paper's intermediate remainder is wrong (C-004), and the final basic count remains unproved until exact contextual phase cancellation and all one-qubit merges are represented in syntax. Stage 7. |
+| Corollary 7.4 | For `n≥7`, compose Lemmas 7.2–7.3 to obtain `8(n−5)` Toffolis and allegedly `48n−204` early-basic operations; four Toffolis are exact and the rest may be relative-phase implementations. | Corrected and proved through the exact Toffoli-macro layer: the floor partition, canonical width-`n` circuit, `n−2` controls, arbitrary dirty/spectator restoration, `8(n−5)` count, `n=7` boundary, and phase-ready A target exclusion compile. The erroneous remainder and final basic count remain open pending ordered contextual phase cancellation and explicit mergers. |
 | Lemma 7.5 | A fully controlled `U` is built recursively from a square root `V`, two singly controlled `V`/`V†` gates, two `∧_{n−2}(X)` gates, and one recursively smaller controlled `V`. | Exact generalization of Lemma 6.1 is recoverable. The statement omits a lower bound on `n`; the displayed recursive form requires at least one control (`n≥2`) or an explicit base case. Stage 7. |
 | Corollary 7.6 | Recurrence `C_{n−1}=C_{n−2}+Θ(n)` is reported as a `Θ(n²)` simulation, with `48n²+O(n)` after detailed counting. | Export an exact recurrence and an `O(n²)` upper bound for the named construction. Do not claim optimal quadratic synthesis; see C-005. Its leading constant depends on the unresolved Corollary 7.4 count. Stage 7 for the construction/upper recurrence; final asymptotic packaging may continue in Stage 12. |
 | Lemma 7.7 | A nonscalar fully controlled `U` needs at least `n−1` basic operations, argued by connectivity of the CNOT interaction graph. | The proof actually establishes a CNOT lower bound even with arbitrary one-qubit gates. It needs a tensor-factorization theorem up to wire reindexing and an exact definition `¬∃δ, U=Ph(δ)I`. Routed to Stage 10. |
@@ -304,9 +306,10 @@ pivot invariant, not merely Hamming adjacency.
 - `Barenco/MultiControl/FourBlock.lean`: runtime/public Lemma 7.3 slot layout,
   four-macro syntax, Boolean/full-register correctness, structural split bounds,
   and checked substitution with exact doubled counts.
-- `Barenco/MultiControl/Corollary74.lean`: planned concrete substitution of the
-  Lemma 7.2 ladders into both four-block macro types, balanced repaired partition,
-  exact `8(n−5)` Toffoli count, and smallest `n=7` boundary theorem.
+- `Barenco/MultiControl/Corollary74.lean`: concrete shared-register substitution
+  of Lemma 7.2 ladders into both four-block macro types, generic exact evaluator
+  and `8(ℓ+r+2)` count, balanced repaired partition, canonical exact-width layout,
+  exact `8(n−5)` Toffoli count, target-free A support, and `n=7` boundary theorem.
 - `Barenco/MultiControl/RelativePhase.lean`: heavy proof-side/public contextual
   phase cancellation and explicit early-basic expansion/count. Keep it out of
   the Boolean/runtime leaves.
@@ -471,10 +474,19 @@ pivot invariant, not merely Hamming adjacency.
   implementations and derives exact `2*A+2*B` gate and kind counts, including the
   equal-arity collision case. The four unexpanded macros correctly have no
   one-qubit+CNOT cost.
-- Strict compilation passed for `FourBlock.lean`, the public root, and the audit.
-  The latest focused root/audit build passed with 3,485 jobs. The maintained audit
-  now prints 112 headline
+- `Corollary74.lean` constructs both inward-ladder layouts inside the common
+  four-block register, proves their ordered layouts equal A and B, and substitutes
+  their exact evaluators. The generic circuit has exactly `8(ℓ+r+2)` Toffolis.
+  The repaired balanced wrapper constructs a canonical circuit for every `n≥7`,
+  proves logical width `n`, exactly `n−2` controls, exact full-register semantics,
+  exactly `8(n−5)` Toffolis, unsupported early-basic cost, and the `n=7` count 16.
+  Its stronger capacity proof culminates in a touched-support theorem showing A
+  never names the final target; this is the prerequisite, not yet the proof, for
+  the later four-special-occurrence phase accounting.
+- Strict compilation passed for `FourBlock.lean`, `Corollary74.lean`, the public
+  root, and the audit. The latest focused root/audit build passed with 3,486 jobs.
+  The maintained audit now prints 122 headline
   declarations; all use only `propext`, `Classical.choice`, and `Quot.sound`
   (with `nodup_grayCode` not requiring choice). Forbidden-shortcut scans and
   `git diff --check` passed. Two consecutive post-root full builds passed with
-  3,484 jobs each.
+  3,485 jobs each.

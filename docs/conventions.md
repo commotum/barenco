@@ -575,6 +575,16 @@ each controlled-one-qubit *kind* occurs twice are intentionally avoided: when th
 two arities coincide, both macro names have the same `PrimitiveKind`, so that kind
 occurs four times.
 
+The exact Corollary 7.4 layer uses borrowed-count tails `ℓ,r`. Its two ladder
+capacities are `ℓ≤r+2` and `r≤ℓ+2`, and the structural count is
+`8(ℓ+r+2)`. Only a logical-width equation—not extra ambient spectators—permits
+rewriting this as `8(n−5)`. The canonical repaired partition uses
+`ℓ=n/2−3`, `r=n−n/2−4` for `n≥7`. Minimal generic capacity may make A borrow the
+final target; the balanced partition satisfies the stronger `ℓ≤r+1`, and the
+library proves that its A implementation's touched support excludes that target.
+Any later “four target-touching exact Toffolis” theorem is restricted to this
+phase-ready balanced syntax.
+
 ## API Evidence and Representation Decision
 
 The following APIs were checked against the pinned mathlib 4.31.0 source and/or a
