@@ -1,4 +1,4 @@
-import Barenco.LowerBounds.BasicCircuit
+import Barenco.LowerBounds.InteractionGraph
 import Mathlib.LinearAlgebra.Matrix.Kronecker
 
 /-!
@@ -424,6 +424,91 @@ theorem cnotRaw_tensorLocalOffCut_of_notMem {n : ℕ} (cut : Finset (Fin n))
     by_cases hright :
         row.2 = xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ col.2 <;>
       simp [cutComplementCNOTRaw, heq, hleft, hright]
+
+/-! ## Proof-carrying basic primitives and circuits -/
+
+namespace BasicPrimitive
+
+/-- A basic primitive supported inside `cut` is tensor-local on that side. -/
+theorem tensorLocalOnCut_of_wires_subset {n : ℕ} (cut : Finset (Fin n))
+    (primitive : BasicPrimitive n) (hsupport : primitive.wires ⊆ cut) :
+    TensorLocalOnCut cut (primitive.denotation : Gate n) := by
+  cases primitive with
+  | oneQubit target U =>
+      have htarget : target ∈ cut := hsupport (by simp [wires])
+      change TensorLocalOnCut cut (localRaw target U)
+      exact localRaw_tensorLocalOnCut_of_mem cut target htarget U
+  | cnot control target hcontrolTarget =>
+      have hcontrol : control ∈ cut := hsupport (by simp [wires])
+      have htarget : target ∈ cut := hsupport (by simp [wires])
+      simpa only [denotation_cnot, coe_cnotUnitary] using
+        cnotRaw_tensorLocalOnCut_of_mem cut control target hcontrolTarget
+          hcontrol htarget
+
+/-- A basic primitive disjoint from `cut` is tensor-local on its complement. -/
+theorem tensorLocalOffCut_of_disjoint {n : ℕ} (cut : Finset (Fin n))
+    (primitive : BasicPrimitive n) (hsupport : Disjoint primitive.wires cut) :
+    TensorLocalOffCut cut (primitive.denotation : Gate n) := by
+  rw [Finset.disjoint_left] at hsupport
+  cases primitive with
+  | oneQubit target U =>
+      have htarget : target ∉ cut := fun hmem => hsupport (by simp [wires]) hmem
+      change TensorLocalOffCut cut (localRaw target U)
+      exact localRaw_tensorLocalOffCut_of_notMem cut target htarget U
+  | cnot control target hcontrolTarget =>
+      have hcontrol : control ∉ cut := fun hmem => hsupport (by simp [wires]) hmem
+      have htarget : target ∉ cut := fun hmem => hsupport (by simp [wires]) hmem
+      simpa only [denotation_cnot, coe_cnotUnitary] using
+        cnotRaw_tensorLocalOffCut_of_notMem cut control target hcontrolTarget
+          hcontrol htarget
+
+/-- Every basic primitive that does not cross `cut` factors across it. -/
+theorem tensorFactorsAcross_of_doesNotCross {n : ℕ} (cut : Finset (Fin n))
+    (primitive : BasicPrimitive n) (hcross : primitive.DoesNotCross cut) :
+    TensorFactorsAcross cut (primitive.denotation : Gate n) := by
+  rcases hcross with hinside | houtside
+  · exact (primitive.tensorLocalOnCut_of_wires_subset cut hinside).tensorFactorsAcross
+  · exact (primitive.tensorLocalOffCut_of_disjoint cut houtside).tensorFactorsAcross
+
+end BasicPrimitive
+
+namespace BasicCircuit
+
+/--
+If no primitive crosses a fixed wire cut, the complete evaluator factors across
+that cut.  The proof follows the chronological evaluator and uses the exact
+Kronecker multiplication law at every cons node.
+-/
+theorem eval_tensorFactorsAcross_of_all_doesNotCross {n : ℕ}
+    (cut : Finset (Fin n)) (circuit : BasicCircuit n)
+    (hcross : ∀ primitive ∈ circuit, primitive.DoesNotCross cut) :
+    TensorFactorsAcross cut (circuit.eval : Gate n) := by
+  induction circuit with
+  | nil =>
+      change TensorFactorsAcross cut (1 : Gate n)
+      exact TensorFactorsAcross.one cut
+  | cons primitive circuit ih =>
+      change TensorFactorsAcross cut
+        ((BasicCircuit.eval circuit : Gate n) * (primitive.denotation : Gate n))
+      apply TensorFactorsAcross.mul
+      · apply ih
+        intro tailPrimitive htail
+        exact hcross tailPrimitive (List.mem_cons_of_mem primitive htail)
+      · exact primitive.tensorFactorsAcross_of_doesNotCross cut
+          (hcross primitive (List.mem_cons_self))
+
+/--
+The evaluator of every basic circuit factors across the CNOT-interaction
+component containing any selected target wire.
+-/
+theorem eval_tensorFactorsAcross_targetComponent {n : ℕ}
+    (circuit : BasicCircuit n) (target : Fin n) :
+    TensorFactorsAcross (circuit.targetComponent target) (circuit.eval : Gate n) := by
+  exact circuit.eval_tensorFactorsAcross_of_all_doesNotCross
+    (circuit.targetComponent target)
+    (circuit.all_primitives_doNotCross_targetComponent target)
+
+end BasicCircuit
 
 end
 
