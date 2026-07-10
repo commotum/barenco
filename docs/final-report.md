@@ -242,7 +242,7 @@ families are:
 - A physical POVM API is outside scope. The approximation result covers every
   finite computational-basis event. Separately, algebraic `AllMeasurementEq`
   quantifies over arbitrary matrices/effects and is equivalent to `ChannelEq`;
-  rank-one and computational-basis probability relations are proved consequences,
+  the computational-basis rank-one probability relation is a proved consequence,
   not a converse physical-model theorem.
 - No trusted arbitrary-two-qubit smart constructor is currently exported. The
   Section 8 cost kind is pricing metadata, not a synthesis API.
