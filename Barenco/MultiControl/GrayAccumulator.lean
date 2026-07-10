@@ -612,6 +612,11 @@ private theorem head?_grayCode_succ : ∀ width,
       rw [grayCode_succ, List.head?_append, List.head?_map, ih]
       simp [liftGrayMask]
 
+/-- The positive-width runtime schedule begins at the singleton first control. -/
+theorem grayCode_head?_succ (width : ℕ) :
+    (grayCode (width + 1)).head? = some {0} :=
+  head?_grayCode_succ width
+
 private theorem parityAccumulatorState_grayCode_head (width : ℕ)
     (input : Fin (width + 1) → Bool) :
     parityAccumulatorState

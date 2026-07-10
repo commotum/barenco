@@ -110,6 +110,52 @@ theorem signedGrayRoot_eq_inv_of_even {width : ℕ} (mask : GrayMask width)
   rw [signedGrayRoot, hoddPred.neg_one_pow]
   exact zpow_neg_one V
 
+/-- The first runtime mask at every positive width is the singleton first wire. -/
+theorem grayCode_first_eq_singleton (tail : ℕ) :
+    (grayCode (tail + 1))[0]'(by simp) = {0} := by
+  apply Option.some.inj
+  rw [← List.getElem?_eq_getElem (by simp), ← List.head?_eq_getElem?]
+  exact grayCode_head?_succ tail
+
+/-- Consequently, the first coherent root always has positive sign. -/
+theorem signedGrayRoot_first_eq (tail : ℕ) (V : QubitUnitary) :
+    signedGrayRoot ((grayCode (tail + 1))[0]'(by simp)) V = V := by
+  apply signedGrayRoot_eq_of_odd
+  rw [grayCode_first_eq_singleton]
+  simp
+
+/-- Consecutive indexed runtime roots alternate exactly between `V` and `V⁻¹`. -/
+theorem signedGrayRoot_consecutive_alternates {width index : ℕ}
+    (V : QubitUnitary) (hindex : index + 1 < (grayCode width).length) :
+    (signedGrayRoot ((grayCode width)[index]'(by omega)) V = V ∧
+        signedGrayRoot ((grayCode width)[index + 1]'hindex) V = V⁻¹) ∨
+      (signedGrayRoot ((grayCode width)[index]'(by omega)) V = V⁻¹ ∧
+        signedGrayRoot ((grayCode width)[index + 1]'hindex) V = V) := by
+  have hadjacent :
+      GrayAdjacent ((grayCode width)[index]'(by omega))
+        ((grayCode width)[index + 1]'hindex) :=
+    (grayCode_isChain width).getElem index hindex
+  have hfirstMem : (grayCode width)[index] ∈ grayCode width :=
+    List.getElem_mem _
+  have hsecondMem : (grayCode width)[index + 1] ∈ grayCode width :=
+    List.getElem_mem _
+  have hfirstNonempty : ((grayCode width)[index]'(by omega)).Nonempty :=
+    (mem_grayCode_iff _).mp hfirstMem
+  have hsecondNonempty : ((grayCode width)[index + 1]'hindex).Nonempty :=
+    (mem_grayCode_iff _).mp hsecondMem
+  rcases Nat.even_or_odd ((grayCode width)[index]'(by omega)).card with
+      heven | hodd
+  · right
+    exact
+      ⟨signedGrayRoot_eq_inv_of_even _ V hfirstNonempty heven,
+        signedGrayRoot_eq_of_odd _ V
+          (hadjacent.even_card_iff_odd_card.mp heven)⟩
+  · left
+    exact
+      ⟨signedGrayRoot_eq_of_odd _ V hodd,
+        signedGrayRoot_eq_inv_of_even _ V hsecondNonempty
+          (hadjacent.odd_card_iff_even_card.mp hodd)⟩
+
 /-! ## One factor choice and symbolic inverse provenance -/
 
 /-- Decidable provenance atoms for the one selected controlled-`V` package. -/

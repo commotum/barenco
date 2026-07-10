@@ -294,15 +294,24 @@ the empty project build tree; the clean build succeeded with 3,593 jobs. Strict
 and trust-zero warning-as-error compilation of both the public root and maintained
 axiom audit passed again afterward.
 
-Goal 2 Stages 2–3 subsequently added certified ordered two-wire embeddings and
-trusted arbitrary-two-qubit syntax. Stage 4 adds a separate closed fusion IR,
-exact visible/mixed lowering, syntax-derived costs, and transparent selected
-controlled-U, relative-phase, and Gray inputs. It does not yet claim that any
-paper merger has occurred; executable normalization and the disputed output
-counts belong to later Goal 2 stages. Twenty-nine representative Stage 4 checks
-raise the maintained audit from 348 to 377; its public root/audit integration
-build passed with 3,595 jobs, and the combined public/diagnostic regression passed
-with 3,596 jobs. Direct strict and trust-zero root/audit checks remain clean.
+Goal 2 Stages 2–4 subsequently added certified ordered two-wire embeddings,
+trusted arbitrary-two-qubit syntax, a separate closed fusion IR, exact
+visible/mixed lowering, syntax-derived costs, and transparent selected
+controlled-U, relative-phase, and Gray inputs. Stage 5 added the executable exact
+normalization policies and symbolic inverse-provenance layer. Stage 6 reconstructed
+the distinct three-`U(4)` relative-phase Toffoli output and its exact phase scope.
+Stage 7 added target-directed symbolic exposure and the coherent Gray streaming
+merger: the executable output is proved equal to its explicit normal form, exactly
+equal to the established arbitrary-register evaluator, and counted from syntax.
+
+The Stage 7 focused/adjacent/public/audit sweep passed with 3,608 jobs, all twelve
+direct warning-as-error and trust-zero checks passed, and the integrated full build
+passed with 3,606 jobs. Eighteen representative Stage 7 checks raise the maintained
+audit from 436 to 454; every new result stays within `propext`,
+`Classical.choice`, and `Quot.sound` (some use a strict subset). The audit table and
+source both contain 454 entries, the public tree contains 135 Lean files, the
+root-excluded diagnostics remain excluded, and all hygiene scans and
+`git diff --check` passed.
 
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic

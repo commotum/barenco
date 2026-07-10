@@ -1,6 +1,6 @@
 # 7-GRAY-MERGERS
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-10).
 
 ## Current Facts
 
@@ -23,26 +23,25 @@ Status: in progress (2026-07-10).
   factors selected independently for `V⁻¹` are not definitionally or
   theoremically the inverses of those selected for `V`; that builder is a valid
   raw regression input but cannot justify the desired boundary cancellations.
-- A single transparent positive controlled-`V` block has chronology
-  `phase(control); A(target); CNOT; B(target); CNOT; C(target)`. Its literal
+- The coherent transparent positive controlled-`V` block has chronology
+  `A(target); phase(control); CNOT; B(target); CNOT; C(target)`. Its literal
   circuit adjoint implements controlled `V⁻¹` and exposes inverse provenance:
-  `C⁻¹; CNOT; B⁻¹; CNOT; A⁻¹; phase⁻¹`.
-- Consecutive Gray masks differ in one bit, so their cardinality parity should
-  alternate. Since the first nonempty mask is a singleton, the required root
-  signs should alternate positive/negative. This combinatorial statement and its
-  connection to `signedGrayRoot` still need named checked theorems.
+  `C⁻¹; CNOT; B⁻¹; CNOT; phase⁻¹; A⁻¹`.
+- `GrayAdjacent.card_succ_or_succ_card` and its parity corollaries now prove that
+  consecutive masks alternate signs. Named odd/even theorems connect this parity
+  exactly to `signedGrayRoot mask V = V` or `V⁻¹` for nonempty masks.
 - At a positive-to-negative boundary, `C` and `C⁻¹` are separated only by the
   control-register Gray CNOT. At a negative-to-positive boundary, `A⁻¹` and `A`
-  are separated by off-target phase gates and the Gray CNOT. A target-directed
+  are separated only by the Gray CNOT. A target-directed
   exact commutation pass can expose either pair without assuming any ambient wire
   ordering.
 - Generic `normalizeEarly` preserves exact semantics and literal CNOT order, but
   it sorts distinct one-qubit gates by ambient `Fin` order and deliberately never
   recognizes a concrete matrix product as identity. Therefore it is not by itself
   sufficient evidence for layout-independent two-node inverse deletion.
-- Public symbolic free-group syntax provides honest atom/inverse provenance and
-  exact deletion after adjacency. It currently lacks a target-directed exposure
-  pass across certified off-target one-qubit/CNOT nodes.
+- Public `SymbolicCircuit.exposeWire` and `normalizeAtWire` now provide the
+  target-directed exposure pass across certified off-target one-qubit/CNOT nodes,
+  with exact erased/lowered evaluators and exact ordered-CNOT-trace preservation.
 - Stage 6 is complete: the maintained baseline is now 436 axiom checks, 132 Lean
   files below `Barenco/`, and a 3,604-job full build.
 
@@ -57,8 +56,9 @@ Status: in progress (2026-07-10).
 - Add a target-directed exposure policy that moves only a target one-qubit word
   across certified gates disjoint from the target. Its correctness must use the
   existing semantic commutation laws, not metadata cardinality.
-- The source formula is plausible but remains unverified until the general
-  executable output, exact evaluator bridge, and syntax-derived formulas compile.
+- The source formula is verified for the named coherent output: the general
+  executable output, exact evaluator bridge, ordered CNOT trace, and
+  constructor-derived formulas all compile.
 - If the coherent construction or general count proof fails, retain the strongest
   checked normal form and classify the source claim as not recovered; failure of
   one policy is not a refutation.
@@ -162,24 +162,57 @@ whether its actual one-qubit/CNOT profile is the printed
 
 ## Completion Requirements
 
-- [ ] Named coherent raw and normalized Gray circuit families compile for every
+- [x] Named coherent raw and normalized Gray circuit families compile for every
   positive control count and arbitrary ambient layout.
-- [ ] Gray sign alternation and positive/adjoint block semantics are explicitly
+- [x] Gray sign alternation and positive/adjoint block semantics are explicitly
   proved; no unrelated inverse factor choices are used.
-- [ ] The executable target-exposure/cancellation result preserves exact visible
+- [x] The executable target-exposure/cancellation result preserves exact visible
   and lowered evaluators and the complete ordered CNOT trace.
-- [ ] Literal component, total, and early-model accepted-cost formulas are proved
+- [x] Literal component, total, and early-model accepted-cost formulas are proved
   from the normalized syntax.
-- [ ] The paper's formula receives a verified/refuted/not-recovered status with
+- [x] The paper's formula receives a verified/refuted/not-recovered status with
   scope matching the checked grammar; no optimizer limitation is overstated.
-- [ ] One-, two-, and three-control profiles and a padded/reordered ambient layout
+- [x] One-, two-, and three-control profiles and a padded/reordered ambient layout
   compile and agree with the general statements.
-- [ ] Traceability, correction log, conventions, final report, public import, and
+- [x] Traceability, correction log, conventions, final report, public import, and
   representative axiom checks are synchronized.
-- [ ] Focused/adjacent/full builds, strict, trust-zero, forbidden/no-cheating
+- [x] Focused/adjacent/full builds, strict, trust-zero, forbidden/no-cheating
   scans, root exclusion, audit/table synchronization, and `git diff --check` pass.
 
 ## Stage Results
 
 - Stage file created after the requirement-by-requirement Stage 6 audit and before
   any Stage 7 Lean source change.
+- `Barenco/Optimization/SymbolicExpose.lean` adds an exact target-directed
+  exposure/cancellation pass. It commutes a selected-wire word only across a
+  distinct-wire one-qubit node or a CNOT whose endpoints are both distinct from
+  the selected wire. Exact erased/lowered evaluator, length/component, and ordered
+  CNOT trace/count theorems compile.
+- `Barenco/MultiControl/GrayMergers.lean` selects one phase/A/B/C package for `V`,
+  uses the literal formal adjoint for negative roots, proves Gray parity
+  alternation, and reconstructs the full coherent raw schedule exactly against
+  the established Lemma 7.1 macro.
+- Each actual three-node boundary is passed through `normalizeAtWire`; the local
+  output theorem emits the unchanged Gray CNOT. A streaming prefix applies this
+  executable pass at all boundaries. Literal regrouping proves that the unmerged
+  boundary form is exactly the raw schedule, and a separate syntax theorem proves
+  that the streaming merger emits the named direct normal form.
+- Exact arbitrary-register evaluator preservation holds at every local segment,
+  prefix, full fusion circuit, and trusted lowered circuit. The selected-root
+  wrapper implements `positiveControlledUnitary` exactly. The complete ordered
+  CNOT trace is identical to the coherent raw schedule.
+- For `m=tail+1>0` controls, the actual emitted symbolic/fusion/lowered syntax has
+  exactly `2*2^m` one-qubit nodes, `3*2^m-4` CNOTs, no generic U(4) nodes, and
+  total `5*2^m-4`. Both named cost models return that literal total. This verifies
+  the paper's post-merger formula as a constructive upper count, not a minimum.
+- Root-excluded `GrayMergerExamples` proves profiles `(4,2,6)`, `(8,8,16)`, and
+  `(16,20,36)` and checks exact semantics, normal-form output, and CNOT chronology
+  on the width-six reordered/padded control embedding `![4,0,5]` with target `2`.
+- The focused/adjacent/public/audit build passed with 3,608 jobs; the separate
+  root/audit integration passed with 3,607 jobs; the full build passed with 3,606
+  jobs. All six warning-as-error and all six trust-zero direct compilations passed.
+- Eighteen new audit checks raise the synchronized source/table total to 454 and
+  use only `propext`, `Classical.choice`, and `Quot.sound` (one append theorem uses
+  a strict subset). The public tree has 135 Lean files. Proof-hole,
+  custom-declaration, runtime-choice/matrix-decision/constructor-forgery,
+  low-width-branch, root-exclusion, and diff scans are clean.
