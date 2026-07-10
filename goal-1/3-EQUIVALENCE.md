@@ -1,6 +1,6 @@
 # 3-EQUIVALENCE
 
-Status: in progress.
+Status: complete.
 
 ## Current Facts
 
@@ -9,10 +9,15 @@ Status: in progress.
   circuit primitives, and chronological certified evaluation/adjoints.
 - `Primitive.mk` is private. Standard one-qubit/positive-control/CNOT metadata is
   correct by construction; arbitrary fallback gates are `.other` with full support.
-- Section 6.2 needs a relation weaker than global phase, while all-measurement
-  equivalence must not identify general basis-dependent phases.
-- The selected approximation norm is mathlib's scoped L² induced operator norm.
-- No syntax-derived cost model exists yet; Stage 2 metadata makes one possible.
+- Exact, global-phase, input-basis-phase, classical basis-behavior,
+  computational-basis measurement, channel, and arbitrary-effect algebraic
+  relations now compile with only the implications that are mathematically valid.
+- The selected approximation norm is mathlib's scoped L² induced operator norm;
+  compiled laws include unitary invariance, product-error accumulation, state
+  action, and a factor-two error bound for one computational-basis outcome.
+- Syntax-derived counts, ambient width, touched support, and two named partial cost
+  models now compile. Unsupported primitives propagate `none` and cannot silently
+  count as free in either paper model.
 - `BUILD-PLAN.md` governs module ownership, focused/adjacent builds, and boundary
   evidence for this stage.
 
@@ -106,25 +111,67 @@ claim at its actual strength.
 
 ## Completion Requirements
 
-- [ ] Exact/global/basis-phase definitions and equivalence/implication/congruence
+- [x] Exact/global/basis-phase definitions and equivalence/implication/congruence
   theorems compile.
-- [ ] Basis behavior and computational-basis measurement relations compile with
+- [x] Basis behavior and computational-basis measurement relations compile with
   justified phase implications.
-- [ ] Channel/all-measurement equality, channel composition, global-phase
+- [x] Channel/all-measurement equality, channel composition, global-phase
   implication, and arbitrary-effect Born-weight consequence compile.
-- [ ] A kernel-checked counterexample separates basis-dependent phase from channel
+- [x] A kernel-checked counterexample separates basis-dependent phase from channel
   equality.
-- [ ] L² operator distance and state-action/submultiplicative error bounds compile
+- [x] L² operator distance and state-action/submultiplicative error bounds compile
   without leaking a global norm instance into algebra modules.
-- [ ] Syntax length/support/kind counts and both named partial cost models compile;
+- [x] Syntax length/support/kind counts and both named partial cost models compile;
   `.other` and unsupported kinds are proved rejected.
-- [ ] Append and adjoint preservation/additivity facts compile for counts/costs.
-- [ ] Focused, adjacent, warning-as-error, two full builds, scans, and headline
+- [x] Append and adjoint preservation/additivity facts compile for counts/costs.
+- [x] Focused, adjacent, warning-as-error, two full builds, scans, and headline
   axiom output are recorded.
-- [ ] Documentation maps every new relation/cost definition and carries remaining
+- [x] Documentation maps every new relation/cost definition and carries remaining
   approximation/resource obligations forward explicitly.
 
 ## Stage Results
 
-- In progress.
-
+- `Barenco/Equivalence/Phase.lean` defines `ExactCircuitEq`, `GlobalPhaseEq`,
+  input-column `BasisPhaseEq`, `BasisTransition`, `SameBasisBehavior`, and
+  `BasisMeasurementEq`. It proves equivalence laws and the exact valid implication
+  chain; only common postcomposition is exported for basis-dependent phases.
+- `Barenco/Equivalence/Measurement.lean` defines raw conjugation channels,
+  `ChannelEq`, `BornWeight`, and algebraically strengthened `AllMeasurementEq`.
+  Matrix-unit effects prove `channelEq_iff_allMeasurementEq`; global phase cancels,
+  and channel equality implies computational-basis probability equality.
+- `Barenco/EquivalenceExamples.lean` is diagnostic-only. Its explicit `diag(1,-1)`
+  example is basis-phase equivalent to identity but not channel/all-measurement
+  equivalent, preventing an invalid implication from entering the public API.
+- `Barenco/Equivalence/OperatorNorm.lean` isolates the scoped L² operator norm and
+  defines `operatorDistance`. Its public proofs include metric laws, unitary
+  invariance, two-factor error accumulation, state/coordinate bounds, and
+  `operatorDistance_basisOutcomeProbability_le`, which proves the exact factor-two
+  bound for one basis outcome when `‖ψ‖ ≤ 1`. Arbitrary events and POVMs remain
+  explicit later obligations.
+- `Barenco/Cost.lean` defines `Circuit.registerWidth`, `gateCount`, `kindCount`,
+  `touchedSupport`, partial `Circuit.cost`, and `CostModel.oneQubitCNOT` versus
+  `CostModel.arbitraryTwoQubit`. Counts/costs satisfy append and adjoint laws;
+  support cardinality is bounded by width; named models reject any circuit
+  containing `.unclassified` or another unsupported kind.
+- Width is a structural type-index resource. Clean/dirty ancilla initialization,
+  ownership, entanglement, and restoration are intentionally deferred to Stage 8,
+  where they can be stated as semantic contracts for actual constructions rather
+  than guessed from a numeric width annotation. This is the recorded refinement of
+  the broader Stage 3 wording in `0-plan.md`.
+- Runtime/public declarations are the relation, distance, cost, width/count, and
+  channel definitions. Their laws are proof-side/public. The separation example is
+  diagnostic. `Primitive.unclassified` remains the sole fallback and both named
+  paper models prove that they reject it. No temporary declarations entered the API.
+- Focused/adjacent verification:
+  `lake build Barenco.Equivalence.Phase Barenco.Equivalence.Measurement
+  Barenco.Equivalence.OperatorNorm Barenco.Cost Barenco.EquivalenceExamples
+  Barenco.AxiomAudit Barenco` succeeded with 2,372 jobs.
+- Direct `lake env lean -DwarningAsError=true` compilation succeeded for all four
+  public leaves, the diagnostic example, `AxiomAudit`, and the public root.
+  Two unchanged `lake build` runs then succeeded with 2,370 jobs each.
+- The completed Lean-source scan found no `sorry`, `admit`, `by?`, `native_decide`,
+  `bv_decide`, project `axiom`, or `opaque` declaration; the Lean trailing-space
+  scan and `git diff --check` were clean.
+- `Barenco/AxiomAudit.lean` prints 29 headline declarations. Every declaration
+  reports exactly `[propext, Classical.choice, Quot.sound]`, with no project-specific
+  axiom. The exact table and build evidence are in `docs/axiom-audit.md`.

@@ -74,6 +74,11 @@ extra assumption, omission, or unresolved obstruction.
   arbitrary-target local and positive multi-controlled gates, Pauli-X/CNOT truth
   tables, trustworthy chronological circuit syntax, adjoints, and structural smart
   constructors. Diagnostic boundary examples compile for widths 0–3.
+- Stage 3 now provides exact/global/input-column phase relations, coarse basis
+  behavior, computational-basis probabilities, conjugation-channel and algebraic
+  all-effect equality, the scoped L² operator distance with a single-outcome
+  factor-two probability bound, and syntax-only width/count/support/partial-cost
+  projections under two distinct paper cost models.
 - The paper's main numbered chain is Lemmas 4.1–4.3; Lemmas/Corollaries 5.1–5.6;
   Lemmas/Corollaries 6.1–6.2; Lemmas/Corollaries 7.1–7.12; and the general
   synthesis/resource discussion in Section 8.
@@ -92,6 +97,12 @@ extra assumption, omission, or unresolved obstruction.
   remains a later Gray-code bridge rather than the core basis.
 - The pinned matrix, unitary-group, Kronecker, reindexing, permutation, wire-split,
   and L² operator-norm APIs compile in `Barenco/ApiSmoke.lean`.
+- `AllMeasurementEq` intentionally quantifies arbitrary matrices/effects and is
+  algebraically equivalent to channel equality. It is not a declaration that every
+  such matrix is a physical state or POVM effect.
+- Clean/dirty ancilla contracts remain a Stage 8 semantic obligation. Stage 3 made
+  ambient width explicit but did not infer initialization or restoration from a
+  numeric resource field.
 - The existential Euler decomposition in Lemma 4.1 and general unitary-root
   existence may need independent finite-dimensional spectral results; early
   modules should not depend on those hard existence theorems unnecessarily.
@@ -128,8 +139,8 @@ extra assumption, omission, or unresolved obstruction.
 
 - [x] `1-GUARDRAILS` — pin the project, audit sources/APIs, and freeze conventions.
 - [x] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits.
-- [ ] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs (in progress).
-- [ ] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
+- [x] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
+- [ ] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots (in progress).
 - [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
 - [ ] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
 - [ ] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
@@ -219,10 +230,12 @@ Separate the semantic relations and resource observations needed by later claims
 - Prove equivalence-relation/congruence properties only where mathematically true,
   plus implications and counterexample documentation between relations.
 - Define operator-norm distance through a checked mathlib representation and prove
-  unitary invariance, sequential error accumulation, state error, and event
-  probability consequences.
-- Define structural gate counts, width, ancilla annotations/contracts, and named
-  cost models for Sections 3–7 versus Section 8.
+  unitary invariance, sequential error accumulation, state error, and the exact
+  single-computational-basis-outcome probability consequence available at this
+  layer.
+- Define structural gate counts, ambient width, touched support, and named cost
+  models for Sections 3–7 versus Section 8. Defer clean/dirty ancilla semantic
+  contracts to Stage 8, where actual initialization/restoration constructions exist.
 
 ### Completion Requirements
 
