@@ -232,13 +232,11 @@ theorem normalize_inverse_atom [DecidableEq Atom]
 theorem normalize_cnot_pair [DecidableEq Atom]
     (control target : Fin n) (h : control ≠ target) :
     normalize
+        (Atom := Atom)
         [SymbolicPrimitive.cnot control target h,
           SymbolicPrimitive.cnot control target h] =
       [SymbolicPrimitive.cnot control target h,
         SymbolicPrimitive.cnot control target h] := by
-  change normalize
-      ([SymbolicPrimitive.cnot control target h,
-        SymbolicPrimitive.cnot control target h] : SymbolicCircuit Atom n) = _
   rfl
 
 /-- Exact local fixed-point predicate for the symbolic normalization policy. -/
@@ -267,6 +265,13 @@ def oneQubitCount (circuit : SymbolicCircuit Atom n) : ℕ :=
 def cnotCount (circuit : SymbolicCircuit Atom n) : ℕ :=
   circuit.foldr (fun primitive count => cnotWeight primitive + count) 0
 
+/-- Ordered control/target trace of every literal CNOT occurrence. -/
+def cnotTrace : SymbolicCircuit Atom n → List (OrderedWirePair n)
+  | [] => []
+  | .oneQubit _ _ :: circuit => cnotTrace circuit
+  | .cnot control target h :: circuit =>
+      (⟨control, target, h⟩ : OrderedWirePair n) :: cnotTrace circuit
+
 @[simp]
 theorem gateCount_nil : gateCount ([] : SymbolicCircuit Atom n) = 0 := rfl
 
@@ -293,6 +298,36 @@ theorem cnotCount_cons (primitive : SymbolicPrimitive Atom n)
     (circuit : SymbolicCircuit Atom n) :
     cnotCount (primitive :: circuit) =
       cnotWeight primitive + cnotCount circuit := rfl
+
+@[simp]
+theorem cnotTrace_nil : cnotTrace ([] : SymbolicCircuit Atom n) = [] := rfl
+
+@[simp]
+theorem cnotTrace_cons_oneQubit (target : Fin n) (word : QubitWord Atom)
+    (circuit : SymbolicCircuit Atom n) :
+    cnotTrace (SymbolicPrimitive.oneQubit target word :: circuit) =
+      cnotTrace circuit := rfl
+
+@[simp]
+theorem cnotTrace_cons_cnot (control target : Fin n)
+    (h : control ≠ target) (circuit : SymbolicCircuit Atom n) :
+    cnotTrace (SymbolicPrimitive.cnot control target h :: circuit) =
+      (⟨control, target, h⟩ : OrderedWirePair n) :: cnotTrace circuit := rfl
+
+/-- CNOT count is the length of the exact ordered CNOT trace. -/
+theorem cnotCount_eq_length_cnotTrace (circuit : SymbolicCircuit Atom n) :
+    cnotCount circuit = (cnotTrace circuit).length := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      cases primitive with
+      | oneQubit target word =>
+          simpa only [cnotCount_cons, cnotWeight,
+            cnotTrace_cons_oneQubit, Nat.zero_add] using ih
+      | cnot control target h =>
+          simp only [cnotCount_cons, cnotWeight, cnotTrace_cons_cnot,
+            List.length_cons]
+          omega
 
 /-- Every symbolic node belongs to exactly one supported early-model class. -/
 theorem gateCount_eq_componentCounts (circuit : SymbolicCircuit Atom n) :
@@ -465,6 +500,47 @@ private theorem cnotCount_insert [DecidableEq Atom]
             simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
               SymbolicPrimitive.combine, cnotCount, cnotWeight]
 
+private theorem cnotTrace_insert [DecidableEq Atom]
+    (primitive : SymbolicPrimitive Atom n) :
+    ∀ circuit : SymbolicCircuit Atom n,
+      cnotTrace
+          (NormalizeCore.insert SymbolicPrimitive.isIdentity
+            SymbolicPrimitive.combine primitive circuit) =
+        cnotTrace (primitive :: circuit) := by
+  intro circuit
+  induction circuit generalizing primitive with
+  | nil =>
+      cases primitive with
+      | oneQubit target word =>
+          by_cases hidentity : word = 1 <;>
+            simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
+              hidentity]
+      | cnot control target h =>
+          simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity]
+  | cons next rest ih =>
+      cases primitive with
+      | oneQubit target word =>
+          cases next with
+          | oneQubit nextTarget nextWord =>
+              by_cases hidentity : word = 1
+              · simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
+                  hidentity]
+              · by_cases htarget : target = nextTarget
+                · have hfused :=
+                    ih (SymbolicPrimitive.oneQubit target (nextWord * word))
+                  simpa [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
+                    SymbolicPrimitive.combine, hidentity, htarget] using hfused
+                · simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
+                    SymbolicPrimitive.combine, hidentity, htarget]
+          | cnot control nextTarget h =>
+              by_cases hidentity : word = 1 <;>
+                simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
+                  SymbolicPrimitive.combine, hidentity]
+      | cnot control target h =>
+          cases next <;>
+            simp [NormalizeCore.insert, SymbolicPrimitive.isIdentity,
+              SymbolicPrimitive.combine]
+
 /-- Normalization preserves the exact number of literal CNOT nodes. -/
 @[simp]
 theorem cnotCount_normalize [DecidableEq Atom]
@@ -480,6 +556,22 @@ theorem cnotCount_normalize [DecidableEq Atom]
         simpa only [normalize] using ih
       rw [normalize, NormalizeCore.normalize, cnotCount_insert, ih']
       rfl
+
+/-- Normalization preserves every ordered CNOT occurrence and its order exactly. -/
+@[simp]
+theorem cnotTrace_normalize [DecidableEq Atom]
+    (circuit : SymbolicCircuit Atom n) :
+    cnotTrace (normalize circuit) = cnotTrace circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      have ih' :
+          cnotTrace
+              (NormalizeCore.normalize SymbolicPrimitive.isIdentity
+                SymbolicPrimitive.combine circuit) = cnotTrace circuit := by
+        simpa only [normalize] using ih
+      rw [normalize, NormalizeCore.normalize, cnotTrace_insert]
+      cases primitive <;> simp [ih']
 
 /-- Normalization never increases the total number of literal nodes. -/
 theorem gateCount_normalize_le [DecidableEq Atom]
