@@ -7,8 +7,8 @@ import Mathlib.LinearAlgebra.Matrix.Kronecker
 This module makes the informal phrase "the register splits into two independent
 parts" precise for arbitrary, possibly noncontiguous, sets of wires.  The two
 factors are raw complex matrices: requiring them to be certified unitaries is
-unnecessary for the lower-bound obstruction, and the raw formulation is
-strictly stronger.
+unnecessary for the lower-bound obstruction.  This makes factorability a weaker
+predicate and therefore makes a proof of nonfactorability stronger.
 
 The proof-carrying `BasicCircuit` syntax is essential here.  Locality is proved
 from its two constructors, rather than inferred from the metadata of an
@@ -209,8 +209,7 @@ theorem localRaw_tensorLocalOnCut_of_mem {n : ℕ} (cut : Finset (Fin n))
   refine ⟨cutLocalRaw cut ⟨target, htarget⟩ U, ?_⟩
   ext row col
   rw [partitionReindex_apply, Matrix.kronecker_apply,
-    localRaw_apply_eq_if_agreeOff,
-    agreeOff_wireSplit_symm_iff_of_mem cut target htarget]
+    localRaw_apply_eq_if_agreeOff]
   simp only [cutLocalRaw, Matrix.one_apply]
   have hrowTarget :
       (wireSplit cut).symm row target = row.1 ⟨target, htarget⟩ := by
@@ -218,9 +217,10 @@ theorem localRaw_tensorLocalOnCut_of_mem {n : ℕ} (cut : Finset (Fin n))
   have hcolTarget :
       (wireSplit cut).symm col target = col.1 ⟨target, htarget⟩ := by
     simp [wireSplit, Equiv.piEquivPiSubtypeProd_symm_apply, htarget]
-  rw [hrowTarget, hcolTarget]
   by_cases hleft : AgreeOffCut ⟨target, htarget⟩ row.1 col.1 <;>
-    by_cases hright : row.2 = col.2 <;> simp [hleft, hright]
+    by_cases hright : row.2 = col.2 <;>
+      simp [agreeOff_wireSplit_symm_iff_of_mem cut target htarget,
+        hrowTarget, hcolTarget, hright]
 
 /-- A local one-qubit matrix whose target lies outside `cut` acts only there. -/
 theorem localRaw_tensorLocalOffCut_of_notMem {n : ℕ} (cut : Finset (Fin n))
@@ -229,8 +229,7 @@ theorem localRaw_tensorLocalOffCut_of_notMem {n : ℕ} (cut : Finset (Fin n))
   refine ⟨cutComplementLocalRaw cut ⟨target, htarget⟩ U, ?_⟩
   ext row col
   rw [partitionReindex_apply, Matrix.kronecker_apply,
-    localRaw_apply_eq_if_agreeOff,
-    agreeOff_wireSplit_symm_iff_of_notMem cut target htarget]
+    localRaw_apply_eq_if_agreeOff]
   simp only [cutComplementLocalRaw, Matrix.one_apply]
   have hrowTarget :
       (wireSplit cut).symm row target = row.2 ⟨target, htarget⟩ := by
@@ -238,10 +237,193 @@ theorem localRaw_tensorLocalOffCut_of_notMem {n : ℕ} (cut : Finset (Fin n))
   have hcolTarget :
       (wireSplit cut).symm col target = col.2 ⟨target, htarget⟩ := by
     simp [wireSplit, Equiv.piEquivPiSubtypeProd_symm_apply, htarget]
-  rw [hrowTarget, hcolTarget]
   by_cases hleft : row.1 = col.1 <;>
     by_cases hright : AgreeOffCutComplement ⟨target, htarget⟩ row.2 col.2 <;>
-      simp [hleft, hright]
+      simp [agreeOff_wireSplit_symm_iff_of_notMem cut target htarget,
+        hrowTarget, hcolTarget, hleft]
+
+/-! ## CNOT factors -/
+
+/-- The basis update underlying a CNOT, on an arbitrary wire index type. -/
+def xorBasisUpdate {ι : Type*} [DecidableEq ι] (control target : ι)
+    (input : ι → Bool) : ι → Bool :=
+  if input control then Function.update input target (!input target) else input
+
+private theorem setTarget_eq_update {n : ℕ} (target : Fin n)
+    (input : Basis n) (bit : Bool) :
+    setTarget target input bit = Function.update input target bit := by
+  funext wire
+  by_cases hwire : wire = target
+  · subst wire
+    simp
+  · rw [setTarget_apply_of_ne target input bit wire hwire]
+    simp [hwire]
+
+/-- Raw CNOT permutation matrix on the selected side of a partition. -/
+def cutCNOTRaw {n : ℕ} (cut : Finset (Fin n))
+    (control target : {wire : Fin n // wire ∈ cut}) :
+    Matrix (CutBasis cut) (CutBasis cut) ℂ := fun row col =>
+  if row = xorBasisUpdate control target col then 1 else 0
+
+/-- Raw CNOT permutation matrix on the complementary side of a partition. -/
+def cutComplementCNOTRaw {n : ℕ} (cut : Finset (Fin n))
+    (control target : {wire : Fin n // wire ∉ cut}) :
+    Matrix (CutComplementBasis cut) (CutComplementBasis cut) ℂ := fun row col =>
+  if row = xorBasisUpdate control target col then 1 else 0
+
+private theorem cnotRaw_apply_eq_xorBasisUpdate {n : ℕ}
+    (control target : Fin n) (hcontrolTarget : control ≠ target)
+    (row col : Basis n) :
+    cnotRaw control target hcontrolTarget row col =
+      if row = xorBasisUpdate control target col then 1 else 0 := by
+  calc
+    cnotRaw control target hcontrolTarget row col =
+        (cnotRaw control target hcontrolTarget *ᵥ basisKet col) row := by simp
+    _ = basisKet
+        (if col control then setTarget target col (!col target) else col) row := by
+      rw [cnotRaw_mulVec_basisKet]
+    _ = if row = xorBasisUpdate control target col then 1 else 0 := by
+      rw [setTarget_eq_update]
+      simp only [basisKet_apply]
+      rfl
+
+private theorem wireSplit_xorBasisUpdate_of_mem {n : ℕ}
+    (cut : Finset (Fin n)) (control target : Fin n)
+    (hcontrol : control ∈ cut) (htarget : target ∈ cut)
+    (input : CutBasis cut × CutComplementBasis cut) :
+    wireSplit cut
+        (xorBasisUpdate control target ((wireSplit cut).symm input)) =
+      (xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ input.1, input.2) := by
+  apply Prod.ext
+  · funext wire
+    cases hbit : input.1 ⟨control, hcontrol⟩
+    · simp [xorBasisUpdate, wireSplit,
+        Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, hbit]
+    · by_cases hwire : wire = ⟨target, htarget⟩
+      · subst wire
+        simp [xorBasisUpdate, wireSplit,
+          Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, htarget, hbit]
+      · have hwireValue : (wire : Fin n) ≠ target := by
+          intro heq
+          apply hwire
+          exact Subtype.ext heq
+        simp [xorBasisUpdate, wireSplit,
+          Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, htarget,
+          hbit, Function.update_apply, hwire, hwireValue]
+  · funext wire
+    cases hbit : input.1 ⟨control, hcontrol⟩
+    · simp [xorBasisUpdate, wireSplit,
+        Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, hbit]
+    · have hwireTarget : (wire : Fin n) ≠ target := by
+        intro heq
+        subst target
+        exact wire.property htarget
+      simp [xorBasisUpdate, wireSplit,
+        Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, htarget,
+        wire.property, hbit, Function.update_apply, hwireTarget]
+
+private theorem wireSplit_xorBasisUpdate_of_notMem {n : ℕ}
+    (cut : Finset (Fin n)) (control target : Fin n)
+    (hcontrol : control ∉ cut) (htarget : target ∉ cut)
+    (input : CutBasis cut × CutComplementBasis cut) :
+    wireSplit cut
+        (xorBasisUpdate control target ((wireSplit cut).symm input)) =
+      (input.1,
+        xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ input.2) := by
+  apply Prod.ext
+  · funext wire
+    cases hbit : input.2 ⟨control, hcontrol⟩
+    · simp [xorBasisUpdate, wireSplit,
+        Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, hbit]
+    · have hwireTarget : (wire : Fin n) ≠ target := by
+        intro heq
+        subst target
+        exact htarget wire.property
+      simp [xorBasisUpdate, wireSplit,
+        Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, htarget,
+        hbit, Function.update_apply, hwireTarget]
+  · funext wire
+    cases hbit : input.2 ⟨control, hcontrol⟩
+    · simp [xorBasisUpdate, wireSplit,
+        Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, hbit]
+    · by_cases hwire : wire = ⟨target, htarget⟩
+      · subst wire
+        simp [xorBasisUpdate, wireSplit,
+          Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, htarget, hbit]
+      · have hwireValue : (wire : Fin n) ≠ target := by
+          intro heq
+          apply hwire
+          exact Subtype.ext heq
+        simp [xorBasisUpdate, wireSplit,
+          Equiv.piEquivPiSubtypeProd_symm_apply, hcontrol, htarget,
+          wire.property, hbit, Function.update_apply, hwire, hwireValue]
+
+/-- A CNOT whose two endpoints lie in `cut` acts only on that side. -/
+theorem cnotRaw_tensorLocalOnCut_of_mem {n : ℕ} (cut : Finset (Fin n))
+    (control target : Fin n) (hcontrolTarget : control ≠ target)
+    (hcontrol : control ∈ cut) (htarget : target ∈ cut) :
+    TensorLocalOnCut cut (cnotRaw control target hcontrolTarget) := by
+  refine ⟨cutCNOTRaw cut ⟨control, hcontrol⟩ ⟨target, htarget⟩, ?_⟩
+  ext row col
+  rw [partitionReindex_apply, Matrix.kronecker_apply,
+    cnotRaw_apply_eq_xorBasisUpdate, Matrix.one_apply]
+  have heq :
+      (wireSplit cut).symm row =
+          xorBasisUpdate control target ((wireSplit cut).symm col) ↔
+        row.1 = xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ col.1 ∧
+          row.2 = col.2 := by
+    constructor
+    · intro h
+      have hsplit := congrArg (wireSplit cut) h
+      rw [(wireSplit cut).apply_symm_apply,
+        wireSplit_xorBasisUpdate_of_mem cut control target hcontrol htarget] at hsplit
+      have hleft := congrArg Prod.fst hsplit
+      have hright :=
+        congrArg (fun pair : CutBasis cut × CutComplementBasis cut => pair.2) hsplit
+      exact ⟨hleft, hright⟩
+    · rintro ⟨hleft, hright⟩
+      apply (wireSplit cut).injective
+      rw [(wireSplit cut).apply_symm_apply,
+        wireSplit_xorBasisUpdate_of_mem cut control target hcontrol htarget]
+      exact Prod.ext hleft hright
+  by_cases hleft :
+      row.1 = xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ col.1 <;>
+    by_cases hright : row.2 = col.2 <;>
+      simp [cutCNOTRaw, heq, hleft, hright]
+
+/-- A CNOT whose two endpoints lie outside `cut` acts only there. -/
+theorem cnotRaw_tensorLocalOffCut_of_notMem {n : ℕ} (cut : Finset (Fin n))
+    (control target : Fin n) (hcontrolTarget : control ≠ target)
+    (hcontrol : control ∉ cut) (htarget : target ∉ cut) :
+    TensorLocalOffCut cut (cnotRaw control target hcontrolTarget) := by
+  refine ⟨cutComplementCNOTRaw cut ⟨control, hcontrol⟩ ⟨target, htarget⟩, ?_⟩
+  ext row col
+  rw [partitionReindex_apply, Matrix.kronecker_apply,
+    cnotRaw_apply_eq_xorBasisUpdate, Matrix.one_apply]
+  have heq :
+      (wireSplit cut).symm row =
+          xorBasisUpdate control target ((wireSplit cut).symm col) ↔
+        row.1 = col.1 ∧
+          row.2 =
+            xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ col.2 := by
+    constructor
+    · intro h
+      have hsplit := congrArg (wireSplit cut) h
+      rw [(wireSplit cut).apply_symm_apply,
+        wireSplit_xorBasisUpdate_of_notMem cut control target hcontrol htarget] at hsplit
+      have hleft :=
+        congrArg (fun pair : CutBasis cut × CutComplementBasis cut => pair.1) hsplit
+      have hright := congrArg Prod.snd hsplit
+      exact ⟨hleft, hright⟩
+    · rintro ⟨hleft, hright⟩
+      apply (wireSplit cut).injective
+      rw [(wireSplit cut).apply_symm_apply,
+        wireSplit_xorBasisUpdate_of_notMem cut control target hcontrol htarget]
+      exact Prod.ext hleft hright
+  by_cases hleft : row.1 = col.1 <;>
+    by_cases hright :
+        row.2 = xorBasisUpdate ⟨control, hcontrol⟩ ⟨target, htarget⟩ col.2 <;>
+      simp [cutComplementCNOTRaw, heq, hleft, hright]
 
 end
 
