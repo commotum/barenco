@@ -166,9 +166,9 @@ collection of hand-simplified paper examples.
   trust-zero checks, hygiene scans, and 420-entry maintained axiom audit pass.
 
 ## Remaining Assumptions to Test
-- The relative-phase A circuit appears to split chronologically into three groups
-  supported on two wire pairs: `A; CNOT; A`, the middle CNOT, and
-  `A†; CNOT; A†`. This must be checked under the exact wire/order convention.
+- The relative-phase A circuit has now been checked under the exact tail-first
+  normalizer convention: its three groups are `A; CNOT(second,target)`,
+  `A; CNOT(first,target)`, and `A†; CNOT(second,target); A†`.
 - The paper's Gray count may follow from same-target one-qubit mergers across
   transparent controlled-U expansion boundaries. Boundary gates and selected
   factors may prevent the naive formula; no count is trusted before syntax exists.

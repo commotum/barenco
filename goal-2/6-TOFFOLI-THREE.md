@@ -21,9 +21,10 @@ Status: in progress (2026-07-10).
   pairwise-distinct relative-A input, the root-excluded diagnostic reduces seven
   nodes to three literal U(4) nodes with profile `(oneQ,CNOT,U4,total)=(0,0,3,3)`,
   Section 8 cost `some 3`, and early-model cost `none`.
-- The three groups are structurally the two sandwiches on pair `(second,target)`
-  around the middle canonical CNOT payload on pair `(first,target)`. Pairwise
-  distinctness prevents the normalizer from fusing across the two pair changes.
+- The tail-first normalizer emits the exact chronological groups
+  `A; CNOT(second,target)`, `A; CNOT(first,target)`, and
+  `A†; CNOT(second,target); A†`. Pairwise distinctness prevents fusion across
+  the two ordered-pair changes.
 - Exact evaluator equality already implies arbitrary spectator preservation. No
   ancilla is introduced, and no phase quotient is used by the optimizer.
 

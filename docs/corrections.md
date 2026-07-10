@@ -941,19 +941,21 @@ statement. “Open” means the repair is identified but not yet machine checked
   cost five at prefix arities zero and one and is rejected only from prefix arity
   two onward.
 - **Dependent impact:** the Section 8 five- and thirteen-operation upper bounds,
-  both unmerged relative-phase circuits, the recursive macro boundary, and the
-  comparison between the two named models. It does not create an arbitrary
-  two-qubit embedding or justify gate merging.
+  both unmerged relative-phase circuits, the later explicit three-gate
+  implementation, the recursive macro boundary, and the comparison between the
+  two named models. It does not create an arbitrary two-qubit embedding or, by
+  itself, justify gate merging.
 - **Formal evidence:** `CostModel.arbitraryTwoQubit_controlled`,
   `CostModel.arbitraryTwoQubit_controlled_eq_some_one_iff`,
   `Primitive.arbitraryTwoQubit_cost_positiveControlled`,
   `recursiveViaSquareCircuit_arbitraryTwoQubitCost`,
   `doubleControlledRootCircuit_arbitraryTwoQubitCost`, and
-  `fourBitGrayCircuit_arbitraryTwoQubitCost`.
+  `fourBitGrayCircuit_arbitraryTwoQubitCost`. The distinct syntax-and-semantics
+  proof for the relative-phase merger is recorded separately in C-036.
 - **Status:** corrected and proved with explicit zero-, one-, and at-least-two
-  control boundaries. The paper's merged relative-phase cost three remains
-  unresolved because the library has no corresponding literal three-node syntax;
-  the two verified unmerged circuits each have exact Section 8 cost seven.
+  control boundaries. The two source circuits retain exact Section 8 cost seven;
+  C-036 proves the separate named three-node implementation rather than repricing
+  either source list.
 
 ## C-033 — A fixed-schedule Theta lower bound is not target hardness
 
@@ -1026,3 +1028,47 @@ statement. “Open” means the repair is identified but not yet machine checked
   `expandedGrayControlledCircuit_oneQubitCNOTCost`.
 - **Status:** exact semantics and the raw literal resource profile are proved; the
   post-merger one-qubit count and a Gray-family asymptotic theorem are not exported.
+
+## C-036 — Section 8's cost-three statement omits the merged syntax and phase scope
+
+- **Source:** Section 6.2, manuscript p. 16; Section 8, manuscript p. 26;
+  Markdown lines 567–583 and 891–901.
+- **Issue:** the source says that three arbitrary two-bit operations produce
+  Toffoli “modulo phases” after permitting mergers in the Section 6.2 construction,
+  but it gives neither the three merged payloads nor an evaluator-preservation
+  argument. Exact semantics and cost seven for the original list cannot establish a
+  cost-three theorem for different syntax. The phrase “modulo phases” is also not
+  one global scalar here: the displayed A/B circuits have an input-column sign on
+  `101`. The following numerical discussion explicitly does not prove that three is
+  minimal.
+- **Repair:** retain the A chronology in transparent syntax and apply the general
+  exact Section 8 normalizer. It emits three certified ordered-pair `U(4)` nodes:
+  `A; CNOT(second,target)`, `A; CNOT(first,target)`, and
+  `A†; CNOT(second,target); A†`. Define that list independently as
+  `relativePhaseToffoliThreeGateFusionCircuit`, lower it only through the trusted
+  arbitrary-two-qubit constructor, and prove exact full-register equality to both
+  the seven-node A evaluator and `relativeToffoliUnitary`. Under pairwise-distinct
+  named wires, transfer the exact `101` signed basis action and its
+  `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq` consequences.
+  Derive the profile `(oneQ,CNOT,U4,total)=(0,0,3,3)` and both partial costs from
+  the named fusion and lowered syntax.
+- **Dependent impact:** the Section 8 cost-three statement is recovered as a
+  constructive upper count. The original A and B lists remain seven-node syntax;
+  the B diagram has no separate normalizer-output theorem, and the generic `U(4)`
+  output is unsupported by the Sections 3–7 one-qubit/CNOT model. This result does
+  not change Corollary 7.4's early-model expansion, settle Lemma 7.1's distinct Gray
+  merger problem, prove optimizer completeness, or establish a three-gate lower
+  bound.
+- **Formal evidence:**
+  `section8Normalize_relativePhaseToffoliAFusionCircuit`,
+  `eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A`,
+  `eval_relativePhaseToffoliThreeGateCircuit_eq_A`,
+  `eval_relativePhaseToffoliThreeGateCircuit`,
+  `relativePhaseToffoliThreeGateCircuit_mulVec_basisKet`,
+  `relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli`,
+  `relativePhaseToffoliThreeGateCircuit_sameBasisBehavior`,
+  `relativePhaseToffoliThreeGateCircuit_basisMeasurementEq`, and the fusion and
+  lowered component/count/cost theorems compile.
+- **Status:** clarified and proved as an explicit syntax-derived constructive upper
+  count. No exact-Toffoli, global-phase, channel, all-measurement, arbitrary-input
+  measurement, or minimality theorem is claimed.

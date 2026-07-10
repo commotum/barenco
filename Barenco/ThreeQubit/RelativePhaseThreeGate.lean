@@ -11,11 +11,11 @@ the explicit three-`U(4)` circuit in this file.  The construction works in an
 arbitrary ambient register and therefore preserves every spectator wire.
 
 This is a constructive upper count, not a minimality theorem.  Its evaluator is
-exactly `relativeToffoliUnitary`, which is not exact Toffoli and is not related
-to Toffoli by one global phase.  Under pairwise-distinct named wires the strongest
-phase-relaxed statement exported here is the established input-column
-`BasisPhaseEq`; the corresponding classical-basis and computational-basis
-measurement consequences are stated separately.
+exactly `relativeToffoliUnitary`, with the established `101` input-column sign.
+Under pairwise-distinct named wires the strongest Toffoli-relative statement
+exported here is `BasisPhaseEq`; no exact-Toffoli or global-phase theorem is
+claimed.  The corresponding classical-basis and computational-basis measurement
+consequences are stated separately.
 -/
 
 namespace Barenco.ThreeQubit

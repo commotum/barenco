@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 420 `#print axioms` checks, with one
+The maintained audit module currently contains 432 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -454,6 +454,18 @@ row below for each checked declaration.
 | `Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | conditional Section 8 cost nonincrease preserves unsupported barriers honestly; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_cost_eq_none_iff` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | Section 8 mixed normalization preserves unsupportedness exactly, whose only source is an unsupported barrier; no project axiom | 2026-07-10 |
 | `Barenco.Optimization.SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease` | `Barenco.Optimization.NormalizeResources` | `propext`, `Classical.choice`, `Quot.sound` | erased symbolic output remains accepted and no more expensive in the early model; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.section8Normalize_relativePhaseToffoliAFusionCircuit` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | the general exact normalizer emits the explicit three-node payload list; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | visible three-node syntax exactly preserves the seven-node A evaluator; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.eval_relativePhaseToffoliThreeGateCircuit_eq_A` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | trusted lowering remains exactly equal to the original A circuit; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.eval_relativePhaseToffoliThreeGateCircuit` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | exact arbitrary-register equality to the signed relative-Toffoli unitary; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_mulVec_basisKet` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | exact computational-basis action with the `101` input-column sign; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | strongest exported Toffoli-relative phase classification; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_sameBasisBehavior` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | derived classical reversible basis behavior; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_basisMeasurementEq` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | derived computational-basis transition-probability equality; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateFusionCircuit_gateCount` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | literal visible list has exactly three nodes; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_twoQubitCount` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | trusted lowered syntax has exactly three arbitrary-two-qubit nodes; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | syntax-derived Section 8 cost is exactly `some 3`; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_oneQubitCNOTCost` | `Barenco.ThreeQubit.RelativePhaseThreeGate` | `propext`, `Classical.choice`, `Quot.sound` | early model honestly rejects the generic U(4) output; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
 

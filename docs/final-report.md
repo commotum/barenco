@@ -59,7 +59,7 @@ The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 | Equivalence and error | `Equivalence/*` | exact global phase, basis-dependent phase, basis behavior, channel/all-measurement equality, L2 operator distance, event-probability bounds |
 | One-qubit algebra | `OneQubit/*` | row/column convention bridge, Euler forms, Pauli/rotation identities, ABC factors, exact and coherent roots |
 | Controlled gates | `ControlledCircuit/*` | target-block semantics, general and special controlled-U decompositions, controlled scalar phases, explicit expansions |
-| Three-qubit gates | `ThreeQubit/*` | Lemma 6.1, exact primitive expansion, signed relative-phase Toffoli circuits |
+| Three-qubit gates | `ThreeQubit/*` | Lemma 6.1, exact primitive expansion, signed relative-phase Toffoli circuits, and the explicit three-`U(4)` Section 8 implementation |
 | Multi-control | `MultiControl/*` | Gray circuits, dirty-wire ladders, four-block and recursive constructions, relative-phase substitution, clean ancillas, exact resources |
 | Approximation | `MultiControl/Approximate*`, `ApproximationResources` | truncated coherent roots, exact residual formula, operator/event error, capacity-aware synthesis |
 | Lower bounds | `LowerBounds/*` | restricted basic syntax, interaction graph, cut factorization, nonscalar obstruction, `n-1` CNOT lower bound |
@@ -89,6 +89,8 @@ imported by the public root.
 | `operatorDistance`, `eventProbability` | L2 induced operator distance and finite computational-basis event probabilities |
 | `unitaryRoot`, `powerTwoRoot` | exact arbitrary roots and a coherent power-of-two root sequence |
 | `controlledU2Circuit`, `doubleControlledRootCircuit`, `grayControlledCircuit` | selected controlled and multi-controlled circuits |
+| `relativePhaseToffoliThreeGateCircuit`, `section8Normalize_relativePhaseToffoliAFusionCircuit` | named three-`U(4)` relative-phase Toffoli implementation and exact normalizer-output certificate |
+| `eval_relativePhaseToffoliThreeGateCircuit`, `relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost` | exact signed-unitary evaluator and syntax-derived Section 8 cost three |
 | `cleanAncillaCircuit`, `expandedCleanAncillaCircuit_oneCleanAncillaContract`, `eval_expandedCleanAncillaCircuit_factorization` | clean-zero construction, structural one-ancilla contract, and semantic restoration/factorization |
 | `decomposeFiniteUnitary` | arbitrary finite-index exact two-level decomposition with diagonal residual |
 | `twoLevelCircuit`, `diagonalCircuit`, `exactSynthesisCircuit` | literal no-ancilla positive-width synthesis layers |
@@ -122,7 +124,9 @@ imported by the public root.
   kind. It rejects larger controlled macros, Toffoli macros, and unclassified
   nodes.
 - Repricing the same literal syntax does not merge gates. Merging requires a new
-  circuit and an evaluator-preservation theorem.
+  circuit and an evaluator-preservation theorem. The relative-phase Toffoli merger
+  meets this requirement with a distinct named three-node circuit; the original A
+  and B source lists remain seven-node syntax.
 
 See `docs/conventions.md` for the full specification.
 
@@ -143,8 +147,8 @@ infrastructure; and the six-`U(4)` figure remains unresolved.
 | 5 | `lemma-5-5-one-xor-special-case.png` | fully reconstructed with the omitted converse and phase normalization | `eval_oneCNOTCircuit_eq_iff`, `oneCNOTFamily_iff` |
 | 6 | `controlled-z-symmetry.png` | fully reconstructed as exact arbitrary-register wire-swap equality | `controlledZRaw_swap`, `controlledZUnitary_swap` |
 | 7 | `lemma-6-1-controlled-controlled-u.png` | fully reconstructed, including root selection, both inverse orders, spectators, restoration, and counts | `eval_doubleControlledRootCircuit`, expansion/cost theorems |
-| 8 | `relative-phase-toffoli-a.png` | fully reconstructed as its exact signed unitary and `BasisPhaseEq` to Toffoli; literal cost seven | `eval_relativePhaseToffoliACircuit`, basis-action/phase/cost theorems |
-| 9 | `relative-phase-toffoli-b.png` | fully reconstructed and proved exactly equal to the A circuit; literal cost seven under Section 8 | `eval_relativePhaseToffoliBCircuit`, `eval_relativePhaseToffoliACircuit_eq_BCircuit` |
+| 8 | `relative-phase-toffoli-a.png` | fully reconstructed as its exact signed unitary and `BasisPhaseEq` to Toffoli; source syntax costs seven, while a separate exactly evaluator-equivalent three-`U(4)` grouping has Section 8 cost three | `eval_relativePhaseToffoliACircuit`, `section8Normalize_relativePhaseToffoliAFusionCircuit`, `eval_relativePhaseToffoliThreeGateCircuit`, basis-action/phase/count/cost theorems |
+| 9 | `relative-phase-toffoli-b.png` | fully reconstructed and proved exactly equal to the A circuit; its literal syntax costs seven under Section 8, and no separate B-normalizer-output claim is made | `eval_relativePhaseToffoliBCircuit`, `eval_relativePhaseToffoliACircuit_eq_BCircuit` |
 | 10 | `four-bit-gray-code-construction.png` | fully reconstructed as the displayed 13-node chronology on arbitrary ambient width | `fourBitGrayCircuit`, `eval_fourBitGrayCircuit`, exact kind/cost theorems |
 | 11 | `lemma-7-2-linear-multi-control.png` | fully reconstructed; dirty wires and spectators restored, exact Toffoli count | `inwardLadderCircuit`, `eval_inwardLadderCircuit`, support/resource theorems |
 | 12 | `lemma-7-3-four-block-construction.png` | fully reconstructed; “by inspection” replaced by Boolean case algebra and exact full-register equality | `fourBlockCircuit`, `fourBlockUpdate_eq_update`, `eval_fourBlockCircuit` |
@@ -166,7 +170,7 @@ a proved affine X/CNOT endpoint normalization.
 | Section 5 general controlled `U(2)` | exact constructed cost 6: four one-qubit and two CNOT gates |
 | Section 5 special topologies | exact costs 4 and 3, with iff family classifications |
 | Lemma 6.1 | exact five-node at-most-two-wire macro cost under Section 8; exact expansion cost 16 under one-qubit/CNOT |
-| Relative-phase Toffoli | both verified unmerged circuits cost 7 under Section 8; the paper's merged cost 3 is unresolved |
+| Relative-phase Toffoli | both source circuits remain seven nodes; the named A-derived merged syntax has exactly three certified `U(4)` nodes, exact full-register equality to the signed unitary, Section 8 cost `some 3`, and one-qubit/CNOT cost `none`; this is a constructive upper count, not a minimum |
 | Four-bit Gray circuit | exact Section 8 cost 13: seven singly controlled roots and six CNOTs |
 | General Gray expansion | for `m>=1` controls, exact raw profile: `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8` |
 | Lemma 7.2 dirty ladder | for `m>=3` controls with stated ambient capacity, exact `4(m-2)` Toffoli occurrences and restoration |
@@ -185,7 +189,7 @@ result has a preceding finite natural-number inequality or exact recurrence.
 
 ## Corrections and Material Differences
 
-The complete log contains 35 entries in `docs/corrections.md`. The most important
+The complete log contains 36 entries in `docs/corrections.md`. The most important
 families are:
 
 - **Matrix and execution conventions:** the source uses row action while the
@@ -220,6 +224,10 @@ families are:
   optimality interpretation.
 - **Section 8 model:** a singly controlled one-qubit macro is a certified two-wire
   operation and must be accepted; larger controlled macros remain rejected.
+- **Section 8 relative-phase merger:** the source's omitted grouping is reconstructed
+  as a distinct three-`U(4)` circuit with exact evaluator preservation. Its relation
+  to Toffoli is the explicit `101` input-column `BasisPhaseEq`; no exact or global
+  phase theorem is claimed, and the count is not a minimality theorem.
 - **Historical efficiency:** “most efficient known” is time-dependent comparative
   context without a specified exhaustive circuit class or proof, not a formal
   optimality claim.
@@ -235,8 +243,6 @@ families are:
   density or compilation.
 - The paper's optimized Corollary 7.4 count `48n-204` is not obtained by the
   explicit checked normalization; the library exports its literal `56n-244` count.
-- The merged three-arbitrary-two-qubit relative-phase Toffoli circuit is absent.
-  Existing seven-node circuits are not silently repriced to three.
 - Numerical minimality of the five-, three-, and thirteen-operation Section 8
   circuits is not theoremized.
 - The six-`U(4)` architecture for arbitrary `U(8)` is unresolved. Matching

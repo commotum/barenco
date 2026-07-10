@@ -133,6 +133,21 @@ promotes each CNOT to its certified ordered local `U(4)` payload and then absorb
 compatible endpoint-local and same-pair operations. Its output is CNOT-free and
 is generally unsupported by the stricter one-qubit/CNOT cost model.
 
+The paper-facing relative-phase instance is explicit. On pairwise-distinct wires,
+`section8Normalize_relativePhaseToffoliAFusionCircuit` emits three chronological
+payload groups:
+
+1. `A; CNOT(second,target)` on `(second,target)`;
+2. `A; CNOT(first,target)` on `(first,target)`;
+3. `A†; CNOT(second,target); A†` on `(second,target)`.
+
+The first two nodes use `targetThenCNOTPayload`; only the third is a
+`targetCNOTTargetPayload` sandwich. Their local matrix products are written in
+reverse chronological order, as required by column-vector semantics. Exact
+normalizer and lowering theorems prove equality with the seven-node input on the
+complete ambient register. This concrete result does not assert that the policy is
+globally canonical, complete, or optimal.
+
 Neither concrete policy tests equality of arbitrary complex matrices. Their raw
 identity predicate is deliberately false, so scalar phases are retained exactly.
 When cancellation provenance is required, `SymbolicCircuit` stores one-qubit
@@ -546,6 +561,16 @@ one-qubit gates and three controlled-Z macros. Its structural node count is also
 seven, but its `oneQubitCNOT` cost is `none`; exact semantic equality with the A
 circuit does not transfer the A circuit's resource count to that different syntax.
 
+For the changed Section 8 model, `relativePhaseToffoliThreeGateFusionCircuit`
+stores the three payload groups above as three certified ordered-pair `U(4)` nodes,
+and `relativePhaseToffoliThreeGateCircuit` is their trusted lowering. The exact
+evaluator bridges require only that each control differ from the target and hold in
+an arbitrary ambient register, so every spectator is preserved and no auxiliary
+wire is introduced. The theorem identifying this list as the general normalizer's
+output, and every Toffoli-relative signed/phase classification theorem, additionally
+requires the two controls to be distinct. The source A and B lists remain separate
+seven-node syntax; the B list is not independently normalized or repriced.
+
 `relativeToffoliUnitary_sq` proves the common signed permutation is an involution,
 and the two `eval_append_relativePhaseToffoli*Circuit_self` theorems consequently
 cancel two immediately adjacent identical copies. This does not prove the stronger
@@ -658,10 +683,14 @@ normalization, real-valued probabilities, or the interval bounds `0 ≤ p ≤ 1`
 Those restrictions require separate structures and theorems. Quantifying over all
 matrices/effects is intentionally stronger and makes the trace pairing separating.
 
-Section 6's `≅` diagrams establish the explicit basis-dependent `101` sign described
-above, not a global phase. The resulting `BasisPhaseEq`, `SameBasisBehavior`, and
-`BasisMeasurementEq` theorems are proved; no channel/all-measurement equivalence is
-claimed.
+Section 6's `≅` diagrams and the named three-`U(4)` implementation establish the
+explicit basis-dependent `101` sign described above, not a global phase. The
+three-node evaluator is exactly equal to `relativeToffoliUnitary`; its relation to
+exact Toffoli is instead the exported `BasisPhaseEq`, with derived
+`SameBasisBehavior` and `BasisMeasurementEq`. The last relation compares only
+computational-basis input/output transition probabilities. No exact-Toffoli,
+`GlobalPhaseEq`, channel/all-measurement, arbitrary-superposition measurement, or
+arbitrary-precomposition equivalence is claimed.
 
 ## Approximation and Probability
 
@@ -915,11 +944,14 @@ literal singleton `[Primitive.twoQubit pair U]` has gate count and
 arbitrary-two-qubit kind count one, exact endpoint touched support, Section 8 cost
 `some 1`, and one-qubit/CNOT cost `none`. Its adjoint is exactly the same ordered
 pair carrying `U⁻¹`, with both costs preserved. These conclusions come from
-syntax, not from semantic matrix equality. The two verified relative-phase
-circuits each remain seven literal nodes. The paper's
-three-operation relative-phase count groups neighboring nodes into three general
-two-wire operations; it is not assigned to the seven-node syntax without an
-explicit grouped circuit and evaluator theorem.
+syntax, not from semantic matrix equality. The two source relative-phase circuits
+each remain seven literal nodes. Separately, the named merged fusion circuit and
+its trusted lowering contain zero one-qubit nodes, zero CNOT nodes, three certified
+arbitrary-two-qubit nodes, and three total nodes. Both have Section 8 cost `some 3`
+and one-qubit/CNOT cost `none`; exact evaluator preservation is proved before these
+syntax-derived counts are used. Three is therefore an exact count for this named
+syntax and a constructive upper count for the phase-relaxed Toffoli target, not a
+minimality result or an early-model implementation.
 
 `Circuit.registerWidth`, `gateCount`, `kindCount`, and `touchedSupport` inspect
 typed syntax only; `touchedSupport_card_le_registerWidth` proves the named support

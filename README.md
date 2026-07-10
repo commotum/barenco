@@ -66,7 +66,9 @@ claim or a lower bound on arbitrary implementations of `U`.
 | Area | Main modules | Purpose |
 |---|---|---|
 | Core semantics | `Barenco.Basic`, `Barenco.Semantics`, `Barenco.Controlled` | Basis states, matrices, local embeddings, controlled operations, and full-register action |
+| Ordered two-wire gates | `Barenco.TwoWire.*` | Certified ordered `U(4)` embeddings, spectator/orientation laws, and trusted arbitrary-two-qubit syntax |
 | Circuit syntax and costs | `Barenco.Circuit`, `Barenco.Cost` | Chronological syntax, evaluation, gate counts, and named partial cost models |
+| Exact normalization | `Barenco.Optimization.*` | Payload-preserving fusion syntax, exact lowering, executable model-specific passes, barriers, and syntax-derived cost behavior |
 | One-qubit algebra | `Barenco.OneQubit.*` | Certified rotations, Euler decompositions, determinant phases, roots, and selected factors |
 | Controlled circuits | `Barenco.ControlledCircuit.*` | Target-block reasoning and exact Section 5 circuit decompositions |
 | Three and many qubits | `Barenco.ThreeQubit.*`, `Barenco.MultiControl.*` | Controlled-controlled gates, relative phases, recursive constructions, ancillas, approximation, and resources |
@@ -82,9 +84,10 @@ claim or a lower bound on arbitrary implementations of `U`.
   natural-number encoding.
 - A `Circuit n` is chronological: its head executes first. With column vectors,
   later gates multiply on the left, so `[A, B]` evaluates as `B * A`.
-- Exact matrix equality, `GlobalPhaseEq`, and `BasisPhaseEq` are distinct. The
-  library also keeps classical basis behavior and measurement-distribution
-  consequences separate rather than treating every phase as global.
+- Exact matrix equality, `GlobalPhaseEq`, and input-column `BasisPhaseEq` are
+  distinct. The library also keeps classical basis behavior, computational-basis
+  transition probabilities, and channel/all-effect behavior separate rather than
+  treating every phase as global.
 - `operatorDistance A B` uses mathlib's induced L2 operator norm (the spectral
   norm), not a Frobenius or entrywise norm.
 - Resource theorems come from literal syntax. `CostModel.oneQubitCNOT` accepts
@@ -108,9 +111,16 @@ claim or a lower bound on arbitrary implementations of `U`.
   empty circuit, while the semantic unitary group is `U(1)`; exact width-zero
   universality is therefore false. General `Circuit 0` still permits conservative
   unclassified semantic nodes, which the named cost models reject.
-- The paper's merged three-operation relative-phase Toffoli claim is not promoted
-  to a proved cost-3 theorem. The explicit unmerged circuits are represented and
-  costed separately.
+- The paper's merged relative-phase Toffoli claim is reconstructed as the distinct
+  named `relativePhaseToffoliThreeGateCircuit`: it contains three certified `U(4)`
+  nodes, is exactly equal to the seven-node A evaluator on the full ambient
+  register, and has Section 8 cost `some 3`. Relative to exact Toffoli, the strongest
+  exported relation is the explicit `101` input-column `BasisPhaseEq`, with only
+  classical-basis and computational-basis measurement consequences. This is a
+  constructive upper count; no exact-Toffoli, `GlobalPhaseEq`, arbitrary-input
+  measurement-equivalence, or minimality theorem is claimed. The original A and B
+  lists remain seven-node syntax, and the three generic `U(4)` nodes are unsupported
+  by `CostModel.oneQubitCNOT`.
 - The claimed six-`U(4)` synthesis and the heuristic dimension-counting lower
   bound are not established as theorems.
 - No dense-generation theorem for a fixed finite gate set is claimed. Arbitrary
