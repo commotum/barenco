@@ -72,7 +72,26 @@ theorem all_true_patternFlipBasis_iff (controlCount : ℕ)
       (splitTarget target input).2 = pattern := by
   simpa using patternFlipBasis_all_true_iff target pattern input
 
-/-- The positive backend's action after the pattern-flip prefix. -/
+/-- The all-positive semantic gate's action after the pattern-flip prefix. -/
+theorem positiveControlledUnitary_patternFlipBasis (controlCount : ℕ)
+    (target : Fin (controlCount + 1)) (pattern : ComplementBasis target)
+    (U : QubitUnitary) (input : Basis (controlCount + 1)) :
+    (positiveControlledUnitary target Finset.univ U :
+        Gate (controlCount + 1)) *ᵥ
+        basisKet (patternFlipBasis target pattern input) =
+      if (splitTarget target input).2 = pattern then
+        localRaw target U *ᵥ basisKet (patternFlipBasis target pattern input)
+      else basisKet (patternFlipBasis target pattern input) := by
+  rw [coe_positiveControlledUnitary, positiveControlledRaw_truthTable]
+  have hiff : (∀ wire ∈ (Finset.univ : ControlSet target),
+      patternFlipBasis target pattern input wire = true) ↔
+      (splitTarget target input).2 = pattern :=
+    all_true_patternFlipBasis_iff controlCount target pattern input
+  by_cases hmatch : (splitTarget target input).2 = pattern
+  · rw [if_pos hmatch, if_pos (hiff.mpr hmatch)]
+  · rw [if_neg hmatch, if_neg (fun hall => hmatch (hiff.mp hall))]
+
+/-- The positive circuit backend has the same action after the pattern flip. -/
 theorem eval_fullControlCircuit_patternFlipBasis (controlCount : ℕ)
     (target : Fin (controlCount + 1)) (pattern : ComplementBasis target)
     (U : QubitUnitary) (input : Basis (controlCount + 1)) :
@@ -83,14 +102,59 @@ theorem eval_fullControlCircuit_patternFlipBasis (controlCount : ℕ)
         localRaw target U *ᵥ basisKet (patternFlipBasis target pattern input)
       else basisKet (patternFlipBasis target pattern input) := by
   rw [eval_fullControlCircuit]
-  rw [coe_positiveControlledUnitary, positiveControlledRaw_truthTable]
-  have hiff : (∀ wire ∈ (Finset.univ : ControlSet target),
-      patternFlipBasis target pattern input wire = true) ↔
-      (splitTarget target input).2 = pattern :=
-    all_true_patternFlipBasis_iff controlCount target pattern input
+  exact positiveControlledUnitary_patternFlipBasis controlCount target pattern U input
+
+/-- Semantic flip/conjugate/unflip form, separated from the chosen circuit backend. -/
+def patternConjugateUnitary (controlCount : ℕ)
+    (target : Fin (controlCount + 1)) (pattern : ComplementBasis target)
+    (U : QubitUnitary) : UnitaryGate (controlCount + 1) :=
+  let P := patternFlipUnitary target pattern
+  P⁻¹ * positiveControlledUnitary target Finset.univ U * P
+
+/-- Exact basis action of the semantic mixed-control conjugation. -/
+theorem patternConjugateUnitary_mulVec_basisKet (controlCount : ℕ)
+    (target : Fin (controlCount + 1)) (pattern : ComplementBasis target)
+    (U : QubitUnitary) (input : Basis (controlCount + 1)) :
+    (patternConjugateUnitary controlCount target pattern U :
+      Gate (controlCount + 1)) *ᵥ basisKet input =
+      if (splitTarget target input).2 = pattern then
+        localRaw target U *ᵥ basisKet input
+      else basisKet input := by
+  let P : UnitaryGate (controlCount + 1) := patternFlipUnitary target pattern
+  let L : UnitaryGate (controlCount + 1) := localUnitary target U
+  have hcomm : Commute P L :=
+    patternFlipUnitary_commute_localUnitary target pattern U
+  rw [patternConjugateUnitary]
+  change (((((P⁻¹ : UnitaryGate (controlCount + 1)) :
+      Gate (controlCount + 1))) *
+      (positiveControlledUnitary target Finset.univ U :
+        Gate (controlCount + 1)) * (P : Gate (controlCount + 1))) *ᵥ
+      basisKet input) = _
+  rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec,
+    patternFlipUnitary_mulVec_basisKet,
+    positiveControlledUnitary_patternFlipBasis]
   by_cases hmatch : (splitTarget target input).2 = pattern
-  · rw [if_pos hmatch, if_pos (hiff.mpr hmatch)]
-  · rw [if_neg hmatch, if_neg (fun hall => hmatch (hiff.mp hall))]
+  · rw [if_pos hmatch, if_pos hmatch]
+    exact unitary_inv_mulVec_commuting_of_mulVec_eq P L hcomm
+      (basisKet input) (basisKet (patternFlipBasis target pattern input))
+      (patternFlipUnitary_mulVec_basisKet target pattern input)
+  · rw [if_neg hmatch, if_neg hmatch]
+    exact unitary_inv_mulVec_of_mulVec_eq P
+      (basisKet input) (basisKet (patternFlipBasis target pattern input))
+      (patternFlipUnitary_mulVec_basisKet target pattern input)
+
+/-- Exact semantic conjugation from mixed controls to all-positive controls. -/
+theorem patternConjugateUnitary_eq (controlCount : ℕ)
+    (target : Fin (controlCount + 1)) (pattern : ComplementBasis target)
+    (U : QubitUnitary) :
+    patternConjugateUnitary controlCount target pattern U =
+      patternControlledUnitary target pattern U := by
+  apply Subtype.ext
+  rw [matrix_eq_iff_mulVec_basisKet_eq]
+  intro input
+  rw [patternConjugateUnitary_mulVec_basisKet,
+    coe_patternControlledUnitary, controlledRaw_truthTable]
+  simp only [exactPatternEnabled, decide_eq_true_eq]
 
 /-- Exact evaluator of the mixed-polarity flip/apply/unflip construction. -/
 @[simp]
@@ -99,50 +163,10 @@ theorem eval_patternControlledCircuit (controlCount : ℕ)
     (U : QubitUnitary) :
     Circuit.eval (patternControlledCircuit controlCount target pattern U) =
       patternControlledUnitary target pattern U := by
-  let flips := patternFlipCircuit target pattern
-  let P : UnitaryGate (controlCount + 1) := Circuit.eval flips
-  let L : UnitaryGate (controlCount + 1) := localUnitary target U
-  have hcomm : Commute P L := by
-    exact eval_patternFlipCircuit_commute_localUnitary target pattern U
-  have hactive : P⁻¹ * L * P = L := by
-    calc
-      P⁻¹ * L * P = P⁻¹ * (L * P) := by rw [mul_assoc]
-      _ = P⁻¹ * (P * L) := by rw [← hcomm.eq]
-      _ = L := by simp
-  apply Subtype.ext
-  rw [matrix_eq_iff_mulVec_basisKet_eq]
-  intro input
   rw [patternControlledCircuit, Circuit.eval_append, Circuit.eval_append,
-    Circuit.eval_adjoint]
-  change ((((P⁻¹ * Circuit.eval (fullControlCircuit controlCount target U)) * P :
-      UnitaryGate (controlCount + 1)) : Gate (controlCount + 1)) *ᵥ
-        basisKet input) = _
-  rw [coe_patternControlledUnitary, controlledRaw_truthTable]
-  simp only [exactPatternEnabled, decide_eq_true_eq]
-  change (((P⁻¹ : Gate (controlCount + 1)) *
-      (Circuit.eval (fullControlCircuit controlCount target U) :
-        Gate (controlCount + 1)) * (P : Gate (controlCount + 1))) *ᵥ
-      basisKet input) = _
-  rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec,
-    eval_patternFlipCircuit_mulVec_basisKet,
-    eval_fullControlCircuit_patternFlipBasis]
-  by_cases hmatch : (splitTarget target input).2 = pattern
-  · rw [if_pos hmatch, if_pos hmatch]
-    change ((P⁻¹ : Gate (controlCount + 1)) *ᵥ
-        (L : Gate (controlCount + 1)) *ᵥ
-          basisKet (patternFlipBasis target pattern input)) =
-      (L : Gate (controlCount + 1)) *ᵥ basisKet input
-    rw [← eval_patternFlipCircuit_mulVec_basisKet target pattern input]
-    rw [Matrix.mulVec_mulVec, Matrix.mulVec_mulVec]
-    change ((P⁻¹ * L * P : UnitaryGate (controlCount + 1)) :
-        Gate (controlCount + 1)) *ᵥ basisKet input = _
-    rw [hactive]
-  · rw [if_neg hmatch, if_neg hmatch]
-    rw [← eval_patternFlipCircuit_mulVec_basisKet target pattern input]
-    rw [Matrix.mulVec_mulVec]
-    change (((P⁻¹ * P : UnitaryGate (controlCount + 1)) :
-      Gate (controlCount + 1)) *ᵥ basisKet input) = basisKet input
-    simp
+    Circuit.eval_adjoint, eval_fullControlCircuit,
+    eval_patternFlipCircuit_eq]
+  exact patternConjugateUnitary_eq controlCount target pattern U
 
 /-! ## Literal syntax accounting -/
 

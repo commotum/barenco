@@ -121,6 +121,17 @@ def patternFlipCircuit {n : ℕ} (target : Fin n)
     (pattern : ComplementBasis target) : Circuit n :=
   xCircuit (falsePatternWires pattern)
 
+/-- Named certified semantic permutation of the literal pattern-flip circuit. -/
+def patternFlipUnitary {n : ℕ} (target : Fin n)
+    (pattern : ComplementBasis target) : UnitaryGate n :=
+  Circuit.eval (patternFlipCircuit target pattern)
+
+@[simp]
+theorem eval_patternFlipCircuit_eq {n : ℕ} (target : Fin n)
+    (pattern : ComplementBasis target) :
+    Circuit.eval (patternFlipCircuit target pattern) =
+      patternFlipUnitary target pattern := rfl
+
 /-- Pointwise basis permutation performed by `patternFlipCircuit`. -/
 def patternFlipBasis {n : ℕ} (target : Fin n)
     (pattern : ComplementBasis target) (input : Basis n) : Basis n :=
@@ -168,6 +179,14 @@ theorem eval_patternFlipCircuit_mulVec_basisKet {n : ℕ} (target : Fin n)
       basisKet (patternFlipBasis target pattern input) := by
   rw [patternFlipCircuit, eval_xCircuit_mulVec_basisKet,
     toggleBasis_falsePatternWires]
+
+/-- Basis action through the named semantic pattern-flip unitary. -/
+@[simp]
+theorem patternFlipUnitary_mulVec_basisKet {n : ℕ} (target : Fin n)
+    (pattern : ComplementBasis target) (input : Basis n) :
+    (patternFlipUnitary target pattern : Gate n) *ᵥ basisKet input =
+      basisKet (patternFlipBasis target pattern input) := by
+  exact eval_patternFlipCircuit_mulVec_basisKet target pattern input
 
 @[simp]
 theorem patternFlipBasis_target {n : ℕ} (target : Fin n)
@@ -225,6 +244,41 @@ theorem eval_patternFlipCircuit_commute_localUnitary {n : ℕ}
   rw [falsePatternWires, List.mem_map] at hwire
   rcases hwire with ⟨control, _, rfl⟩
   exact control.property
+
+/-- Named semantic pattern flip commutes with every target-local unitary. -/
+theorem patternFlipUnitary_commute_localUnitary {n : ℕ}
+    (target : Fin n) (pattern : ComplementBasis target) (U : QubitUnitary) :
+    Commute (patternFlipUnitary target pattern) (localUnitary target U) := by
+  exact eval_patternFlipCircuit_commute_localUnitary target pattern U
+
+/-! ## Small unitary-action cancellation lemmas -/
+
+/-- Applying a certified inverse undoes any known vector action. -/
+theorem unitary_inv_mulVec_of_mulVec_eq {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (P : Matrix.unitaryGroup ι ℂ) (input output : ι → ℂ)
+    (hP : (P : Matrix ι ι ℂ) *ᵥ input = output) :
+    ((P⁻¹ : Matrix.unitaryGroup ι ℂ) : Matrix ι ι ℂ) *ᵥ output = input := by
+  rw [← hP, Matrix.mulVec_mulVec]
+  change (((P⁻¹ * P : Matrix.unitaryGroup ι ℂ) : Matrix ι ι ℂ) *ᵥ input) = input
+  simp
+
+/-- A commuting unitary conjugation leaves the other unitary's vector action unchanged. -/
+theorem unitary_inv_mulVec_commuting_of_mulVec_eq {ι : Type*}
+    [Fintype ι] [DecidableEq ι]
+    (P L : Matrix.unitaryGroup ι ℂ) (hcomm : Commute P L)
+    (input output : ι → ℂ)
+    (hP : (P : Matrix ι ι ℂ) *ᵥ input = output) :
+    ((P⁻¹ : Matrix.unitaryGroup ι ℂ) : Matrix ι ι ℂ) *ᵥ
+      ((L : Matrix ι ι ℂ) *ᵥ output) =
+      (L : Matrix ι ι ℂ) *ᵥ input := by
+  rw [← hP, Matrix.mulVec_mulVec, Matrix.mulVec_mulVec]
+  have hconjugate : P⁻¹ * L * P = L := by
+    calc
+      P⁻¹ * L * P = P⁻¹ * (L * P) := by rw [mul_assoc]
+      _ = P⁻¹ * (P * L) := by rw [← hcomm.eq]
+      _ = L := by simp
+  change (((P⁻¹ * L * P : Matrix.unitaryGroup ι ℂ) : Matrix ι ι ℂ) *ᵥ input) = _
+  rw [hconjugate]
 
 end
 

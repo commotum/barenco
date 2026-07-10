@@ -89,13 +89,8 @@ theorem twoLevelUnitary_mul_apply_outside (first second row : ι)
       intro index _
       rw [twoLevelUnitary_apply]
       simp only [twoLevelCoordinate_outside _ _ _ hrowFirst hrowSecond]
-      by_cases hindexFirst : index.1 = first
-      · subst index
-        simp [twoLevelCoordinate]
-      · by_cases hindexSecond : index.1 = second
-        · subst index
-          simp [twoLevelCoordinate, hfirstSecond.symm]
-        · simp [twoLevelCoordinate, hindexFirst, hindexSecond, index.2]
+      cases hcoordinate : twoLevelCoordinate first second index.1 <;>
+        simp [(index.2).symm]
     rw [hrest, add_zero]
   · exact hrowFirst
   · exact hrowSecond
@@ -125,8 +120,10 @@ theorem applyGivensFactor_clears {dimension : ℕ} (pivot : Fin dimension)
     (index : {index : Fin dimension // index ≠ pivot})
     (U : Matrix.unitaryGroup (Fin dimension) ℂ) :
     applyGivensFactor pivot index U index pivot = 0 := by
-  rw [applyGivensFactor, givensFactor, FinTwoLevelFactor.eval,
-    twoLevelUnitary_mul_apply_first]
+  change ((twoLevelUnitary (index : Fin dimension) pivot index.property
+      (givensUnitary (U index pivot) (U pivot pivot)) :
+        Matrix (Fin dimension) (Fin dimension) ℂ) * U) index pivot = 0
+  rw [twoLevelUnitary_mul_apply_first]
   exact givensUnitary_eliminates (U index pivot) (U pivot pivot)
 
 theorem applyGivensFactor_row_eq {dimension : ℕ} (pivot : Fin dimension)
@@ -134,7 +131,7 @@ theorem applyGivensFactor_row_eq {dimension : ℕ} (pivot : Fin dimension)
     (U : Matrix.unitaryGroup (Fin dimension) ℂ) (row : Fin dimension)
     (hrowIndex : row ≠ index) (hrowPivot : row ≠ pivot) (col : Fin dimension) :
     applyGivensFactor pivot index U row col = U row col := by
-  exact twoLevelUnitary_mul_apply_outside index pivot row index.property _ _
+  exact twoLevelUnitary_mul_apply_outside (index : Fin dimension) pivot row index.property _ _
     hrowIndex hrowPivot col
 
 /-- Output of a left-pivot sweep, including its exact multiplier equation. -/
@@ -203,7 +200,7 @@ theorem pivotEliminate_zero_of_mem {dimension : ℕ}
           simpa [this] using hlater
       · change (pivotEliminate pivot indices
           (applyGivensFactor pivot current U)).residual index pivot = 0
-        exact ih hnodup.2 (applyGivensFactor pivot current U) index hrest
+        exact ih hnodup.2 (applyGivensFactor pivot current U) hrest
 
 /-- The complete successor-dimension pivot schedule. -/
 def successorPivotSchedule (dimension : ℕ) :
@@ -247,8 +244,8 @@ theorem eliminateLastColumn_last_norm {dimension : ℕ}
     have h := (Matrix.mem_unitaryGroup_iff').1 R.property
     simpa only [Matrix.star_eq_conjTranspose] using h
   have hentry := congrFun (congrFun hunitary (Fin.last dimension)) (Fin.last dimension)
-  change (∑ middle : Fin (dimension + 1),
-      star (R middle (Fin.last dimension)) * R middle (Fin.last dimension)) = 1 at hentry
+  simp only [Matrix.mul_apply, Matrix.conjTranspose_apply, Matrix.one_apply,
+    if_pos] at hentry
   rw [Fin.sum_univ_castSucc] at hentry
   simpa [R, eliminateLastColumn_apply_castSucc_last] using hentry
 
@@ -267,8 +264,10 @@ theorem eliminateLastColumn_apply_last_castSucc {dimension : ℕ}
     have h := (Matrix.mem_unitaryGroup_iff').1 R.property
     simpa only [Matrix.star_eq_conjTranspose] using h
   have hentry := congrFun (congrFun hunitary (Fin.last dimension)) col.castSucc
-  change (∑ middle : Fin (dimension + 1),
-      star (R middle (Fin.last dimension)) * R middle col.castSucc) = 0 at hentry
+  have hlastCol : Fin.last dimension ≠ col.castSucc :=
+    (Fin.castSucc_ne_last col).symm
+  simp only [Matrix.mul_apply, Matrix.conjTranspose_apply, Matrix.one_apply,
+    if_neg hlastCol] at hentry
   rw [Fin.sum_univ_castSucc] at hentry
   simp only [R, eliminateLastColumn_apply_castSucc_last, star_zero, zero_mul,
     Finset.sum_const_zero, zero_add] at hentry
@@ -300,6 +299,135 @@ theorem eliminatedUpperUnitary_apply {dimension : ℕ}
     (U : Matrix.unitaryGroup (Fin (dimension + 1)) ℂ) (row col : Fin dimension) :
     eliminatedUpperUnitary U row col =
       (eliminateLastColumn U).residual row.castSucc col.castSucc := rfl
+
+/--
+Lift a decomposition of the exposed upper block and recover the complete
+post-elimination residual as its lifted factor product times a diagonal block.
+-/
+theorem eliminateLastColumn_residual_factorization {dimension : ℕ}
+    (U : Matrix.unitaryGroup (Fin (dimension + 1)) ℂ)
+    (smaller : FinTwoLevelDecomposition (eliminatedUpperUnitary U)) :
+    (eliminateLastColumn U).residual =
+      factorProduct (castSuccFactors smaller.factors) *
+        finSuccBlockUnitary smaller.residual
+          ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+          (eliminateLastColumn_last_norm U) := by
+  apply Subtype.ext
+  ext row col
+  induction row using Fin.lastCases with
+  | last =>
+      induction col using Fin.lastCases with
+      | last =>
+          change (eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension) =
+            ∑ middle : Fin (dimension + 1),
+              factorProduct (castSuccFactors smaller.factors) (Fin.last dimension) middle *
+                finSuccBlockUnitary smaller.residual
+                  ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+                  (eliminateLastColumn_last_norm U) middle (Fin.last dimension)
+          rw [Fin.sum_univ_castSucc]
+          simp
+      | cast col' =>
+          change (eliminateLastColumn U).residual (Fin.last dimension) col'.castSucc =
+            ∑ middle : Fin (dimension + 1),
+              factorProduct (castSuccFactors smaller.factors) (Fin.last dimension) middle *
+                finSuccBlockUnitary smaller.residual
+                  ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+                  (eliminateLastColumn_last_norm U) middle col'.castSucc
+          rw [Fin.sum_univ_castSucc]
+          simp
+  | cast row' =>
+      induction col using Fin.lastCases with
+      | last =>
+          change (eliminateLastColumn U).residual row'.castSucc (Fin.last dimension) =
+            ∑ middle : Fin (dimension + 1),
+              factorProduct (castSuccFactors smaller.factors) row'.castSucc middle *
+                finSuccBlockUnitary smaller.residual
+                  ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+                  (eliminateLastColumn_last_norm U) middle (Fin.last dimension)
+          rw [Fin.sum_univ_castSucc]
+          simp
+      | cast col' =>
+          have hsmall := congrArg
+            (fun V : Matrix.unitaryGroup (Fin dimension) ℂ => V row' col')
+            smaller.product_eq
+          change (eliminateLastColumn U).residual row'.castSucc col'.castSucc =
+            ∑ middle : Fin (dimension + 1),
+              factorProduct (castSuccFactors smaller.factors) row'.castSucc middle *
+                finSuccBlockUnitary smaller.residual
+                  ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+                  (eliminateLastColumn_last_norm U) middle col'.castSucc
+          rw [Fin.sum_univ_castSucc]
+          simp only [factorProduct_castSuccFactors_apply_castSucc,
+            factorProduct_castSuccFactors_apply_castSucc_last,
+            finSuccBlockUnitary_apply_castSucc,
+            finSuccBlockUnitary_apply_last_castSucc, mul_zero, add_zero]
+          simpa [eliminatedUpperUnitary_apply, Matrix.mul_apply] using hsmall
+
+/--
+One recursive successor step: invert the left-elimination factors, then append
+the lifted factors for the smaller upper block.
+-/
+def successorFinTwoLevelDecomposition {dimension : ℕ}
+    (U : Matrix.unitaryGroup (Fin (dimension + 1)) ℂ)
+    (smaller : FinTwoLevelDecomposition (eliminatedUpperUnitary U)) :
+    FinTwoLevelDecomposition U where
+  factors := inverseFactors (eliminateLastColumn U).factors ++
+    castSuccFactors smaller.factors
+  residual := finSuccBlockUnitary smaller.residual
+    ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+    (eliminateLastColumn_last_norm U)
+  residual_diagonal := isDiagonal_finSuccBlockUnitary smaller.residual
+    smaller.residual_diagonal _ _
+  product_eq := by
+    let E := factorProduct (eliminateLastColumn U).factors
+    let P := factorProduct (castSuccFactors smaller.factors)
+    let D := finSuccBlockUnitary smaller.residual
+      ((eliminateLastColumn U).residual (Fin.last dimension) (Fin.last dimension))
+      (eliminateLastColumn_last_norm U)
+    have hrecover : U = E⁻¹ * (eliminateLastColumn U).residual := by
+      rw [(eliminateLastColumn U).residual_eq]
+      simp [E]
+    have hblock : (eliminateLastColumn U).residual = P * D := by
+      exact eliminateLastColumn_residual_factorization U smaller
+    calc
+      U = E⁻¹ * (eliminateLastColumn U).residual := hrecover
+      _ = E⁻¹ * (P * D) := by rw [hblock]
+      _ = (E⁻¹ * P) * D := by rw [mul_assoc]
+      _ = factorProduct
+          (inverseFactors (eliminateLastColumn U).factors ++
+            castSuccFactors smaller.factors) * D := by
+        rw [factorProduct_append, factorProduct_inverseFactors]
+
+/--
+Constructive exact decomposition of every finite complex unitary into explicit
+two-level factors and one certified diagonal residual.
+
+The equation uses conventional mathematical product order.  It includes the
+empty and singleton dimensions without additional assumptions.
+-/
+def decomposeFinUnitary : (dimension : ℕ) →
+    (U : Matrix.unitaryGroup (Fin dimension) ℂ) → FinTwoLevelDecomposition U
+  | 0, U =>
+      { factors := []
+        residual := U
+        residual_diagonal := by
+          intro row
+          exact Fin.elim0 row
+        product_eq := by simp }
+  | dimension + 1, U =>
+      successorFinTwoLevelDecomposition U
+        (decomposeFinUnitary dimension (eliminatedUpperUnitary U))
+
+theorem decomposeFinUnitary_product_eq {dimension : ℕ}
+    (U : Matrix.unitaryGroup (Fin dimension) ℂ) :
+    U = factorProduct (decomposeFinUnitary dimension U).factors *
+      (decomposeFinUnitary dimension U).residual :=
+  (decomposeFinUnitary dimension U).product_eq
+
+theorem decomposeFinUnitary_residual_diagonal {dimension : ℕ}
+    (U : Matrix.unitaryGroup (Fin dimension) ℂ) :
+    IsDiagonalUnitary (decomposeFinUnitary dimension U).residual :=
+  (decomposeFinUnitary dimension U).residual_diagonal
 
 end
 
