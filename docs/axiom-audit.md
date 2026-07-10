@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 235 `#print axioms` checks, with one
+The maintained audit module currently contains 253 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -269,6 +269,24 @@ row below for each checked declaration.
 | `Barenco.MultiControl.OrderedControlLayout.epsilonSynthesisPrimitiveCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.ApproximationResources` | `propext`, `Classical.choice`, `Quot.sound` | selected early-basic cost is exactly its syntax-derived total; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.epsilonSynthesisTotalCountAtWidth_le` | `Barenco.MultiControl.ApproximationResources` | `propext`, `Classical.choice`, `Quot.sound` | uniform width/capacity upper bound for the corrected selector; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.epsilonSynthesisTotalCountAtWidth_lt_logarithmic` | `Barenco.MultiControl.ApproximationResources` | `propext`, `Classical.choice`, `Quot.sound` | explicit logarithmic-regime construction upper bound, without an optimality claim; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.eval_erase` | `Barenco.LowerBounds.BasicCircuit` | `propext`, `Classical.choice`, `Quot.sound` | proof-carrying one-qubit/CNOT syntax erases with exact evaluator preservation; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.gateCount_eq_oneQubitCount_add_cnotCount` | `Barenco.LowerBounds.BasicCircuit` | `propext`, `Classical.choice`, `Quot.sound` | every restricted primitive occurrence is classified exactly once; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.erase_oneQubitCNOTCost` | `Barenco.LowerBounds.BasicCircuit` | `propext`, `Classical.choice`, `Quot.sound` | erased restricted syntax has exact accepted Sections 3--7 cost; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.interactionGraph_edgeFinset_card_le_cnotCount` | `Barenco.LowerBounds.InteractionGraph` | `propext`, `Classical.choice`, `Quot.sound` | distinct interaction edges are bounded by duplicate-retaining CNOT occurrences; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.cnotCount_lowerBound_of_interactionGraph_connected` | `Barenco.LowerBounds.InteractionGraph` | `propext`, `Classical.choice`, `Quot.sound` | finite connected wire graph forces at least `n-1` CNOT occurrences; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.targetComponent_compl_nonempty_of_not_connected` | `Barenco.LowerBounds.InteractionGraph` | `propext`, `Classical.choice`, `Quot.sound` | a disconnected graph yields a proper target-component cut; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.TensorFactorsAcross.mul` | `Barenco.LowerBounds.PartitionFactorization` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-cut Kronecker factorization is closed under chronological matrix multiplication; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.cnotRaw_tensorLocalOnCut_of_mem` | `Barenco.LowerBounds.PartitionFactorization` | `propext`, `Classical.choice`, `Quot.sound` | a trusted CNOT with both endpoints inside a noncontiguous cut is exactly tensor-local; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.eval_tensorFactorsAcross_targetComponent` | `Barenco.LowerBounds.PartitionFactorization` | `propext`, `Classical.choice`, `Quot.sound` | every restricted circuit factors across its target interaction component; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.isScalarQubitMatrix_iff_entries` | `Barenco.LowerBounds.ScalarObstruction` | `propext`, `Classical.choice`, `Quot.sound` | exact Bool-indexed entry characterization of scalar one-qubit matrices; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.isScalarQubitMatrix_coe_iff_exists_phaseShiftUnitary` | `Barenco.LowerBounds.ScalarObstruction` | `propext`, `Classical.choice`, `Quot.sound` | algebraic scalarity of a certified unitary is equivalent to the paper's unit-phase form; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.isScalarQubitMatrix_of_tensorFactorsAcross_positiveControlledRaw` | `Barenco.LowerBounds.ScalarObstruction` | `propext`, `Classical.choice`, `Quot.sound` | factorization separating a listed control from the target forces the raw target matrix scalar; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.not_tensorFactorsAcross_fullyControlled_of_not_scalar` | `Barenco.LowerBounds.ScalarObstruction` | `propext`, `Classical.choice`, `Quot.sound` | a fully controlled nonscalar target cannot factor across a proper target-containing cut; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.interactionGraph_connected_of_eval_fullyControlled` | `Barenco.LowerBounds.Lemma77` | `propext`, `Classical.choice`, `Quot.sound` | exact fully controlled nonscalar semantics force wire-graph connectivity; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.fullyControlled_cnotCount_lowerBound` | `Barenco.LowerBounds.Lemma77` | `propext`, `Classical.choice`, `Quot.sound` | corrected Lemma 7.7 lower bound on CNOT occurrences; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.fullyControlled_cnotCount_lowerBound_of_not_exists_phaseShiftUnitary` | `Barenco.LowerBounds.Lemma77` | `propext`, `Classical.choice`, `Quot.sound` | source-facing unit-phase nonscalarity form of Lemma 7.7; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.fullyControlled_gateCount_lowerBound` | `Barenco.LowerBounds.Lemma77` | `propext`, `Classical.choice`, `Quot.sound` | the stronger CNOT theorem implies the paper's total-basic-operation bound; no project axiom | 2026-07-10 |
+| `Barenco.LowerBounds.BasicCircuit.fullyControlled_oneQubitCNOTCost_lowerBound` | `Barenco.LowerBounds.Lemma77` | `propext`, `Classical.choice`, `Quot.sound` | accepted named cost is bounded below through syntax rather than semantic equality; no project axiom | 2026-07-10 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 

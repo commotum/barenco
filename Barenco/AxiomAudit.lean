@@ -33,6 +33,11 @@ import Barenco.MultiControl.Resources
 import Barenco.MultiControl.Approximate
 import Barenco.MultiControl.ApproximateExpansion
 import Barenco.MultiControl.ApproximationResources
+import Barenco.LowerBounds.BasicCircuit
+import Barenco.LowerBounds.InteractionGraph
+import Barenco.LowerBounds.PartitionFactorization
+import Barenco.LowerBounds.ScalarObstruction
+import Barenco.LowerBounds.Lemma77
 import Barenco.MultiControl.LinearSpecialUnitaryPhase
 import Barenco.MultiControl.CleanAncillaExpansion
 import Barenco.MultiControl.LinearResources
@@ -282,3 +287,24 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.OrderedControlLayout.epsilonSynthesisPrimitiveCircuit_oneQubitCNOTCost
 #print axioms Barenco.MultiControl.epsilonSynthesisTotalCountAtWidth_le
 #print axioms Barenco.MultiControl.epsilonSynthesisTotalCountAtWidth_lt_logarithmic
+
+/-! ## Stage 10: exact lower bounds -/
+
+#print axioms Barenco.LowerBounds.BasicCircuit.eval_erase
+#print axioms Barenco.LowerBounds.BasicCircuit.gateCount_eq_oneQubitCount_add_cnotCount
+#print axioms Barenco.LowerBounds.BasicCircuit.erase_oneQubitCNOTCost
+#print axioms Barenco.LowerBounds.BasicCircuit.interactionGraph_edgeFinset_card_le_cnotCount
+#print axioms Barenco.LowerBounds.BasicCircuit.cnotCount_lowerBound_of_interactionGraph_connected
+#print axioms Barenco.LowerBounds.BasicCircuit.targetComponent_compl_nonempty_of_not_connected
+#print axioms Barenco.LowerBounds.TensorFactorsAcross.mul
+#print axioms Barenco.LowerBounds.cnotRaw_tensorLocalOnCut_of_mem
+#print axioms Barenco.LowerBounds.BasicCircuit.eval_tensorFactorsAcross_targetComponent
+#print axioms Barenco.LowerBounds.isScalarQubitMatrix_iff_entries
+#print axioms Barenco.LowerBounds.isScalarQubitMatrix_coe_iff_exists_phaseShiftUnitary
+#print axioms Barenco.LowerBounds.isScalarQubitMatrix_of_tensorFactorsAcross_positiveControlledRaw
+#print axioms Barenco.LowerBounds.not_tensorFactorsAcross_fullyControlled_of_not_scalar
+#print axioms Barenco.LowerBounds.BasicCircuit.interactionGraph_connected_of_eval_fullyControlled
+#print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_cnotCount_lowerBound
+#print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_cnotCount_lowerBound_of_not_exists_phaseShiftUnitary
+#print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_gateCount_lowerBound
+#print axioms Barenco.LowerBounds.BasicCircuit.fullyControlled_oneQubitCNOTCost_lowerBound

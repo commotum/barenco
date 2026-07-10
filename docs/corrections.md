@@ -725,3 +725,49 @@ statement. “Open” means the repair is identified but not yet machine checked
   `IsBigOWith 112` bounds, with ordinary `O(n)` corollaries.
 - **Status:** corrected and proved as exact counts and linear upper bounds for the
   named constructions; optimal `Θ(n)` is intentionally not exported.
+
+## C-027 — Lemma 7.7 understates its CNOT invariant and omits the tensor proof
+
+- **Source:** Lemma 7.7, manuscript p. 22; Markdown lines 750–768.
+- **Issue:** the statement asks for at least `n−1` *basic operations*, but the
+  proof assumes arbitrarily many one-bit gates and derives a contradiction from
+  having fewer than `n−1` XOR gates. Once valid, that argument proves the stronger
+  lower bound on CNOT occurrences themselves. Two semantic claims are also only
+  asserted: that a disconnected, possibly noncontiguous wire partition makes the
+  whole circuit an `A tensor B`, and that a fully controlled nonscalar target
+  cannot have such a factorization. The notation does not specify the basis
+  reordering or tensor-factor order, and a support count alone proves neither
+  matrix claim.
+- **Repair:** quantify over the proof-carrying `BasicCircuit` syntax containing
+  exactly arbitrary one-qubit gates and distinct-wire CNOTs. Form its undirected
+  CNOT interaction graph, retain repeated CNOTs as occurrences while collapsing
+  duplicate graph edges, and use the finite connected-graph edge bound. For an
+  arbitrary cut, split basis functions into selected and complementary wires with
+  `wireSplit`, reindex both matrix axes with `partitionReindex`, and define
+  `TensorFactorsAcross` using the resulting left-first Kronecker convention.
+  Prove factorization for each same-side primitive and preserve it through the
+  chronological evaluator. Finally, orient the disconnected cut as the component
+  containing the target and prove by explicit basis assignments that separating
+  any listed positive control forces the target matrix to be scalar.
+- **Dependent impact:** the source's `n−1` basic-operation claim follows as a
+  weaker corollary of an `n−1` CNOT-occurrence theorem. The result is restricted
+  to exact equality on one register, with no ancilla, measurement, approximation,
+  or phase-relaxed target relation. It excludes scalar-phase targets exactly;
+  at one wire the lower bound is the trivial zero, and no target exists at width
+  zero. This linear theorem does not turn the Section 5/6 named-topology upper
+  counts into global minima and does not supply the missing quadratic or Section 8
+  conjectural lower bounds.
+- **Formal evidence:** `BasicPrimitive`, `BasicCircuit`, `BasicCircuit.erase`,
+  `BasicCircuit.eval_erase`, and the exact count/cost bridges fix the allowed
+  syntax. `interactionGraph_edgeFinset_card_le_cnotCount` and
+  `cnotCount_lowerBound_of_interactionGraph_connected` prove the duplicate-safe
+  graph layer. `wireSplit`, `partitionReindex`, `TensorFactorsAcross`, and
+  `eval_tensorFactorsAcross_targetComponent` prove the suppressed tensor step.
+  `isScalarQubitMatrix_coe_iff_exists_phaseShiftUnitary` and
+  `not_tensorFactorsAcross_fullyControlled_of_not_scalar` prove the scalar
+  boundary and obstruction. `fullyControlled_cnotCount_lowerBound` is the
+  strengthened headline theorem; `fullyControlled_gateCount_lowerBound` and
+  `fullyControlled_oneQubitCNOTCost_lowerBound` recover the paper-facing total and
+  named-cost forms.
+- **Status:** corrected and proved in the core lower-bound modules; Stage 10
+  integration and audit checks remain open.
