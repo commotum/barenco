@@ -2,8 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stage 1 guardrails are complete; Stage 2 two-wire semantics is the
-first incomplete stage.
+Status: active. Stages 1–2 are complete; Stage 3 trusted two-wire circuit syntax
+is the first incomplete stage.
 
 ## Big-Picture Objective
 
@@ -127,6 +127,13 @@ collection of hand-simplified paper examples.
 - Stage 1 selected a direct low-dependency ordered split and certified `U⊗I`
   reindex embedding. Strict/trust-zero prototypes import only `Barenco.Semantics`
   and cover entries, spectators, algebra, inverse, and swapped orientation.
+- Stage 2 implemented that design as public `TwoWire.Layout`, `Semantics`, and
+  `ControlledBridges` leaves. Exact entry, certified basis/four-term/arbitrary-
+  state action, spectator-zero, algebra, inverse, proof-irrelevance, orientation,
+  local-gate, singleton-control, and CNOT theorems compile for arbitrary ambient
+  width. Width-two, reversed, and nonadjacent width-five diagnostics are root-
+  excluded. The integrated 3,590-job build, strict/trust-zero checks, scans, and
+  335-entry maintained axiom audit pass.
 - The optimizer architecture is a separate payload-preserving IR lowering through
   trusted smart constructors. `Primitive` remains unchanged except for the future
   two-wire constructor inside its private-constructor file; no normalizer will
@@ -180,7 +187,7 @@ The goal is complete only when all of the following hold:
 ## Stage Index
 
 - [x] `1-GUARDRAILS` — freeze architecture, source claims, models, and proof boundaries.
-- [ ] `2-TWO-WIRE` — certified ordered-pair semantic embeddings and algebra.
+- [x] `2-TWO-WIRE` — certified ordered-pair semantic embeddings and algebra.
 - [ ] `3-TWO-PRIMITIVE` — trusted circuit constructor, support, adjoint, and costs.
 - [ ] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
 - [ ] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
@@ -284,6 +291,23 @@ two-qubit unitary to an ordered pair of distinct wires in any ambient register.
   spectator preservation.
 - Focused leaf, adjacent semantic consumer, strict, trust-zero, and forbidden-token
   checks required by the stage file pass.
+
+### Stage Results
+
+- Public `Barenco.TwoWire.Layout` defines the ordered pair, direct complement
+  split, reconstruction/update/agreement API, and explicit local bit-swap
+  equivalence. Public `Barenco.TwoWire.Semantics` defines raw/certified `U⊗I`
+  embeddings with exact entry, basis, arbitrary-state, algebra, inverse, proof-
+  irrelevance, chronology, and pair-reversal laws.
+- `Barenco.TwoWire.ControlledBridges` proves exact arbitrary-width first/second
+  local-gate, singleton-controlled-U, and canonical CNOT bridges. Root-excluded
+  `Barenco.TwoWireExamples` checks canonical width two, reversed CNOT, and
+  nonadjacent width-five target action with three symbolic spectators.
+- Stable leaves are exported publicly and sixteen representative declarations are
+  in the maintained 335-check axiom audit. Focused builds, the 3,590-job integrated
+  build, strict/trust-zero compilation of leaves/root/audit, forbidden/no-cheating
+  scans, documentation synchronization, and `git diff --check` pass. No circuit
+  syntax or resource claim was introduced; that trust-boundary work remains Stage 3.
 
 ## 3-TWO-PRIMITIVE
 

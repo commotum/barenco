@@ -1,6 +1,6 @@
 # 2-TWO-WIRE
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-10).
 
 ## Current Facts
 
@@ -132,21 +132,61 @@ explicit spectator and orientation behavior and no circuit-resource claim.
 
 ## Completion Requirements
 
-- [ ] Ordered pair, complement, split, reconstruction, agreement, update, and local
+- [x] Ordered pair, complement, split, reconstruction, agreement, update, and local
   swap APIs compile with documented `00,01,10,11` orientation.
-- [ ] Raw/certified embeddings have exact entry, basis action, spectator-zero,
+- [x] Raw/certified embeddings have exact entry, basis action, spectator-zero,
   identity, multiplication, inverse/adjoint, and reversal theorems.
-- [ ] First-wire, second-wire, singleton-controlled-U, and CNOT bridges compile as
+- [x] First-wire, second-wire, singleton-controlled-U, and CNOT bridges compile as
   exact arbitrary-register equalities.
-- [ ] Width-two, reversed-order, and nonadjacent padded diagnostics compile and
+- [x] Width-two, reversed-order, and nonadjacent padded diagnostics compile and
   exercise target action plus spectator preservation.
-- [ ] Stable public modules are integrated without importing diagnostics; headline
+- [x] Stable public modules are integrated without importing diagnostics; headline
   results are present in `Barenco/AxiomAudit.lean` with accepted axiom sets.
-- [ ] Focused/adjacent/root/audit builds, strict and trust-zero compilation,
+- [x] Focused/adjacent/root/audit builds, strict and trust-zero compilation,
   forbidden scans, and `git diff --check` pass with exact results recorded.
-- [ ] Conventions/docs and `goal-2/0-plan.md` are folded forward with exact theorem
+- [x] Conventions/docs and `goal-2/0-plan.md` are folded forward with exact theorem
   names and Stage 2 marked complete.
 
 ## Stage Results
 
 - Stage file created before any Stage 2 Lean source change.
+- Added `Barenco/TwoWire/Layout.lean` with `OrderedWirePair`, direct complements,
+  `splitTwoWire`, reconstruction/update/agreement laws, and the explicit involutive
+  `reverseTwoQubitBasis`. The ordered convention is local bit `0 = first`, local
+  bit `1 = second`; distinctness is carried by the pair and proof witnesses are
+  semantically irrelevant.
+- Added `Barenco/TwoWire/Semantics.lean` with `twoWireRaw`, certified
+  `twoWireUnitary`, exact entry and certified basis-column formulas, selected-pair
+  amplitudes, changed-spectator zero, an explicit four-term basis expansion, and
+  `twoWireUnitary_mulVec` for arbitrary superpositions. Raw identity,
+  multiplication, star, and swap laws and certified identity, multiplication,
+  chronology, monoid-hom, inverse, proof-irrelevance, and swap laws all compile.
+- Added proof-side `Barenco/TwoWire/ControlledBridges.lean`. The exact arbitrary-
+  width theorems `twoWireUnitary_localUnitary_zero`, `_one`,
+  `twoWireUnitary_positiveControlledUnitary_zero_one`, and
+  `twoWireUnitary_cnotUnitary_zero_one` connect the local payload to the established
+  ambient one-qubit, singleton-controlled, and CNOT semantics.
+- Added root-excluded `Barenco/TwoWireExamples.lean`. It proves canonical width-two
+  embedding is literally the supplied `U(4)`, reversed orientation realizes CNOT
+  `1 → 0` including a concrete ket action, and nonadjacent width-five pair `(4,1)`
+  has exact symbolic CNOT action while preserving arbitrary spectators `0,2,3`.
+- An independent review found the raw-only basis-action API too weak for the stated
+  certified checklist. Five named certified wrappers were added before completion,
+  including changed-spectator zero, the four-term expansion, and arbitrary-state
+  action. A second strict/trust-zero review found no orientation, chronology,
+  reindex, import, or trust-boundary defect.
+- Public `Barenco.lean` now exports only the three stable leaves; diagnostics remain
+  excluded. `Barenco/AxiomAudit.lean` contains sixteen new representative checks,
+  bringing the maintained total from 319 to 335. New checks use only `propext`,
+  `Classical.choice`, and `Quot.sound` (two cheaper layout checks omit one or both).
+- Focused builds passed with 1,684 jobs for Layout, 1,687 for Semantics, 2,363 for
+  ControlledBridges, and 2,364 for the diagnostic leaf. The final integrated
+  `Semantics`/`ControlledBridges`/examples/root/audit build passed with 3,590 jobs.
+  Direct warning-as-error and trust-zero warning-as-error compilation passed for
+  every new leaf and for the public root/audit. Repository proof-hole/custom-
+  declaration/no-cheating/root-exclusion scans and `git diff --check` were clean;
+  two repository prose uses of “opaque” are comments, not declarations.
+- `docs/conventions.md`, `docs/traceability.md`, and `docs/axiom-audit.md` now record
+  the exact ordered-pair, spectator, reversal, public-boundary, and audit results.
+  Stage 3 is the first incomplete stage and alone may attach trusted circuit syntax,
+  structural support, and costs to this semantic embedding.
