@@ -45,6 +45,14 @@ been added yet).
   input and a computational-basis event by treating event restriction as an
   orthogonal projection/contraction; summing the coordinate theorem would give a
   spurious event-cardinality factor and is not acceptable.
+- The controlled-distance layer need not expand Euclidean sums manually.
+  `Matrix.blockDiagonalRingHom`, `Matrix.blockDiagonal_conjTranspose`, and
+  `Matrix.blockDiagonal_injective` package as an injective complex star-algebra
+  hom, hence are isometric by `NonUnitalStarAlgHom.norm_map`. The simultaneous
+  row/column `Matrix.reindexAlgEquiv` likewise packages as a star-algebra
+  equivalence and preserves the L2 operator norm. Their composition gives
+  `‖targetBlockRaw target F‖=‖F‖`, from which exact controlled-target distance is
+  a finite Pi-norm calculation once one active complementary assignment is named.
 
 ## Source Claim Audit
 
