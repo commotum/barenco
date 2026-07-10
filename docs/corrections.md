@@ -84,17 +84,21 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Issue:** the proof has `8(n−5)=8n−40` Toffolis, says four must be exact, then
   calls the remainder `8n−36`. The correct remainder is `8n−44`.
 - **Repair:** use four exact and `8n−44` relative-phase Toffoli occurrences. The
-  final printed `48n−204` may still result after expansions and one-qubit mergers,
-  but it does not follow from the erroneous intermediate sentence and must be
-  reconstructed syntactically.
+  literal named expansion uses four sixteen-node exact circuits and `8n−44`
+  seven-node relative circuits, hence `32n−144` one-qubit gates,
+  `24n−100` CNOTs, and `56n−244` total primitives.  The final printed
+  `48n−204` does not follow from the erroneous intermediate sentence and must
+  be reconstructed by an explicit evaluator-preserving normalization before it
+  can be exported.
 - **Dependent impact:** exact early-basic count in Corollary 7.4 and leading counts
   derived from it.
 - **Formal evidence:** `corollary74Circuit_toffoliCount` and
   `balancedCorollary74Circuit_gateCount` establish `8(n−5)=8n−40` from explicit
   syntax; `balancedLayout_targetWire_not_mem_aImplementation_touchedSupport`
-  establishes the phase-ready target exclusion. No claim yet that `48n−204` is
-  correct, and the exact four special occurrences still require a B-ladder
-  occurrence theorem plus contextual phase cancellation.
+  establishes the phase-ready target exclusion. The component seven- and
+  sixteen-node counts are machine checked; the combined raw-count circuit and
+  contextual phase theorem are the active implementation slice. No claim yet
+  that `48n−204` is correct.
 - **Additional structural requirement:** a generic minimally capacitated Lemma 7.3
   substitution may borrow the final target inside an A ladder, causing additional
   Toffolis to touch it. The repaired balanced partition satisfies a stronger
@@ -102,6 +106,13 @@ statement. “Open” means the repair is identified but not yet machine checked
   controls. The later “four exact target occurrences” statement is therefore
   valid, if at all, only for that phase-ready balanced syntax and needs its own
   touched-target theorem.
+- **Optimization obstruction:** independent symbolic audits recover the raw
+  `56n−244` count but do not recover the printed optimized constant. The obvious
+  palindrome-boundary fusions leave central base-Toffoli pairs separated by
+  gates using the same target as a control. Disjoint-support commutation therefore
+  cannot justify their cancellation. Different coordinated exact-gate
+  orientations produce different provisional constants, so none is accepted
+  without named normalized syntax and an exact evaluator theorem.
 - **Status:** open.
 
 ## C-005 — Quadratic “Theta” is not an optimal-synthesis theorem

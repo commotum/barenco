@@ -312,14 +312,15 @@ theorem relativeHalfPhaseExponent_update_of_outside {b n : ℕ}
   revert layout
   induction b with
   | zero =>
-      intro layout
+      intro layout hcontrol hwork
+      have htarget : outside ≠ layout.targetWire := hwork (Fin.last 0)
       rw [relativeHalfPhaseExponent_zero, relativeHalfPhaseExponent_zero]
-      simp [relativeBaseExponent,
-        Function.update_of_ne (Ne.symm (hcontrol 0)),
-        Function.update_of_ne (Ne.symm (hcontrol 1)),
-        Function.update_of_ne (Ne.symm (hwork (Fin.last 0)))]
+      rw [relativeBaseExponent, relativeBaseExponent]
+      rw [Function.update_of_ne (Ne.symm (hcontrol 0))]
+      rw [Function.update_of_ne (Ne.symm (hcontrol 1))]
+      rw [Function.update_of_ne (Ne.symm htarget)]
   | succ b ih =>
-      intro layout
+      intro layout hcontrol hwork
       have hsmallControl : ∀ control,
           outside ≠ layout.smaller.controlWire control := by
         intro control
@@ -396,7 +397,7 @@ theorem relativeOuterExponent_pair {b n : ℕ}
       _ = _ := by
         dsimp [afterOuter]
         rw [outerUpdate_apply_target]
-  dsimp [afterSmaller]
+  dsimp [afterSmaller, afterOuter] at hlastControl hlastBorrow htarget
   rw [relativeOuterExponent, relativeOuterExponent,
     hlastControl, hlastBorrow, htarget, controlProduct_succ]
   generalize controlProduct layout.smaller input = q
@@ -423,7 +424,8 @@ theorem relativeHalfPhaseExponent_halfLadderUpdate {b n : ℕ}
               halfLadderUpdate, baseUpdate, toffoliXorUpdate,
               layout.controlWire_ne_targetWire 0,
               layout.controlWire_ne_targetWire 1,
-              hfirst, hsecond, htarget, Bool.add_eq_xor, Bool.mul_eq_and]
+              hfirst, hsecond, htarget, Bool.zero_eq_false, Bool.one_eq_true,
+              Bool.add_eq_xor, Bool.mul_eq_and]
   | succ b ih =>
       intro layout input
       have hsmallPhase :
@@ -443,7 +445,7 @@ theorem relativeHalfPhaseExponent_halfLadderUpdate {b n : ℕ}
         rw [halfLadderUpdate_succ_eq_update]
         rw [Function.update_of_ne (layout.borrowedWire_ne_targetWire _)]
         change halfLadderUpdate b layout.smaller input layout.smaller.targetWire = _
-        rw [halfLadderUpdate_apply_target]
+        simpa using halfLadderUpdate_apply_target layout.smaller input
       rw [relativeHalfPhaseExponent_succ, relativeHalfPhaseExponent_succ]
       rw [hsmallPhase, controlProduct_halfLadderUpdate, hborrowed,
         halfLadderUpdate_apply_target, controlProduct_succ]
@@ -452,7 +454,184 @@ theorem relativeHalfPhaseExponent_halfLadderUpdate {b n : ℕ}
       generalize input (layout.borrowedWire (Fin.last b)) = lastBorrow
       generalize input layout.targetWire = target
       cases q <;> cases lastControl <;> cases lastBorrow <;> cases target <;>
-        decide
+        simp [Bool.add_eq_xor, Bool.mul_eq_and]
+
+/-! ## Exact involution and signed half action -/
+
+@[simp]
+theorem eval_relativeBaseCircuit_sq {n : ℕ}
+    (layout : InwardLadderLayout 0 n) :
+    Circuit.eval layout.relativeBaseCircuit ^ 2 = 1 := by
+  rw [relativeBaseCircuit, eval_relativePhaseToffoliACircuit,
+    relativeToffoliUnitary_sq]
+
+@[simp]
+theorem eval_relativeOuterCircuit_sq {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    Circuit.eval layout.relativeOuterCircuit ^ 2 = 1 := by
+  rw [relativeOuterCircuit, eval_relativePhaseToffoliACircuit,
+    relativeToffoliUnitary_sq]
+
+/-- Every all-relative palindrome is an exact full-register involution. -/
+@[simp]
+theorem eval_relativeHalfLadderCircuit_sq {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    Circuit.eval (relativeHalfLadderCircuit b layout) ^ 2 = 1 := by
+  revert layout
+  induction b with
+  | zero =>
+      intro layout
+      exact eval_relativeBaseCircuit_sq layout
+  | succ b ih =>
+      intro layout
+      simp only [relativeHalfLadderCircuit, Circuit.eval_append]
+      have houter := eval_relativeOuterCircuit_sq layout
+      have hsmall := ih layout.smaller
+      rw [pow_two] at houter hsmall ⊢
+      calc
+        ((Circuit.eval layout.relativeOuterCircuit *
+              Circuit.eval (relativeHalfLadderCircuit b layout.smaller)) *
+            Circuit.eval layout.relativeOuterCircuit) *
+            ((Circuit.eval layout.relativeOuterCircuit *
+                Circuit.eval (relativeHalfLadderCircuit b layout.smaller)) *
+              Circuit.eval layout.relativeOuterCircuit) =
+            Circuit.eval layout.relativeOuterCircuit *
+              Circuit.eval (relativeHalfLadderCircuit b layout.smaller) *
+              (Circuit.eval layout.relativeOuterCircuit *
+                Circuit.eval layout.relativeOuterCircuit) *
+              Circuit.eval (relativeHalfLadderCircuit b layout.smaller) *
+              Circuit.eval layout.relativeOuterCircuit := by noncomm_ring
+        _ = Circuit.eval layout.relativeOuterCircuit *
+              (Circuit.eval (relativeHalfLadderCircuit b layout.smaller) *
+                Circuit.eval (relativeHalfLadderCircuit b layout.smaller)) *
+              Circuit.eval layout.relativeOuterCircuit := by
+                rw [houter]
+                noncomm_ring
+        _ = 1 := by rw [hsmall]; simpa using houter
+
+/--
+Exact arbitrary-width signed action of the all-relative half.  The permutation
+is the exact Lemma 7.2 half update and the scalar is its closed Bool exponent.
+-/
+theorem eval_relativeHalfLadderCircuit_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout b n) (input : Basis n) :
+    (Circuit.eval (relativeHalfLadderCircuit b layout) : Gate n) *ᵥ
+        basisKet input =
+      relativePhaseSign (relativeHalfPhaseExponent b layout input) •
+        basisKet (halfLadderUpdate b layout input) := by
+  revert layout input
+  induction b with
+  | zero =>
+      intro layout input
+      exact eval_relativeBaseCircuit_mulVec_basisKet layout input
+  | succ b ih =>
+      intro layout input
+      let afterOuter := outerUpdate layout input
+      let afterSmaller := halfLadderUpdate b layout.smaller afterOuter
+      have hexponent :
+          relativeOuterExponent layout input +
+                relativeHalfPhaseExponent b layout.smaller afterOuter +
+              relativeOuterExponent layout afterSmaller =
+            relativeHalfPhaseExponent (b + 1) layout input := by
+        rw [show relativeHalfPhaseExponent b layout.smaller afterOuter =
+            relativeHalfPhaseExponent b layout.smaller input by
+          exact smaller_relativeHalfPhaseExponent_outerUpdate layout input]
+        rw [relativeHalfPhaseExponent_succ]
+        rw [show
+          relativeOuterExponent layout input +
+                  relativeHalfPhaseExponent b layout.smaller input +
+                relativeOuterExponent layout afterSmaller =
+              relativeHalfPhaseExponent b layout.smaller input +
+                (relativeOuterExponent layout input +
+                  relativeOuterExponent layout afterSmaller) by ac_rfl]
+        rw [show relativeOuterExponent layout input +
+              relativeOuterExponent layout afterSmaller =
+            controlProduct layout input *
+              (input (layout.borrowedWire (Fin.last b)) +
+                input layout.targetWire) by
+          exact relativeOuterExponent_pair layout input]
+      simp only [relativeHalfLadderCircuit, Circuit.eval_append,
+        Submonoid.coe_mul]
+      rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+      rw [eval_relativeOuterCircuit_mulVec_basisKet]
+      rw [Matrix.mulVec_smul]
+      rw [ih layout.smaller afterOuter]
+      rw [smul_smul]
+      rw [Matrix.mulVec_smul]
+      rw [eval_relativeOuterCircuit_mulVec_basisKet]
+      rw [smul_smul]
+      rw [← relativePhaseSign_add, ← relativePhaseSign_add]
+      rw [hexponent]
+      rfl
+
+/-! ## Signed action of the complete all-relative ladder -/
+
+/-- The phase exponent left by a positive all-relative full ladder. -/
+def relativeInwardPhaseExponent {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) : Bool :=
+  controlProduct layout input *
+    (input (layout.borrowedWire (Fin.last b)) + input layout.targetWire)
+
+/-- The smaller closed exponent is unchanged after the larger exact half permutation. -/
+@[simp]
+theorem smaller_relativeHalfPhaseExponent_halfLadderUpdate_succ {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    relativeHalfPhaseExponent b layout.smaller
+        (halfLadderUpdate (b + 1) layout input) =
+      relativeHalfPhaseExponent b layout.smaller input := by
+  rw [halfLadderUpdate_succ_eq_update]
+  rw [relativeHalfPhaseExponent_update_of_outside layout.smaller
+    layout.targetWire (targetWire_ne_smaller_controlWire layout)
+    (targetWire_ne_smaller_workWire layout)]
+  rw [relativeHalfPhaseExponent_halfLadderUpdate]
+
+/-- The two half exponents cancel down to the last-borrow/target formula. -/
+theorem relativeInwardPhaseExponent_eq_half_sum {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    relativeHalfPhaseExponent (b + 1) layout input +
+        relativeHalfPhaseExponent b layout.smaller
+          (halfLadderUpdate (b + 1) layout input) =
+      relativeInwardPhaseExponent layout input := by
+  rw [smaller_relativeHalfPhaseExponent_halfLadderUpdate_succ]
+  rw [relativeHalfPhaseExponent_succ]
+  change
+    (relativeHalfPhaseExponent b layout.smaller input +
+          relativeInwardPhaseExponent layout input) +
+        relativeHalfPhaseExponent b layout.smaller input =
+      relativeInwardPhaseExponent layout input
+  rw [show
+    (relativeHalfPhaseExponent b layout.smaller input +
+          relativeInwardPhaseExponent layout input) +
+        relativeHalfPhaseExponent b layout.smaller input =
+      (relativeHalfPhaseExponent b layout.smaller input +
+          relativeHalfPhaseExponent b layout.smaller input) +
+        relativeInwardPhaseExponent layout input by ac_rfl]
+  simp
+
+/--
+Exact signed action of the complete all-relative ladder.  Its classical
+permutation is precisely the positive multi-controlled-X update.
+-/
+theorem eval_relativeInwardLadderCircuit_mulVec_basisKet {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (input : Basis n) :
+    (Circuit.eval (relativeInwardLadderCircuit layout) : Gate n) *ᵥ
+        basisKet input =
+      relativePhaseSign (relativeInwardPhaseExponent layout input) •
+        basisKet
+          (Function.update input layout.targetWire
+            (input layout.targetWire + controlProduct layout input)) := by
+  rw [relativeInwardLadderCircuit, Circuit.eval_append]
+  simp only [Submonoid.coe_mul]
+  rw [← Matrix.mulVec_mulVec]
+  rw [eval_relativeHalfLadderCircuit_mulVec_basisKet]
+  rw [Matrix.mulVec_smul]
+  rw [eval_relativeHalfLadderCircuit_mulVec_basisKet]
+  rw [smul_smul]
+  rw [← relativePhaseSign_add]
+  rw [relativeInwardPhaseExponent_eq_half_sum]
+  change relativePhaseSign (relativeInwardPhaseExponent layout input) •
+      basisKet (inwardLadderUpdate layout input) = _
+  rw [inwardLadderUpdate_eq_update]
 
 end
 

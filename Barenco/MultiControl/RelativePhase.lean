@@ -56,6 +56,12 @@ theorem outerToffoli_singleton_cnotCount {b n : ℕ}
     (layout : InwardLadderLayout (b + 1) n) :
     Circuit.kindCount .cnot [layout.outerToffoli] = 0 := rfl
 
+/-- A trusted outer macro contributes one node to the mixed syntax. -/
+@[simp]
+theorem outerToffoli_singleton_gateCount {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    Circuit.gateCount [layout.outerToffoli] = 1 := rfl
+
 /-- A seven-node relative base contains no trusted Toffoli macro. -/
 @[simp]
 theorem relativeBaseCircuit_toffoliCount {n : ℕ}
@@ -81,6 +87,13 @@ theorem relativeHalfLadderCircuit_toffoliCount {b n : ℕ}
   | succ b ih =>
       intro layout
       simp [relativeHalfLadderCircuit, ih]
+
+/-- A complete all-relative ladder also contains no trusted Toffoli macros. -/
+@[simp]
+theorem relativeInwardLadderCircuit_toffoliCount {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    Circuit.kindCount .toffoli (relativeInwardLadderCircuit layout) = 0 := by
+  simp [relativeInwardLadderCircuit]
 
 /-- The hybrid syntax contains exactly the two retained exact Toffoli macros. -/
 @[simp]
@@ -113,7 +126,8 @@ theorem hybridInwardLadderCircuit_gateCount {b n : ℕ}
     (layout : InwardLadderLayout (b + 1) n) :
     Circuit.gateCount (hybridInwardLadderCircuit layout) =
       14 * (2 * b + 1) + 2 := by
-  simp [hybridInwardLadderCircuit]
+  simp only [hybridInwardLadderCircuit, Circuit.gateCount_append,
+    outerToffoli_singleton_gateCount, relativeHalfLadderCircuit_gateCount]
   omega
 
 /-- The mixed syntax is deliberately unsupported by the one-qubit+CNOT model. -/
