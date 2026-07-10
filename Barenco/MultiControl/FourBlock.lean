@@ -295,6 +295,322 @@ theorem fourBlockCircuit_oneQubitCNOTCost {l r n : ℕ}
     Circuit.cost CostModel.oneQubitCNOT layout.fourBlockCircuit = none := by
   simp [fourBlockCircuit, Circuit.cost, Circuit.addCost]
 
+/-! ## Boolean full-state semantics -/
+
+/-- Conjunction of the first group of data controls. -/
+def leftProduct {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) : Bool :=
+  ∏ control, input (layout.leftControlWire control)
+
+/-- Conjunction of the second group of data controls. -/
+def rightProduct {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) : Bool :=
+  ∏ control, input (layout.rightControlWire control)
+
+/-- Boolean action of block A. -/
+def blockAUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) : Basis n :=
+  Function.update input layout.dirtyWire
+    (input layout.dirtyWire + layout.leftProduct input)
+
+/-- Boolean action of block B. -/
+def blockBUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) : Basis n :=
+  Function.update input layout.targetWire
+    (input layout.targetWire + layout.rightProduct input * input layout.dirtyWire)
+
+/-- Execute `A;B;A;B` on an arbitrary ambient basis assignment. -/
+def fourBlockUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) : Basis n :=
+  layout.blockBUpdate
+    (layout.blockAUpdate (layout.blockBUpdate (layout.blockAUpdate input)))
+
+private theorem leftProduct_update_of_outside {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) (outside : Fin n)
+    (bit : Bool) (houtside : ∀ control, outside ≠ layout.leftControlWire control) :
+    layout.leftProduct (Function.update input outside bit) = layout.leftProduct input := by
+  apply Finset.prod_congr rfl
+  intro control _
+  exact Function.update_of_ne (Ne.symm (houtside control)) _ _
+
+private theorem rightProduct_update_of_outside {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) (outside : Fin n)
+    (bit : Bool) (houtside : ∀ control, outside ≠ layout.rightControlWire control) :
+    layout.rightProduct (Function.update input outside bit) = layout.rightProduct input := by
+  apply Finset.prod_congr rfl
+  intro control _
+  exact Function.update_of_ne (Ne.symm (houtside control)) _ _
+
+@[simp]
+theorem leftProduct_blockAUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.leftProduct (layout.blockAUpdate input) = layout.leftProduct input := by
+  apply leftProduct_update_of_outside
+  exact fun control => (layout.leftControlWire_ne_dirtyWire control).symm
+
+@[simp]
+theorem leftProduct_blockBUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.leftProduct (layout.blockBUpdate input) = layout.leftProduct input := by
+  apply leftProduct_update_of_outside
+  exact fun control => (layout.leftControlWire_ne_targetWire control).symm
+
+@[simp]
+theorem rightProduct_blockAUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.rightProduct (layout.blockAUpdate input) = layout.rightProduct input := by
+  apply rightProduct_update_of_outside
+  exact fun control => (layout.rightControlWire_ne_dirtyWire control).symm
+
+@[simp]
+theorem rightProduct_blockBUpdate {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.rightProduct (layout.blockBUpdate input) = layout.rightProduct input := by
+  apply rightProduct_update_of_outside
+  exact fun control => (layout.rightControlWire_ne_targetWire control).symm
+
+@[simp]
+theorem blockAUpdate_apply_dirtyWire {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.blockAUpdate input layout.dirtyWire =
+      input layout.dirtyWire + layout.leftProduct input := by
+  simp [blockAUpdate]
+
+@[simp]
+theorem blockAUpdate_apply_of_ne {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) (wire : Fin n) (hwire : wire ≠ layout.dirtyWire) :
+    layout.blockAUpdate input wire = input wire := by
+  exact Function.update_of_ne hwire _ _
+
+@[simp]
+theorem blockBUpdate_apply_targetWire {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.blockBUpdate input layout.targetWire =
+      input layout.targetWire + layout.rightProduct input * input layout.dirtyWire := by
+  simp [blockBUpdate]
+
+@[simp]
+theorem blockBUpdate_apply_of_ne {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) (wire : Fin n) (hwire : wire ≠ layout.targetWire) :
+    layout.blockBUpdate input wire = input wire := by
+  exact Function.update_of_ne hwire _ _
+
+/--
+The four blocks erase every dependence on the unknown dirty bit.  Only the final
+target changes, by the conjunction of both data-control groups.
+-/
+theorem fourBlockUpdate_eq_update {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) :
+    layout.fourBlockUpdate input =
+      Function.update input layout.targetWire
+        (input layout.targetWire + layout.leftProduct input * layout.rightProduct input) := by
+  funext wire
+  by_cases htarget : wire = layout.targetWire
+  · subst wire
+    rw [fourBlockUpdate, Function.update_self]
+    rw [blockBUpdate_apply_targetWire]
+    rw [blockAUpdate_apply_of_ne layout _ layout.targetWire
+      layout.dirtyWire_ne_targetWire.symm]
+    rw [blockBUpdate_apply_targetWire]
+    rw [blockAUpdate_apply_of_ne layout _ layout.targetWire
+      layout.dirtyWire_ne_targetWire.symm]
+    rw [blockAUpdate_apply_dirtyWire layout
+      (layout.blockBUpdate (layout.blockAUpdate input))]
+    rw [blockBUpdate_apply_of_ne layout (layout.blockAUpdate input)
+      layout.dirtyWire layout.dirtyWire_ne_targetWire]
+    rw [blockAUpdate_apply_dirtyWire layout input]
+    simp only [rightProduct_blockAUpdate, rightProduct_blockBUpdate,
+      leftProduct_blockAUpdate, leftProduct_blockBUpdate]
+    rw [show input layout.dirtyWire + layout.leftProduct input +
+        layout.leftProduct input = input layout.dirtyWire by simp [add_assoc]]
+    rw [mul_add]
+    rw [show
+      input layout.targetWire +
+            (layout.rightProduct input * input layout.dirtyWire +
+              layout.rightProduct input * layout.leftProduct input) +
+          layout.rightProduct input * input layout.dirtyWire =
+        input layout.targetWire +
+            layout.rightProduct input * layout.leftProduct input +
+          (layout.rightProduct input * input layout.dirtyWire +
+            layout.rightProduct input * input layout.dirtyWire) by ac_rfl]
+    simp [mul_comm]
+  · by_cases hdirty : wire = layout.dirtyWire
+    · subst wire
+      simp [fourBlockUpdate, htarget, add_assoc]
+    · simp [fourBlockUpdate, htarget, hdirty]
+
+/-- Every non-target wire, including the dirty wire, is restored exactly. -/
+@[simp]
+theorem fourBlockUpdate_apply_of_ne {l r n : ℕ} (layout : FourBlockLayout l r n)
+    (input : Basis n) (wire : Fin n) (hwire : wire ≠ layout.targetWire) :
+    layout.fourBlockUpdate input wire = input wire := by
+  rw [fourBlockUpdate_eq_update]
+  exact Function.update_of_ne hwire _ _
+
+/-- Explicit dirty-wire restoration with no initialization assumption. -/
+@[simp]
+theorem fourBlockUpdate_apply_dirtyWire {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    layout.fourBlockUpdate input layout.dirtyWire = input layout.dirtyWire := by
+  exact layout.fourBlockUpdate_apply_of_ne input layout.dirtyWire
+    layout.dirtyWire_ne_targetWire
+
+/-! ## Positive-controlled Pauli-X bridge -/
+
+/-- Boolean product of an arbitrary ordered control register. -/
+private def orderedControlProduct {controlCount n : ℕ}
+    (layout : OrderedControlLayout controlCount n) (input : Basis n) : Bool :=
+  ∏ control, input (layout.controlWire control)
+
+private theorem boolFinsetProduct_eq_true_iff {ι : Type*} [DecidableEq ι]
+    (s : Finset ι) (f : ι → Bool) :
+    (∏ i ∈ s, f i) = true ↔ ∀ i ∈ s, f i = true := by
+  induction s using Finset.induction_on with
+  | empty => simp [Bool.one_eq_true]
+  | @insert element s hnotMem ih =>
+      rw [Finset.prod_insert hnotMem, Bool.mul_eq_and, Bool.and_eq_true, ih]
+      simp
+
+private theorem orderedControlProduct_eq_true_iff {controlCount n : ℕ}
+    (layout : OrderedControlLayout controlCount n) (input : Basis n) :
+    orderedControlProduct layout input = true ↔
+      ∀ control, input (layout.controlWire control) = true := by
+  rw [orderedControlProduct]
+  simpa using boolFinsetProduct_eq_true_iff
+    (Finset.univ : Finset (Fin controlCount))
+    (fun control => input (layout.controlWire control))
+
+private theorem all_controlSet_true_iff_orderedControlProduct_eq_true
+    {controlCount n : ℕ} (layout : OrderedControlLayout controlCount n)
+    (input : Basis n) :
+    (∀ wire ∈ layout.controlSet, input wire = true) ↔
+      orderedControlProduct layout input = true := by
+  rw [layout.all_controls_iff]
+  change (∀ control, input (layout.controlWire control) = true) ↔ _
+  exact (orderedControlProduct_eq_true_iff layout input).symm
+
+private theorem update_add_true_eq_setTarget_not {n : ℕ}
+    (target : Fin n) (input : Basis n) :
+    Function.update input target (input target + true) =
+      setTarget target input (!input target) := by
+  funext wire
+  by_cases hwire : wire = target
+  · subst wire
+    rw [Function.update_self, setTarget_apply_target]
+    cases input target <;> rfl
+  · rw [Function.update_of_ne hwire,
+      setTarget_apply_of_ne target input _ wire hwire]
+
+private theorem update_add_false_eq_self {n : ℕ}
+    (target : Fin n) (input : Basis n) :
+    Function.update input target (input target + false) = input := by
+  funext wire
+  by_cases hwire : wire = target
+  · subst wire
+    rw [Function.update_self]
+    cases input target <;> rfl
+  · rw [Function.update_of_ne hwire]
+
+/-- Exact basis action of positive-controlled Pauli-X for ordered controls. -/
+private theorem positiveControlledPauliX_mulVec_basisKet {controlCount n : ℕ}
+    (layout : OrderedControlLayout controlCount n) (input : Basis n) :
+    (positiveControlledUnitary layout.targetWire layout.controlSet pauliX : Gate n) *ᵥ
+        basisKet input =
+      basisKet
+        (Function.update input layout.targetWire
+          (input layout.targetWire + orderedControlProduct layout input)) := by
+  rw [coe_positiveControlledUnitary, positiveControlledRaw_truthTable]
+  by_cases hall : ∀ wire ∈ layout.controlSet, input wire = true
+  · rw [if_pos hall]
+    have hproduct : orderedControlProduct layout input = true :=
+      (all_controlSet_true_iff_orderedControlProduct_eq_true layout input).mp hall
+    rw [hproduct, update_add_true_eq_setTarget_not]
+    simpa [xRaw] using xRaw_mulVec_basisKet layout.targetWire input
+  · rw [if_neg hall]
+    have hproduct : orderedControlProduct layout input = false := by
+      apply Bool.eq_false_of_not_eq_true
+      intro htrue
+      exact hall
+        ((all_controlSet_true_iff_orderedControlProduct_eq_true layout input).mpr htrue)
+    rw [hproduct, update_add_false_eq_self]
+
+@[simp]
+theorem orderedControlProduct_aLayout {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    orderedControlProduct layout.aLayout input = layout.leftProduct input := by
+  rfl
+
+@[simp]
+theorem orderedControlProduct_bLayout {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    orderedControlProduct layout.bLayout input =
+      layout.rightProduct input * input layout.dirtyWire := by
+  rw [orderedControlProduct, Fin.prod_univ_add]
+  simp [bLayout, bControlEmbedding, bControlSlotEmbedding,
+    bControlSumEmbedding, rightProduct, dirtyWire, rightControlWire]
+
+@[simp]
+theorem orderedControlProduct_dataLayout {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    orderedControlProduct layout.dataLayout input =
+      layout.leftProduct input * layout.rightProduct input := by
+  rw [orderedControlProduct, Fin.prod_univ_add]
+  simp [dataLayout, dataControlEmbedding, dataControlSlotEmbedding,
+    dataControlSumEmbedding, leftProduct, rightProduct,
+    leftControlWire, rightControlWire]
+
+/-- Block A's macro denotation is exactly its Boolean dirty-wire update. -/
+@[simp]
+theorem blockA_denotation_mulVec_basisKet {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    (layout.blockA.denotation : Gate n) *ᵥ basisKet input =
+      basisKet (layout.blockAUpdate input) := by
+  rw [blockA, Primitive.positiveControlled_denotation]
+  have haction := positiveControlledPauliX_mulVec_basisKet layout.aLayout input
+  rw [orderedControlProduct_aLayout] at haction
+  simpa [blockAUpdate, aLayout] using haction
+
+/-- Block B's macro denotation is exactly its Boolean target update. -/
+@[simp]
+theorem blockB_denotation_mulVec_basisKet {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    (layout.blockB.denotation : Gate n) *ᵥ basisKet input =
+      basisKet (layout.blockBUpdate input) := by
+  rw [blockB, Primitive.positiveControlled_denotation]
+  have haction := positiveControlledPauliX_mulVec_basisKet layout.bLayout input
+  rw [orderedControlProduct_bLayout] at haction
+  simpa [blockBUpdate, bLayout] using haction
+
+/-- Exact arbitrary-width basis action of the chronological four-block circuit. -/
+theorem eval_fourBlockCircuit_mulVec_basisKet {l r n : ℕ}
+    (layout : FourBlockLayout l r n) (input : Basis n) :
+    (Circuit.eval layout.fourBlockCircuit : Gate n) *ᵥ basisKet input =
+      basisKet (layout.fourBlockUpdate input) := by
+  simp only [fourBlockCircuit, Circuit.eval_cons, Circuit.eval_nil,
+    Submonoid.coe_mul, Submonoid.coe_one, Matrix.one_mul]
+  rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+  rw [blockA_denotation_mulVec_basisKet,
+    blockB_denotation_mulVec_basisKet,
+    blockA_denotation_mulVec_basisKet,
+    blockB_denotation_mulVec_basisKet]
+  rfl
+
+/--
+Barenco Lemma 7.3: `A;B;A;B` is exactly the positive-controlled Pauli-X on all
+logical data controls, on the full ambient register.
+-/
+@[simp]
+theorem eval_fourBlockCircuit {l r n : ℕ} (layout : FourBlockLayout l r n) :
+    Circuit.eval layout.fourBlockCircuit =
+      positiveControlledUnitary layout.targetWire layout.dataLayout.controlSet pauliX := by
+  apply Subtype.ext
+  rw [matrix_eq_iff_mulVec_basisKet_eq]
+  intro input
+  rw [eval_fourBlockCircuit_mulVec_basisKet, fourBlockUpdate_eq_update]
+  have haction := positiveControlledPauliX_mulVec_basisKet layout.dataLayout input
+  rw [orderedControlProduct_dataLayout] at haction
+  simpa [dataLayout] using haction.symm
+
 end FourBlockLayout
 
 end Barenco.MultiControl
