@@ -33,6 +33,7 @@ import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.ThreeQubit.RelativePhaseFusion
+import Barenco.ThreeQubit.RelativePhaseThreeGate
 import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources

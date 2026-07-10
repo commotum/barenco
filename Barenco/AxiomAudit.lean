@@ -28,6 +28,7 @@ import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.ThreeQubit.RelativePhaseFusion
+import Barenco.ThreeQubit.RelativePhaseThreeGate
 import Barenco.MultiControl.Lemma71
 import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
@@ -195,6 +196,21 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_acceptedCostNonincrease
 #print axioms Barenco.Optimization.section8NormalizeProgram_arbitraryTwoQubit_cost_eq_none_iff
 #print axioms Barenco.Optimization.SymbolicCircuit.normalize_erased_oneQubitCNOT_acceptedCostNonincrease
+
+/-! ## Goal 2 Stage 6: explicit three-gate relative-phase Toffoli -/
+
+#print axioms Barenco.ThreeQubit.section8Normalize_relativePhaseToffoliAFusionCircuit
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliThreeGateCircuit_eq_A
+#print axioms Barenco.ThreeQubit.eval_relativePhaseToffoliThreeGateCircuit
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_mulVec_basisKet
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_sameBasisBehavior
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_basisMeasurementEq
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateFusionCircuit_gateCount
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_twoQubitCount
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliThreeGateCircuit_oneQubitCNOTCost
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose

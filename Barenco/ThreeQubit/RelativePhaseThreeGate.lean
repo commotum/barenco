@@ -22,6 +22,7 @@ namespace Barenco.ThreeQubit
 
 open Barenco.OneQubit
 open Barenco.Optimization
+open scoped Matrix
 
 noncomputable section
 
@@ -109,7 +110,7 @@ theorem section8Normalize_relativePhaseToffoliAFusionCircuit {n : ℕ}
 
 /-- Exact visible evaluator equality with the original seven-node A circuit. -/
 theorem eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A {n : ℕ}
-    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (first second target : Fin n)
     (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
     FusionCircuit.eval
         (relativePhaseToffoliThreeGateFusionCircuit first second target
@@ -117,12 +118,14 @@ theorem eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A {n : ℕ}
       FusionCircuit.eval
         (relativePhaseToffoliAFusionCircuit first second target
           hfirstTarget hsecondTarget) := by
-  rw [← section8Normalize_relativePhaseToffoliAFusionCircuit first second target
-    hfirstSecond hfirstTarget hsecondTarget, eval_section8Normalize]
+  simp [relativePhaseToffoliThreeGateFusionCircuit,
+    relativePhaseToffoliAFusionCircuit, targetThenCNOTPayload,
+    targetCNOTTargetPayload, FusionCircuit.eval, FusionPrimitive.denotation,
+    twoWireUnitary_mul, mul_assoc]
 
 /-- Exact lowered evaluator equality with the original seven-node A circuit. -/
 theorem eval_relativePhaseToffoliThreeGateCircuit_eq_A {n : ℕ}
-    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (first second target : Fin n)
     (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
     Circuit.eval
         (relativePhaseToffoliThreeGateCircuit first second target
@@ -130,14 +133,17 @@ theorem eval_relativePhaseToffoliThreeGateCircuit_eq_A {n : ℕ}
       Circuit.eval
         (relativePhaseToffoliACircuit first second target
           hfirstTarget hsecondTarget) := by
+  change Circuit.eval
+      (relativePhaseToffoliThreeGateFusionCircuit first second target
+        hfirstTarget hsecondTarget).lower = _
   rw [← lower_relativePhaseToffoliAFusionCircuit,
-    ← FusionCircuit.eval_lower, ← FusionCircuit.eval_lower]
+    FusionCircuit.eval_lower, FusionCircuit.eval_lower]
   exact eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A first second target
-    hfirstSecond hfirstTarget hsecondTarget
+    hfirstTarget hsecondTarget
 
 /-- Exact arbitrary-register semantics of the named three-node fusion syntax. -/
 theorem eval_relativePhaseToffoliThreeGateFusionCircuit {n : ℕ}
-    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (first second target : Fin n)
     (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
     FusionCircuit.eval
         (relativePhaseToffoliThreeGateFusionCircuit first second target
@@ -145,12 +151,12 @@ theorem eval_relativePhaseToffoliThreeGateFusionCircuit {n : ℕ}
       relativeToffoliUnitary first second target
         hfirstTarget hsecondTarget := by
   rw [eval_relativePhaseToffoliThreeGateFusionCircuit_eq_A first second target
-      hfirstSecond hfirstTarget hsecondTarget,
+      hfirstTarget hsecondTarget,
     eval_relativePhaseToffoliAFusionCircuit]
 
 /-- Exact arbitrary-register semantics after trusted lowering. -/
 theorem eval_relativePhaseToffoliThreeGateCircuit {n : ℕ}
-    (first second target : Fin n) (hfirstSecond : first ≠ second)
+    (first second target : Fin n)
     (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
     Circuit.eval
         (relativePhaseToffoliThreeGateCircuit first second target
@@ -160,7 +166,7 @@ theorem eval_relativePhaseToffoliThreeGateCircuit {n : ℕ}
   rw [← lower_relativePhaseToffoliThreeGateFusionCircuit,
     FusionCircuit.eval_lower,
     eval_relativePhaseToffoliThreeGateFusionCircuit first second target
-      hfirstSecond hfirstTarget hsecondTarget]
+      hfirstTarget hsecondTarget]
 
 /-! ## Exact signed action and the strongest justified phase relations -/
 
@@ -179,7 +185,7 @@ theorem relativePhaseToffoliThreeGateCircuit_mulVec_basisKet {n : ℕ}
         (splitTarget target input).2 (input target) : ℂ) •
         basisKet (toffoliOutput first second target input) := by
   rw [eval_relativePhaseToffoliThreeGateCircuit first second target
-    hfirstSecond hfirstTarget hsecondTarget]
+    hfirstTarget hsecondTarget]
   exact relativeToffoliUnitary_mulVec_basisKet first second target hfirstSecond
     hfirstTarget hsecondTarget input
 
@@ -193,7 +199,7 @@ theorem relativePhaseToffoliThreeGateCircuit_basisPhaseEq_toffoli {n : ℕ}
         (relativePhaseToffoliThreeGateCircuit first second target
           hfirstTarget hsecondTarget) : Gate n) := by
   rw [eval_relativePhaseToffoliThreeGateCircuit first second target
-    hfirstSecond hfirstTarget hsecondTarget]
+    hfirstTarget hsecondTarget]
   exact relativeToffoliUnitary_basisPhaseEq_toffoli first second target
     hfirstSecond hfirstTarget hsecondTarget
 
