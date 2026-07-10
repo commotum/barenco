@@ -17,6 +17,13 @@ structure CostModel where
 
 namespace Circuit
 
+/-- Ambient register width carried by the circuit's type index. -/
+def registerWidth {n : ℕ} (_circuit : Circuit n) : ℕ := n
+
+@[simp]
+theorem registerWidth_eq {n : ℕ} (circuit : Circuit n) :
+    registerWidth circuit = n := rfl
+
 /-- Total number of syntactic primitive occurrences. -/
 def gateCount {n : ℕ} (circuit : Circuit n) : ℕ := circuit.length
 
@@ -94,6 +101,11 @@ theorem mem_touchedSupport_iff {n : ℕ} (wire : Fin n) (circuit : Circuit n) :
   | cons primitive circuit ih =>
       simp [ih]
 
+/-- A circuit cannot name more distinct wires than its ambient register width. -/
+theorem touchedSupport_card_le_registerWidth {n : ℕ} (circuit : Circuit n) :
+    (touchedSupport circuit).card ≤ registerWidth circuit := by
+  simpa [registerWidth] using Finset.card_le_univ (s := touchedSupport circuit)
+
 @[simp]
 theorem touchedSupport_adjoint {n : ℕ} (circuit : Circuit n) :
     touchedSupport (Circuit.adjoint circuit) = touchedSupport circuit := by
@@ -144,9 +156,9 @@ theorem cost_eq_none_of_mem {n : ℕ} (model : CostModel) {primitive : Primitive
       rcases List.mem_cons.mp hmem with hhead | htail
       · subst head
         rw [hunsupported]
-        exact addCost_none_left _
+        simp [addCost]
       · rw [ih htail]
-        exact addCost_none_right _
+        simp [addCost]
 
 @[simp]
 theorem addCost_none_left (value : Option ℕ) : addCost none value = none := by

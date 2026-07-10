@@ -24,7 +24,9 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 | D2-Toffoli | p. 6; lines 127–138 | `∧ₘ(σx)` Boolean action | `pauliX`, `xRaw_mulVec_basisKet`, positive-control specialization; `cnotRaw_mulVec_basisKet` for `m=1` | A,C,W | partial: reusable general semantics proved; named all-controls paper wrapper and lexicographic theorem remain |
 | C2-dense | pp. 6–7; lines 146–150 | cited claim that “almost any” fixed controlled-U densely generates | no local theorem from this paper | A,C,O | intentionally excluded from paper reconstruction: source cites [29,31] and gives no proof; exact universality with all U(2) primitives is handled separately |
 | N3-diagrams | pp. 7–8; lines 158–168; image `notation-basic-gates.png` | wire/control/target notation; time left-to-right | `evalGates_pair`, `fromPaper_paperProduct`, `Circuit.eval_append`, `Primitive.oneQubit`, `Primitive.cnot` | C | corrected and proved for chronology, typed one-qubit/CNOT wires, and source/semantic translation; later diagram-specific circuits remain in their rows |
-| N3-basic | p. 8; line 166 | “basic” = arbitrary one-qubit or CNOT | private-constructor `Primitive`, trusted `.oneQubit`/`.cnot` kinds; `CostModel.oneQubitCNOT` planned | R | partial: countable trustworthy syntax exists; weights/count projections are Stage 3 |
+| N3-basic | p. 8; line 166 | “basic” = arbitrary one-qubit or CNOT | private-constructor `Primitive`; trusted `.oneQubit`/`.cnot`; `Circuit.gateCount`, `kindCount`, `touchedSupport`, `cost`; `CostModel.oneQubitCNOT` | R | corrected and proved at the syntax/cost-model layer: unsupported kinds make cost `none`; no paper decomposition count follows until its circuit exists |
+| F3-phase | §6.2, pp. 15–16; lines 552–584 | informal “congruent modulo phase shifts” language | `GlobalPhaseEq`, input-column `BasisPhaseEq`, `SameBasisBehavior`, `BasisMeasurementEq` and implication/equivalence laws | A | partial foundation: distinct relations and valid implications are proved; neither relative-Toffoli diagram nor any cancellation witness is yet formalized |
+| F3-measure | §6.2 and pp. 22–23; lines 552–584, 770–774 | phase-sensitive quantum use and measurement-probability discussion | `conjugationChannel`, `ChannelEq`, arbitrary-matrix/effect `BornWeight` and `AllMeasurementEq`; `channelEq_iff_allMeasurementEq`; `ChannelEq.toBasisMeasurementEq` | A | corrected clarification proved algebraically: global phase cancels and all-matrix/effect equality separates channels; physical density/effect restrictions and the paper's `2ε` bound remain open |
 
 ## Section 4 — Matrix Properties
 
@@ -68,7 +70,7 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 | L7.5 | p. 21; line 718; image `lemma-7-5-quadratic-general-control.png` | recursive fully controlled U using square root | `recursiveControlledCircuit_correct` (planned) | C,W,R | planned |
 | C7.6 | pp. 21–22; line 724 | claimed `Θ(n²)` and `48n²+O(n)` | construction recurrence upper bound (planned) | R,O | planned correction; no optimal quadratic lower bound in paper |
 | L7.7 | p. 22; line 750 | nonscalar fully controlled U needs ≥`n−1` CNOTs | `fullyControlled_cnotLowerBound` (planned) | C,R,O | planned; formal dependency/connectivity invariant required |
-| D7-approx | pp. 22–23; line 770 | induced Euclidean operator distance | L² operator-distance definition (planned) | A | planned |
+| D7-approx | pp. 22–23; line 770 | distance induced by the Euclidean vector norm | `operatorDistance` using scoped `Matrix.Norms.L2Operator`; metric laws, multiplication bounds, unitary invariance, product-error and state-action bounds | A | corrected and proved for the exact L² induced operator norm; no approximation circuit or probability theorem is implied |
 | P7-approx | pp. 22–23; line 772 | event probabilities differ by ≤`2ε` | `eventProbability_sub_le` (planned) | A | planned; hypotheses/constant to verify |
 | L7.8 | pp. 23–24; line 774 | recursive-root approximate controlled U in claimed `Θ(n log(1/ε))` | capped-depth corrected upper bound (planned) | A,C,R,O | planned correction; see C-007–C-010 |
 | L7.9 | p. 24; line 854; image `lemma-7-9-linear-su2-control.png` | multi-control SU(2) ABC circuit | `controlledSU2Linear_correct` (planned) | A,C,W,R | planned |
@@ -80,7 +82,7 @@ wire/ancilla preservation, `R` exact structural resources, and `O` asymptotics.
 
 | ID | Source | Paper content | Lean counterpart | Layers | Status / notes |
 |---|---|---|---|---|---|
-| N8-basic | p. 26; lines 891–895 | “basic” changes to arbitrary two-qubit gate | `CostModel.arbitraryTwoQubit` (planned) | R | planned |
+| N8-basic | p. 26; lines 891–895 | “basic” changes to arbitrary two-qubit gate | `CostModel.arbitraryTwoQubit`; partial `Circuit.cost` and explicit rejection theorems | R | corrected and proved as a distinct syntax-only cost model; arbitrary-two-qubit smart constructor and Section 8 circuit/count theorems remain planned |
 | U8-Toffoli5 | p. 26; lines 895–900 | exact Toffoli in five arbitrary two-qubit gates | circuit/cost corollary (planned) | C,R | planned constructed upper bound; not minimality |
 | U8-relToffoli3 | p. 26; lines 895–900 | relative-phase Toffoli in three after merging | optimized syntax theorem (planned) | C,R | planned; phase target explicit |
 | U8-Toffoli4-13 | p. 26; lines 895–900 | four-bit Toffoli in thirteen arbitrary two-qubit gates | circuit/cost corollary (planned) | C,R | planned constructed upper bound |

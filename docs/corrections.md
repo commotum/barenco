@@ -121,7 +121,9 @@ statement. “Open” means the repair is identified but not yet machine checked
   upper shape is `O(n · min(n, ceil(log₂(π/ε))))` plus fixed overhead, with boundary
   cases stated separately.
 - **Dependent impact:** Lemma 7.8 and any universality-efficiency claim using it.
-- **Formal evidence:** planned approximation/cost theorem.
+- **Formal evidence:** `Barenco.operatorDistance` now fixes the L² induced operator
+  norm and its metric, multiplication, unitary-invariance, and state-action laws.
+  The recursion-depth/epsilon repair itself remains planned.
 - **Status:** open; exact best finite formula not yet selected.
 
 ## C-009 — Phase congruence is not one equivalence relation
@@ -134,8 +136,13 @@ statement. “Open” means the repair is identified but not yet machine checked
   basis-dependent phase equivalence, derive reversible-basis behavior, and prove
   exact cancellation only in the concrete context where it occurs.
 - **Dependent impact:** Section 6.2 circuits and Corollary 7.4's reduced gate count.
-- **Formal evidence:** planned phase relation and basis-action theorems.
-- **Status:** open.
+- **Formal evidence:** `GlobalPhaseEq` is one constant `Circle` scalar;
+  `BasisPhaseEq` is an input-column phase function; `SameBasisBehavior` and
+  `BasisMeasurementEq` are separate relations. The compiled implications include
+  global-to-basis phase, basis phase to basis probabilities, and global phase to
+  channel equality. No Section 6.2 circuit witness has been supplied.
+- **Status:** partial: the semantic ambiguity is resolved, while both relative-phase
+  Toffoli diagrams and their claimed later cancellation remain open.
 
 ## C-010 — Auxiliary-wire contracts are underspecified
 
@@ -159,8 +166,13 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Repair:** use distinct named cost models, count controlled intermediate gates
   structurally unless declared primitive, and attach every bound to one model.
 - **Dependent impact:** all resource theorems.
-- **Formal evidence:** convention fixed; syntax/cost definitions planned.
-- **Status:** open.
+- **Formal evidence:** `CostModel.oneQubitCNOT` and
+  `CostModel.arbitraryTwoQubit` are distinct partial models;
+  `Circuit.cost` returns `none` for an unsupported occurrence, and
+  `Primitive.namedModels_reject_unclassified_of_mem` proves that neither model
+  silently prices `.unclassified`. Append and adjoint cost laws are compiled.
+- **Status:** corrected and proved at the cost-model foundation. Every numerical
+  paper bound still requires a concrete supported circuit and its own theorem.
 
 ## C-012 — Six arbitrary two-qubit gates for every U(8) is unsupported
 
@@ -204,3 +216,26 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** central exact-universality and resource headline results.
 - **Formal evidence:** planned universality/resource stages.
 - **Status:** open.
+
+## C-015 — Algebraic all-measurement equality is not yet a physical measurement model
+
+- **Source:** Section 6.2, manuscript pp. 15–16, and the approximation/probability
+  discussion on pp. 22–23.
+- **Issue:** phrases such as “same measurements” can hide materially different
+  quantifiers. Equality only for computational-basis inputs/outcomes is weaker than
+  equality for arbitrary input states and effects. Conversely, calling an arbitrary
+  complex matrix a state or effect does not prove positivity, normalization, reality,
+  or probability bounds.
+- **Repair:** `BasisMeasurementEq` compares squared entry moduli only.
+  `ChannelEq` quantifies conjugation over every square complex input matrix, while
+  `AllMeasurementEq` quantifies `trace (effect * state)` over every input/effect
+  matrix. Matrix-unit effects prove those latter two algebraic relations equivalent.
+  Physical density matrices and positive effects will be separate restricted types.
+- **Dependent impact:** phase-relaxed constructions, the paper's `2ε` observation,
+  and any later claim about observable outcome probabilities.
+- **Formal evidence:** `GlobalPhaseEq.toChannelEq`,
+  `channelEq_iff_allMeasurementEq`, `ChannelEq.bornWeight_eq`, and
+  `ChannelEq.toBasisMeasurementEq` compile in
+  `Barenco.Equivalence.Measurement`.
+- **Status:** corrected and proved as an algebraic separation. The physical-state,
+  effect, and `2ε` probability theorem remains open.

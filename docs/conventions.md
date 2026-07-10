@@ -129,36 +129,59 @@ improves reuse without obscuring the quantum statement.
 
 ## Semantic Relations
 
-The library will keep at least these relations separate:
+The implemented relations are deliberately noninterchangeable:
 
-1. **Exact equality:** equal linear operators/matrices.
-2. **Global phase:** `A = z • B` for one `z : Circle`, independent of input.
-3. **Basis-dependent phase:** each computational-basis column differs by its own
-   unit scalar; the phase may depend on the basis state.
-4. **Reversible basis behavior:** the same permutation of computational basis
-   labels, ignoring phases.
-5. **Computational-basis measurement behavior:** the same probability distribution
-   after computational-basis inputs/measurements.
-6. **All-measurement behavior:** operational equivalence for arbitrary states and
-   measurements; global phase implies this, basis-dependent phase generally does
-   not.
+1. **Exact circuit equality:** `ExactCircuitEq c d` means equality of the certified
+   evaluator outputs.
+2. **Global phase:** `GlobalPhaseEq U V` is oriented as
+   `V = (phase : ℂ) • U` for one `phase : Circle`, independent of the input.
+3. **Input-basis-dependent phase:** `BasisPhaseEq U V` means
+   `V row input = (phase input : ℂ) * U row input`. Thus each input column may
+   receive its own unit scalar. Common postcomposition, represented by multiplying
+   both matrices on the left, preserves this relation. Arbitrary precomposition on
+   the right mixes columns and is intentionally not exposed as a congruence law.
+4. **Reversible basis behavior:** `SameBasisBehavior` records the same phased
+   basis-to-basis transitions. For non-monomial matrices it is intentionally a
+   coarse classical relation, not equality of quantum action.
+5. **Computational-basis measurement behavior:** `BasisMeasurementEq U V` compares
+   `Complex.normSq (U output input)` entrywise. `BasisPhaseEq` implies this.
+6. **Channel/all-effect behavior:** `ChannelEq U V` compares
+   `U * input * Uᴴ` and `V * input * Vᴴ` for every square complex matrix `input`.
+   `AllMeasurementEq` compares
+   `BornWeight effect state = trace (effect * state)` for every input matrix and
+   every effect matrix. Matrix-unit effects prove these two relations equivalent.
+   A global phase implies them, and channel equality implies
+   `BasisMeasurementEq`; basis-dependent phase generally does not imply channel
+   equality.
 
-Section 6's `≅` diagrams establish basis-dependent signs, not global phase. A later
-use may be exact only after an explicit cancellation theorem.
+The conjugation and Born-weight definitions are algebraic on arbitrary matrices.
+They do **not** yet define physical density matrices, positive effects, trace-one
+normalization, real-valued probabilities, or the interval bounds `0 ≤ p ≤ 1`.
+Those restrictions require separate structures and theorems. Quantifying over all
+matrices/effects is intentionally stronger and makes the trace pairing separating.
+
+Section 6's `≅` diagrams are expected to establish basis-dependent signs, not a
+global phase. The relations above now make that distinction expressible, but no
+Section 6 diagram or phase-cancellation claim has yet been proved.
 
 ## Approximation and Probability
 
-- Matrix approximation uses the L² induced operator norm (spectral/operator norm),
-  not a Frobenius, entrywise, or unspecified matrix norm.
-- Approximation modules enable mathlib's scoped instance with
-  `open scoped Matrix.Norms.L2Operator` and use `Matrix.toEuclideanCLM` as the bridge
-  to continuous linear maps.
-- `Matrix.l2_opNorm_mul`, `.l2_opNorm_mulVec`, and unitary norm facts support error
-  propagation. Scoped norm instances stay out of unrelated algebra modules to avoid
-  ambiguous norm inference.
+- `operatorDistance A B = ‖A - B‖` uses mathlib's scoped L² induced operator norm
+  (spectral/operator norm), not a Frobenius, entrywise, or unspecified matrix norm.
+- `Barenco.Equivalence.OperatorNorm` alone opens
+  `Matrix.Norms.L2Operator`; the norm instance is not opened in the algebraic phase,
+  measurement, circuit, or cost modules.
+- The compiled API proves nonnegativity, separation, symmetry, the triangle
+  inequality, left/right multiplication bounds, invariance under certified unitary
+  multiplication, additive error for a product of two unitary factors, the
+  Euclidean state-action bound, and distance at most two between certified
+  unitaries on a nonempty finite index type.
+- `Matrix.l2_opNorm_mul`, `.l2_opNorm_mulVec`, `Matrix.toEuclideanCLM`, and C*-unitary
+  norm facts are the exact mathlib bridge used by those proofs.
 - The paper's claim that operator error `≤ ε` gives event-probability error `≤ 2ε`
-  will be proved from normalized states and orthogonal projections/events. The
-  constant and hypotheses are not assumed merely because the source states them.
+  remains unproved. It will require normalized physical states and explicit
+  projections/effects; neither the arbitrary-matrix `BornWeight` API nor the
+  operator-distance action theorem silently supplies those hypotheses.
 
 Exact and approximate synthesis have different theorem names and result types.
 Bounds in two variables (`n` and `ε`) state their domains, integer recursion depth,
@@ -187,14 +210,24 @@ construction.
 
 Named cost models:
 
-- **`OneQubitCNOT` (Sections 3–7):** an arbitrary one-qubit unitary costs one and a
-  CNOT costs one. Controlled arbitrary gates are composite unless a theorem
-  explicitly studies a different intermediate alphabet.
-- **`ArbitraryTwoQubit` (Section 8):** any gate supported on at most two wires costs
-  one. This deliberately changes the paper's earlier ground rules.
+- **`CostModel.oneQubitCNOT` (Sections 3–7):** kinds `.oneQubit` and `.cnot`
+  cost one. Controlled one-qubit, Toffoli, arbitrary-two-qubit, and `.other` kinds
+  are unsupported rather than silently treated as free.
+- **`CostModel.arbitraryTwoQubit` (Section 8):** `.oneQubit`, `.cnot`, and the
+  certified `.arbitraryTwoQubit` kind cost one. Controlled-one-qubit, Toffoli, and
+  `.other` kinds remain unsupported. This deliberately changes the earlier ground
+  rules; no arbitrary-two-qubit smart constructor or paper decomposition theorem is
+  thereby supplied.
 - Additional diagnostic models may count one-qubit, CNOT, controlled-one-qubit,
   Toffoli, arbitrary two-qubit gates, swaps, or negative-control conjugations in
   separate coordinates.
+
+`Circuit.gateCount`, `kindCount`, and `touchedSupport` inspect syntax only.
+`Circuit.cost` returns `Option ℕ`: one unsupported occurrence makes the complete
+cost `none`. Append and adjoint theorems prove the structural count/cost laws, and
+`Primitive.namedModels_reject_unclassified_of_mem` proves that both named models
+reject any circuit containing `.unclassified`. Semantic matrix equality is never
+used to infer a resource count.
 
 Counts distinguish exact equality from phase-relaxed targets, allow gate merging
 only through an explicit syntactic optimization theorem, and label exact count,
