@@ -172,6 +172,15 @@ theorem coe_controlledUnitary {n : ℕ} (target : Fin n)
   ext row col
   simp [controlledUnitary, controlledRaw, Matrix.blockDiagonal_apply]
 
+theorem localRaw_mem_unitaryGroup {n : ℕ} (target : Fin n) (U : QubitUnitary) :
+    localRaw target U ∈ Matrix.unitaryGroup (Basis n) ℂ := by
+  simpa using (localUnitary target U).property
+
+theorem controlledRaw_mem_unitaryGroup {n : ℕ} (target : Fin n)
+    (enabled : ComplementBasis target → Bool) (U : QubitUnitary) :
+    controlledRaw target enabled U ∈ Matrix.unitaryGroup (Basis n) ℂ := by
+  simpa using (controlledUnitary target enabled U).property
+
 /-- Basis-column action of an arbitrary-target one-qubit matrix. -/
 theorem localRaw_mulVec_basisKet {n : ℕ} (target : Fin n) (U : QubitMatrix)
     (x : Basis n) :
@@ -220,7 +229,7 @@ theorem controlledRaw_mulVec_basisKet {n : ℕ} (target : Fin n)
   by_cases hagree : AgreeOff target row x
   · have hrest : (splitTarget target row).2 = (splitTarget target x).2 :=
       (splitTarget_snd_eq_iff target row x).2 hagree
-    simp [hagree, hrest]
+    simp [hrest]
   · simp [hagree]
 
 /-- An active controlled block has exactly the local-gate basis-column action. -/
@@ -260,5 +269,191 @@ theorem controlledRaw_truthTable {n : ℕ} (target : Fin n)
   cases h : enabled (splitTarget target x).2
   · simpa [h] using controlledRaw_mulVec_basisKet_of_disabled target enabled U x h
   · simpa [h] using controlledRaw_mulVec_basisKet_of_enabled target enabled U x h
+
+/-- A finite set of positive controls, all definitionally distinct from `target`. -/
+abbrev ControlSet {n : ℕ} (target : Fin n) := Finset (TargetComplement target)
+
+/-- The positive-control predicate: every listed control bit is `true`. -/
+def positiveControlsEnabled {n : ℕ} {target : Fin n} (controls : ControlSet target)
+    (rest : ComplementBasis target) : Bool :=
+  decide (∀ i ∈ controls, rest i = true)
+
+@[simp]
+theorem positiveControlsEnabled_eq_true_iff {n : ℕ} {target : Fin n}
+    (controls : ControlSet target) (rest : ComplementBasis target) :
+    positiveControlsEnabled controls rest = true ↔
+      ∀ i ∈ controls, rest i = true := by
+  simp [positiveControlsEnabled]
+
+@[simp]
+theorem positiveControlsEnabled_splitTarget_eq_true_iff {n : ℕ} {target : Fin n}
+    (controls : ControlSet target) (x : Basis n) :
+    positiveControlsEnabled controls (splitTarget target x).2 = true ↔
+      ∀ i ∈ controls, x i = true := by
+  simp [positiveControlsEnabled]
+
+/-- Raw positive multi-controlled one-qubit gate. -/
+def positiveControlledRaw {n : ℕ} (target : Fin n) (controls : ControlSet target)
+    (U : QubitMatrix) : Gate n :=
+  controlledRaw target (positiveControlsEnabled controls) U
+
+/-- Certified positive multi-controlled one-qubit gate. -/
+def positiveControlledUnitary {n : ℕ} (target : Fin n) (controls : ControlSet target)
+    (U : QubitUnitary) : UnitaryGate n :=
+  controlledUnitary target (positiveControlsEnabled controls) U
+
+@[simp]
+theorem coe_positiveControlledUnitary {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    (positiveControlledUnitary target controls U : Gate n) =
+      positiveControlledRaw target controls U := by
+  simp [positiveControlledUnitary, positiveControlledRaw]
+
+theorem positiveControlledRaw_mem_unitaryGroup {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitUnitary) :
+    positiveControlledRaw target controls U ∈ Matrix.unitaryGroup (Basis n) ℂ := by
+  simpa using (positiveControlledUnitary target controls U).property
+
+/-- Truth table for an arbitrary positive multi-controlled one-qubit matrix. -/
+theorem positiveControlledRaw_truthTable {n : ℕ} (target : Fin n)
+    (controls : ControlSet target) (U : QubitMatrix) (x : Basis n) :
+    positiveControlledRaw target controls U *ᵥ basisKet x =
+      if ∀ i ∈ controls, x i = true then
+        localRaw target U *ᵥ basisKet x
+      else basisKet x := by
+  by_cases h : ∀ i ∈ controls, x i = true
+  · have henabled : positiveControlsEnabled controls (splitTarget target x).2 = true :=
+      (positiveControlsEnabled_splitTarget_eq_true_iff controls x).2 h
+    rw [if_pos h]
+    exact controlledRaw_mulVec_basisKet_of_enabled target
+      (positiveControlsEnabled controls) U x henabled
+  · have henabled : positiveControlsEnabled controls (splitTarget target x).2 = false := by
+      cases hvalue : positiveControlsEnabled controls (splitTarget target x).2
+      · rfl
+      · exact (h (positiveControlsEnabled_splitTarget_eq_true_iff controls x |>.1 hvalue)).elim
+    rw [if_neg h]
+    exact controlledRaw_mulVec_basisKet_of_disabled target
+      (positiveControlsEnabled controls) U x henabled
+
+/-- Positive controlled gates cannot change a non-target wire on a basis column. -/
+theorem positiveControlledRaw_mulVec_basisKet_eq_zero_of_changed {n : ℕ}
+    (target : Fin n) (controls : ControlSet target) (U : QubitMatrix)
+    {x row : Basis n} (i : Fin n) (hi : i ≠ target) (hchanged : row i ≠ x i) :
+    (positiveControlledRaw target controls U *ᵥ basisKet x) row = 0 := by
+  rw [positiveControlledRaw, controlledRaw_mulVec_basisKet]
+  have hagree : ¬AgreeOff target row x := by
+    intro h
+    exact hchanged (h i hi)
+  change (if AgreeOff target row x then _ else 0) = 0
+  rw [if_neg hagree]
+
+/-- The one-qubit Pauli-X permutation matrix, with its unitarity certificate. -/
+def pauliX : QubitUnitary :=
+  ⟨Equiv.boolNot.permMatrix ℂ, by
+    rw [Matrix.mem_unitaryGroup_iff', Matrix.star_eq_conjTranspose]
+    rw [Matrix.conjTranspose_permMatrix, ← Matrix.permMatrix_mul]
+    simp⟩
+
+@[simp]
+theorem coe_pauliX : (pauliX : QubitMatrix) = Equiv.boolNot.permMatrix ℂ := rfl
+
+/-- Pauli-X sends `|bit⟩` to `|!bit⟩`. -/
+@[simp]
+theorem pauliX_mulVec_basisKet (bit : Bool) :
+    (pauliX : QubitMatrix) *ᵥ basisKet bit = basisKet (!bit) := by
+  rw [coe_pauliX, Matrix.permMatrix_mulVec]
+  funext row
+  cases bit <;> cases row <;> rfl
+
+@[simp]
+theorem pauliX_apply (row col : Bool) :
+    pauliX row col = if row = !col then 1 else 0 := by
+  calc
+    pauliX row col = ((pauliX : QubitMatrix) *ᵥ basisKet col) row := by simp
+    _ = basisKet (!col) row := by rw [pauliX_mulVec_basisKet]
+    _ = if row = !col then 1 else 0 := basisKet_apply _ _
+
+/-- Raw Pauli-X embedded at an arbitrary target. -/
+def xRaw {n : ℕ} (target : Fin n) : Gate n :=
+  localRaw target pauliX
+
+/-- Certified Pauli-X embedded at an arbitrary target. -/
+def xUnitary {n : ℕ} (target : Fin n) : UnitaryGate n :=
+  localUnitary target pauliX
+
+@[simp]
+theorem coe_xUnitary {n : ℕ} (target : Fin n) :
+    (xUnitary target : Gate n) = xRaw target := rfl
+
+theorem xRaw_mem_unitaryGroup {n : ℕ} (target : Fin n) :
+    xRaw target ∈ Matrix.unitaryGroup (Basis n) ℂ :=
+  (xUnitary target).property
+
+theorem eq_setTarget_iff {n : ℕ} (target : Fin n) (x row : Basis n) (bit : Bool) :
+    row = setTarget target x bit ↔
+      AgreeOff target row x ∧ row target = bit := by
+  constructor
+  · rintro rfl
+    constructor
+    · intro i hi
+      exact setTarget_apply_of_ne target x bit i hi
+    · simp
+  · rintro ⟨hagree, htarget⟩
+    funext i
+    by_cases hi : i = target
+    · subst i
+      simpa using htarget
+    · rw [setTarget_apply_of_ne target x bit i hi]
+      exact hagree i hi
+
+/-- Arbitrary-target Pauli-X flips exactly the target bit. -/
+@[simp]
+theorem xRaw_mulVec_basisKet {n : ℕ} (target : Fin n) (x : Basis n) :
+    xRaw target *ᵥ basisKet x = basisKet (setTarget target x (!x target)) := by
+  rw [xRaw, localRaw_mulVec_basisKet]
+  funext row
+  rw [basisKet_apply]
+  simp only [pauliX_apply]
+  by_cases hagree : AgreeOff target row x
+  · rw [if_pos hagree]
+    by_cases htarget : row target = !x target
+    · rw [if_pos htarget, if_pos ((eq_setTarget_iff target x row _).2 ⟨hagree, htarget⟩)]
+    · rw [if_neg htarget, if_neg]
+      exact fun hrow => htarget ((eq_setTarget_iff target x row _).1 hrow).2
+  · rw [if_neg hagree, if_neg]
+    exact fun hrow => hagree ((eq_setTarget_iff target x row _).1 hrow).1
+
+/--
+Raw CNOT with a positive `control` and distinct `target`.  The proof argument
+prevents accidentally identifying the two wires.
+-/
+def cnotRaw {n : ℕ} (control target : Fin n) (h : control ≠ target) : Gate n :=
+  positiveControlledRaw target ({⟨control, h⟩} : ControlSet target) pauliX
+
+/-- Certified CNOT with distinct control and target wires. -/
+def cnotUnitary {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    UnitaryGate n :=
+  positiveControlledUnitary target ({⟨control, h⟩} : ControlSet target) pauliX
+
+@[simp]
+theorem coe_cnotUnitary {n : ℕ} (control target : Fin n) (h : control ≠ target) :
+    (cnotUnitary control target h : Gate n) = cnotRaw control target h := by
+  simp [cnotUnitary, cnotRaw]
+
+theorem cnotRaw_mem_unitaryGroup {n : ℕ} (control target : Fin n)
+    (h : control ≠ target) :
+    cnotRaw control target h ∈ Matrix.unitaryGroup (Basis n) ℂ := by
+  simpa using (cnotUnitary control target h).property
+
+/-- CNOT's full computational-basis truth table. -/
+@[simp]
+theorem cnotRaw_mulVec_basisKet {n : ℕ} (control target : Fin n)
+    (h : control ≠ target) (x : Basis n) :
+    cnotRaw control target h *ᵥ basisKet x =
+      basisKet (if x control then setTarget target x (!x target) else x) := by
+  rw [cnotRaw, positiveControlledRaw_truthTable]
+  cases hcontrol : x control
+  · simp [hcontrol]
+  · simpa [hcontrol, xRaw] using xRaw_mulVec_basisKet target x
 
 end Barenco
