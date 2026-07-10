@@ -25,6 +25,12 @@ has begun).
   conjugation can turn each zero-pattern condition into a positive control and
   restore the affected wires. A temporary basis relabeling is not itself a circuit
   theorem.
+- Endpoint orientation cannot be inferred from the path display. In the paper's
+  own example the final transition changes the target bit from `true` to `false`.
+  Applying a canonical `false,true` one-qubit matrix without transporting the
+  ordered endpoint pair would implement `X U X`, not `U`, on that two-state
+  subspace. The construction must carry an explicit endpoint equivalence or insert
+  the corresponding conjugation.
 - `Basis n = Fin n → Bool` is the circuit-semantic index. The pinned matrix APIs
   support simultaneous reindexing, and `basisIndex` supplies the already-fixed
   big-endian equivalence with `Fin (2^n)`. Algebraic elimination should remain
@@ -49,6 +55,11 @@ has begun).
 - The Section 8 claims that six arbitrary two-qubit gates realize every `U(8)` and
   that dimension counting yields a general lower bound remain unresolved or
   excluded under Stage 10. They are not prerequisites for exact universality.
+- The source's per-factor `Theta(n^3)` and total `Theta(n^3 4^n)` claims are also
+  overstated. The Gray path only satisfies `m <= n+1`; adjacent endpoints have
+  `m=2` and one fully controlled gate, so the displayed construction supports a
+  uniform `O(n^3)` upper bound, not a per-instance lower bound. Stage 12 must not
+  promote this into `Theta` without an aggregate matching theorem.
 
 ## Updated Assumptions
 
@@ -133,6 +144,8 @@ each two-level factor to a fully explicit Gray-path circuit.
   that all other controls are distinct from it.
 - The selected `U(2)` block orientation must agree simultaneously with matrix
   columns, basis-ket action, path endpoint order, and chronological evaluation.
+  In particular, a final `true`-to-`false` target transition is not silently read
+  in canonical `false,true` order.
 - Diagonal phases at positive width are synthesized exactly, not removed as
   global phase. At zero width, prove that the restricted syntax reaches only
   identity and explicitly record the resulting failure of exact universality.
