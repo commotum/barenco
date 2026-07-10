@@ -32,15 +32,19 @@ Status: in progress (2026-07-10).
 ## Updated Assumptions
 
 - The only required high-fanout edit is an import plus the trusted constructor and
-  cheap structural/denotation lemmas in `Barenco/Circuit.lean`. Basis action,
-  adjoint compatibility, singleton evaluation, counts, and costs should remain in
-  a narrow `Barenco/TwoWire/Circuit.lean` consumer.
+  cheap structural/denotation lemmas in `Barenco/Circuit.lean`. There is no public
+  `Primitive.ext`, but external proof leaves may eliminate existing primitives;
+  compiled probes therefore keep whole-record swap/adjoint equalities, basis
+  action, singleton evaluation, counts, and costs in the narrow
+  `Barenco/TwoWire/Circuit.lean` consumer.
 - The constructor will be named `Primitive.twoQubit`, take exactly
   `(pair : OrderedWirePair n)` and `(U : TwoQubitUnitary)`, declare support
   `{pair.first, pair.second}`, and use `twoWireUnitary pair U` as denotation.
 - Structural support is an upper bound, not minimal semantic support: identity and
   scalar `U` still have the declared two-wire support and Section 8 singleton cost
-  one.
+  one. The finset `{pair.first,pair.second}` is necessarily unordered; pair
+  orientation survives in the constructor argument and certified denotation, not
+  in support metadata.
 - The expected adjoint law is exact syntax equality
   `(Primitive.twoQubit pair U).adjoint = Primitive.twoQubit pair U⁻¹`; it must use
   `twoWireUnitary_inv`, not phase relaxation or metadata inference.
@@ -63,7 +67,9 @@ syntax.
   - prove exact kind, support, support-cardinality, denotation, and raw-denotation
     projection lemmas.
 - Add `Barenco/TwoWire/Circuit.lean` importing the trusted syntax and cost layer:
-  - prove exact compatibility with `Primitive.adjoint` and local inverse;
+  - prove whole-primitive pair-swap and exact compatibility with
+    `Primitive.adjoint` and local inverse by eliminating existing records, never
+    manufacturing a private-constructor value;
   - bridge certified basis action and arbitrary spectator-zero to the primitive;
   - prove singleton evaluator and basis-action theorems;
   - prove singleton gate count, arbitrary-two-qubit kind count, touched support,
@@ -81,7 +87,7 @@ syntax.
 ## Build Structure
 
 - `Barenco/Circuit.lean` — public runtime trust boundary; only the constructor and
-  cheap facts that require access to private `Primitive.mk` belong here.
+  cheap projections requiring private `Primitive.mk` belong here.
 - `Barenco/TwoWire/Circuit.lean` — public proof/resource consumer; imports
   `Barenco.Cost` and owns adjoint/evaluator/basis/count/cost consequences.
 - `Barenco/TwoWireCircuitExamples.lean` — diagnostic and root-excluded.
@@ -137,7 +143,7 @@ syntax.
 
 ## Completion Requirements
 
-- [ ] Trusted `Primitive.twoQubit` compiles with exact kind, ordered two-wire
+- [ ] Trusted `Primitive.twoQubit` compiles with exact kind, two-endpoint structural
   support, support card two, certified denotation, and raw denotation theorems.
 - [ ] Adjoint compatibility, primitive/singleton basis action, exact singleton
   evaluator, and spectator-zero consequences compile for arbitrary ambient width.

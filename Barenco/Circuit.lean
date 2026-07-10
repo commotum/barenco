@@ -1,4 +1,5 @@
 import Barenco.Controlled
+import Barenco.TwoWire.Semantics
 
 /-!
 # Chronological circuit syntax
@@ -75,6 +76,47 @@ theorem unclassified_support {n : ℕ} (tag : String) (denotation : UnitaryGate 
 @[simp]
 theorem unclassified_denotation {n : ℕ} (tag : String) (denotation : UnitaryGate n) :
     (unclassified tag denotation).denotation = denotation := rfl
+
+/-! ## Trusted arbitrary two-wire primitive -/
+
+/--
+Package a certified two-qubit unitary on an ordered pair of distinct ambient
+wires. The pair orientation fixes local basis order `(first, second)`.
+
+The declared two-wire support is structural and may overapproximate the wires
+affected by special payloads such as identity or a scalar unitary.
+-/
+def twoQubit {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) : Primitive n where
+  kind := .arbitraryTwoQubit
+  support := {pair.first, pair.second}
+  denotation := twoWireUnitary pair U
+
+@[simp]
+theorem twoQubit_kind {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) :
+    (twoQubit pair U).kind = .arbitraryTwoQubit := rfl
+
+@[simp]
+theorem twoQubit_support {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) :
+    (twoQubit pair U).support = {pair.first, pair.second} := rfl
+
+@[simp]
+theorem twoQubit_support_card {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) :
+    (twoQubit pair U).support.card = 2 := by
+  simp [pair.ne]
+
+@[simp]
+theorem twoQubit_denotation {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) :
+    (twoQubit pair U).denotation = twoWireUnitary pair U := rfl
+
+@[simp]
+theorem twoQubit_denotation_val {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) :
+    ((twoQubit pair U).denotation : Gate n) = twoWireRaw pair U := rfl
 
 /-! ## Correctness-by-construction standard primitives -/
 
