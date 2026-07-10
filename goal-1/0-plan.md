@@ -157,8 +157,8 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
 - [x] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
 - [x] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
-- [ ] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions (in progress).
-- [ ] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
+- [x] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
+- [ ] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions (in progress).
 - [ ] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
 - [ ] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
 - [ ] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
@@ -326,19 +326,21 @@ Toffoli behavior.
   `V†` from the second control; the same CNOT restoring the second wire; and
   controlled-`V` from the first control. Its proof requires three pairwise
   distinct named wires and no auxiliary wire.
-- `OneQubit.unitarySquareRoot` already provides a certified exact square root
-  with `unitarySquareRoot_pow_two`; Stage 6 must connect that semantic root to an
-  explicit circuit rather than restating root existence.
+- `OneQubit.unitarySquareRoot` provides a certified exact square root with
+  `unitarySquareRoot_pow_two`; `doubleControlledRootCircuit` and
+  `eval_doubleControlledRootCircuit` now connect that selected root to the
+  explicit five-node Lemma 6.1 circuit.
 - The Section 5 target-block algebra applies directly to all gates sharing the
   final target, but the two intermediate CNOTs change a complementary/control
-  assignment. Lemma 6.1 therefore needs a checked parity/conjugation layer or an
-  equivalent basis-extensional argument; a two-by-two branch calculation alone
-  is insufficient.
+  assignment. `eval_doubleControlledViaSquareCircuit_pow_two` resolves this with
+  proved disjoint-wire CNOT conjugation and all four control cases, yielding
+  arbitrary-width full-register equality rather than a small truth-table proof.
 - Corollary 6.2's published `8` one-qubit plus `8` XOR upper bound is not the
   naive expansion count: three six-primitive controlled-unitary expansions plus
-  two CNOTs give `20`. The source claims two adjacent inverse pairs of local
-  gates cancel, so the formal result needs coordinated Section 5 witnesses and
-  explicit syntax whose count is `16`.
+  two CNOTs give `20`. `eval_doubleControlledExpansion20Circuit_eq_16` proves the
+  source's nonliteral “adjacent” cancellations using coordinated Section 5
+  witnesses, and `doubleControlledUnitary_has_sixteenPrimitiveCircuit` certifies
+  the explicit sixteen-node syntax and `oneQubitCNOT` cost `some 16`.
 - The first relative-phase Toffoli diagram is chronological
   `A(target); CNOT(second,target); A(target); CNOT(first,target); A†(target);`
   `CNOT(second,target); A†(target)`, with `A = Ry(pi/4)` in the paper convention.
@@ -352,9 +354,17 @@ Toffoli behavior.
   exact sign witness from both displayed seven-node circuits. All three must
   remain distinct before deriving weaker `BasisPhaseEq`, reversible-basis, or
   basis-measurement consequences.
-- `BUILD-PLAN.md` remains authoritative. Stage 6 facts, declaration ownership,
-  focused builds, and verification evidence belong in `goal-1/6-THREE-QUBIT.md`
-  before public root or audit files change.
+- Both diagrams now have exact arbitrary-width evaluator and signed basis-action
+  theorems, are proved exactly equal to one another, and derive only the justified
+  `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq` consequences.
+  `lemma61Toffoli_threeBit_truthTable` and the A, B, and controlled-W diagnostics
+  exhaust all eight concrete inputs without replacing the public operator proofs.
+- Stage 6 is complete under `BUILD-PLAN.md`. Its combined 2,947-job build, two
+  consecutive 2,945-job full builds, warning-as-error checks, 80-declaration axiom
+  audit, forbidden-shortcut scan, and documentation synchronization are recorded
+  in `goal-1/6-THREE-QUBIT.md` and the maintained docs. The only related pending
+  obligation is Stage 7's contextual Corollary 7.4 phase-cancellation theorem;
+  Stage 6 proves only exact cancellation of adjacent identical copies.
 
 ### Detailed Implementation Plan
 

@@ -83,6 +83,25 @@ example (U : QubitUnitary) :
   exact eval_doubleControlledRootCircuit (4 : Fin 5) (0 : Fin 5) (2 : Fin 5)
     fin5_four_ne_zero fin5_four_ne_two fin5_zero_ne_two U
 
+/--
+The selected-root Lemma 6.1 construction for `U=X` has the complete eight-input
+Toffoli truth table. This is diagnostic; the public evaluator theorem is stronger.
+-/
+theorem lemma61Toffoli_threeBit_truthTable (first second target : Bool) :
+    (Circuit.eval
+        (doubleControlledRootCircuit (0 : Fin 3) (1 : Fin 3) (2 : Fin 3)
+          fin3_zero_ne_one fin3_zero_ne_two fin3_one_ne_two sigmaXUnitary) :
+      Gate 3) *ᵥ basisKet (threeBit first second target) =
+        basisKet (threeBit first second
+          (if first = true ∧ second = true then !target else target)) := by
+  rw [eval_doubleControlledRootCircuit]
+  change (toffoliUnitary (0 : Fin 3) (1 : Fin 3) (2 : Fin 3)
+      fin3_zero_ne_two fin3_one_ne_two : Gate 3) *ᵥ
+      basisKet (threeBit first second target) = _
+  rw [toffoliUnitary_mulVec_basisKet]
+  cases first <;> cases second <;> cases target <;>
+    simp [threeBit, toffoliOutput, setTarget_threeBit_two]
+
 /-! ## Complete three-bit relative-phase sign tables -/
 
 /--

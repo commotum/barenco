@@ -1,6 +1,6 @@
 # 6-THREE-QUBIT
 
-Status: in progress.
+Status: complete.
 
 ## Current Facts
 
@@ -205,10 +205,10 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
 - [x] Any Section 7 dependency on paired relative-phase cancellation is either
   proved exactly here or recorded with a precise pending theorem statement and
   no premature downstream use.
-- [ ] Focused builds, adjacent diagnostic builds, warning-as-error checks, two
+- [x] Focused builds, adjacent diagnostic builds, warning-as-error checks, two
   consecutive full builds after root changes, forbidden-shortcut scans,
   `git diff --check`, and the headline axiom audit all pass and are recorded.
-- [ ] Conventions, traceability, correction log, axiom audit, this stage file,
+- [x] Conventions, traceability, correction log, axiom audit, this stage file,
   and `0-plan.md` state exact theorem names, source locations, costs, phase
   witnesses, corrections, and unresolved claims.
 
@@ -272,14 +272,23 @@ checked computational-basis phase behavior suitable for later Section 7 proofs.
   product of `relativeToffoliPhase` witnesses along every ordered computational-
   basis path is one. No generic “occurs in pairs” shortcut is permitted.
 - `Barenco/ThreeQubitExamples.lean` now exhausts all eight concrete three-bit
-  inputs in quantified A, B, and controlled-W truth-table theorems, checks a
-  non-adjacent five-wire embedding with two spectators, and validates macro and
-  basic costs. Direct warning-as-error compilation succeeds.
+  inputs in `lemma61Toffoli_threeBit_truthTable` and the quantified A, B, and
+  controlled-W truth-table theorems, checks a non-adjacent five-wire embedding
+  with two spectators, and validates macro and basic costs. Direct
+  warning-as-error compilation succeeds.
 - The public root imports `Expansion` and `RelativePhase`. The combined focused,
   diagnostic, root, and audit build succeeded with 2,947 jobs. The maintained
   audit now prints 80 headline declarations; all sixteen new Stage 6 checks use
   only `propext`, `Classical.choice`, and `Quot.sound`. Direct warning-as-error
   compilation of the root and audit succeeds.
-- Correction C-021 records the original PDF's erroneous “latter” attribution and
-  the distinct `101`/`111` witnesses. Documentation synchronization, two full
-  builds, and final scans remain before Stage 6 closes.
+- Corrections C-019–C-021 record the suppressed root and inverse-order case, the
+  nonliteral “adjacent” cancellations and coordinated witnesses, the original
+  PDF's erroneous “latter” attribution, and the distinct `101`/`111` witnesses.
+  `docs/conventions.md`, `docs/traceability.md`, `docs/corrections.md`, and
+  `docs/axiom-audit.md` are synchronized with the completed theorem surface.
+- The combined focused, diagnostic, root, and audit build passed with 2,947 jobs;
+  two consecutive full `lake build` runs passed with 2,945 jobs each. Direct
+  warning-as-error checks for the root, audit, and diagnostic examples passed.
+  The final Stage 6 shortcut scan found no `sorry`, `admit`, `by?`, custom
+  `axiom`, `opaque`, `native_decide`, `bv_decide`, or `Primitive.unclassified`
+  in the completed Stage 6 leaves, and `git diff --check` passed.
