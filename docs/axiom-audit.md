@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 253 `#print axioms` checks, with one
+The maintained audit module currently contains 319 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -319,7 +319,40 @@ row below for each checked declaration.
 | `Barenco.Universality.basicCircuit_zero_eval` | `Barenco.Universality.ZeroWidth` | `propext`, `Classical.choice`, `Quot.sound` | every restricted zero-wire circuit evaluates to identity; no project axiom | 2026-07-10 |
 | `Barenco.Universality.zeroWidthNegUnitary_ne_one` | `Barenco.Universality.ZeroWidth` | `propext`, `Classical.choice`, `Quot.sound` | certified scalar minus-one is a nonidentity zero-qubit unitary; no project axiom | 2026-07-10 |
 | `Barenco.Universality.no_basicCircuit_zero_realizes_neg` | `Barenco.Universality.ZeroWidth` | `propext`, `Classical.choice`, `Quot.sound` | exact zero-width universality obstruction for proof-carrying one-qubit/CNOT syntax; no project axiom | 2026-07-10 |
-| resource headline | planned | pending | Stage 12 | — |
+| `Barenco.CostModel.arbitraryTwoQubit_controlled_eq_some_one_iff` | `Barenco.Cost` | `propext` | Section 8 prices a controlled one-qubit kind at one exactly for control arity at most one; no project axiom | 2026-07-10 |
+| `Barenco.CostModel.arbitraryTwoQubit_controlled_eq_none_iff` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | exact rejection boundary at control arity at least two; no project axiom | 2026-07-10 |
+| `Barenco.Circuit.arbitraryTwoQubit_cost_of_oneQubitCNOT_cost` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | stricter accepted literal syntax retains its exact cost under the Section 8 model; no project axiom | 2026-07-10 |
+| `Barenco.Circuit.gateCount_eq_of_oneQubitCNOT_cost` | `Barenco.Cost` | `propext`, `Classical.choice`, `Quot.sound` | an accepted one-qubit/CNOT cost equals the literal primitive count; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_arbitraryTwoQubitCost` | `Barenco.MultiControl.Recursive` | `propext`, `Classical.choice`, `Quot.sound` | exact five-node Section 8 partial cost, accepted precisely at prefix arity zero or one; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_arbitraryTwoQubitCost_of_two_le` | `Barenco.MultiControl.Recursive` | `propext`, `Classical.choice`, `Quot.sound` | recursive macro rejection for prefix arity at least two; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.doubleControlledRootCircuit_arbitraryTwoQubitCost` | `Barenco.Universality.Section8BasicResources` | `propext`, `Classical.choice`, `Quot.sound` | selected-root Lemma 6.1 circuit has exact Section 8 cost five; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliACircuit_arbitraryTwoQubitCost` | `Barenco.Universality.Section8BasicResources` | `propext`, `Classical.choice`, `Quot.sound` | unmerged relative-phase circuit A has exact Section 8 cost seven; no project axiom | 2026-07-10 |
+| `Barenco.ThreeQubit.relativePhaseToffoliBCircuit_arbitraryTwoQubitCost` | `Barenco.Universality.Section8BasicResources` | `propext`, `Classical.choice`, `Quot.sound` | unmerged relative-phase circuit B has exact Section 8 cost seven; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.fourBitGrayCircuit_arbitraryTwoQubitCost` | `Barenco.Universality.Section8BasicResources` | `propext`, `Classical.choice`, `Quot.sound` | displayed four-bit Gray circuit has exact Section 8 cost thirteen; no project axiom | 2026-07-10 |
+| `Barenco.Universality.decomposeFinUnitary_factors_length` | `Barenco.Universality.EliminationResources` | `propext`, `Classical.choice`, `Quot.sound` | fixed Fin elimination emits exactly `Nat.choose dimension 2` factors; no project axiom | 2026-07-10 |
+| `Barenco.Universality.decomposeFiniteUnitary_factors_length` | `Barenco.Universality.EliminationResources` | `propext`, `Classical.choice`, `Quot.sound` | finite reindexing preserves the exact choose-two factor count; no project axiom | 2026-07-10 |
+| `Barenco.Universality.decomposeQubitUnitary_factors_length` | `Barenco.Universality.EliminationResources` | `propext`, `Classical.choice`, `Quot.sound` | a width-`n` qubit decomposition has exactly `Nat.choose (2^n) 2` factors; no project axiom | 2026-07-10 |
+| `Barenco.Universality.decomposeQubitUnitary_factors_length_succ` | `Barenco.Universality.EliminationResources` | `propext`, `Classical.choice`, `Quot.sound` | positive-width factor count has the proved closed product form; no project axiom | 2026-07-10 |
+| `Barenco.Universality.sq_succ_le_fullControlCircuitCost` | `Barenco.Universality.TwoLevelResources` | `propext`, `Classical.choice`, `Quot.sound` | selected full-control syntax costs at least register width squared; no project axiom | 2026-07-10 |
+| `Barenco.Universality.fullControlCircuitCost_le_sq_succ` | `Barenco.Universality.TwoLevelResources` | `propext`, `Classical.choice`, `Quot.sound` | selected full-control syntax costs at most 56 times width squared; no project axiom | 2026-07-10 |
+| `Barenco.Universality.affinePairGateCount_le` | `Barenco.Universality.TwoLevelResources` | `propext`, `Classical.choice`, `Quot.sound` | affine endpoint normalization uses at most `2k+1` primitives on `k+1` wires; no project axiom | 2026-07-10 |
+| `Barenco.Universality.canonicalAdjacentTwoLevelCircuitCost_eq` | `Barenco.Universality.TwoLevelResources` | `propext`, `Classical.choice`, `Quot.sound` | canonical adjacent-factor cost splits into transport and full-control costs; no project axiom | 2026-07-10 |
+| `Barenco.Universality.twoLevelCircuitCost_bounds` | `Barenco.Universality.TwoLevelResources` | `propext`, `Classical.choice`, `Quot.sound` | every selected two-level circuit costs between width squared and 56 times width squared; no project axiom | 2026-07-10 |
+| `Barenco.Universality.FiniteTwoLevelFactor.circuitCost_bounds` | `Barenco.Universality.TwoLevelResources` | `propext`, `Classical.choice`, `Quot.sound` | transported finite factors inherit the same quadratic cost sandwich; no project axiom | 2026-07-10 |
+| `Barenco.Universality.card_complementBasis` | `Barenco.Universality.DiagonalResources` | `propext`, `Classical.choice`, `Quot.sound` | complementary Boolean assignments on `k` wires number exactly `2^k`; no project axiom | 2026-07-10 |
+| `Barenco.Universality.allComplementPatterns_length` | `Barenco.Universality.DiagonalResources` | `propext`, `Classical.choice`, `Quot.sound` | the complete diagonal pattern schedule has length exactly `2^k`; no project axiom | 2026-07-10 |
+| `Barenco.Universality.pow_two_mul_sq_succ_le_diagonalCircuitCost` | `Barenco.Universality.DiagonalResources` | `propext`, `Classical.choice`, `Quot.sound` | the complete diagonal schedule pays its `2^k` quadratic block lower envelope; no project axiom | 2026-07-10 |
+| `Barenco.Universality.diagonalCircuitCost_le_pow_two_mul_sq_succ` | `Barenco.Universality.DiagonalResources` | `propext`, `Classical.choice`, `Quot.sound` | the complete diagonal cost is at most `2^k` times 56 width squared; no project axiom | 2026-07-10 |
+| `Barenco.Universality.choose_two_pow_succ_add_pow` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | factor and diagonal schedule block counts sum exactly to `2*4^k`; no project axiom | 2026-07-10 |
+| `Barenco.Universality.two_mul_exactSynthesisBenchmark_le_cost` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | both non-pruning schedules give the exact-cost lower envelope `2*B(k)`; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisCost_le_benchmark` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | selected exact synthesis has the explicit upper envelope `112*B(k)`; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisCost_bounds` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | paired finite `2`/`112` sandwich for the selected non-pruning syntax; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisCircuit_gateCount` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | exact synthesis cost equals its literal primitive count; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisCircuit_arbitraryTwoQubitCost` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | the unmerged synthesis circuit has the same exact Section 8 cost; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exact_arbitraryTwoQubit_universality` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | positive-width exact universality is returned with an accepted Section 8 cost; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisCost_isBigOWith_fixedSchedule` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | fixed-schedule cost has explicit Big-O constant 112; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisBenchmark_isBigOWith_cost` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | reverse constant-one Big-O bound for the fixed schedule; no project axiom | 2026-07-10 |
+| `Barenco.Universality.exactSynthesisCost_isTheta_fixedSchedule` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | construction-specific `Theta((k+1)^2*4^k)` result, not optimal synthesis; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
 
@@ -377,5 +410,9 @@ row below for each checked declaration.
 | Stage 11 trust-zero root/audit/examples | direct `lake env lean -t0 -DwarningAsError=true` compilation | all successful; all 285 maintained checks remain within the recorded standard axioms, 2026-07-10 |
 | Stage 11 focused/diagnostic/root/audit build | `lake build Barenco.Universality.UniversalityExamples Barenco.AxiomAudit Barenco` | successful, 3,582 jobs, 2026-07-10 |
 | Stage 11 full builds | two consecutive `lake build` runs after final public-root integration | both successful, 3,580 jobs each, 2026-07-10 |
+| Stage 12 focused/resource/root/audit build | `lake build Barenco.Universality.EliminationResources Barenco.Universality.TwoLevelResources Barenco.Universality.DiagonalResources Barenco.Universality.Section8BasicResources Barenco.Universality.SynthesisResources Barenco.Universality.ResourceExamples Barenco.AxiomAudit Barenco` | successful, 3,587 jobs, 2026-07-10 |
+| Stage 12 warning-as-error root/audit/examples | direct `lake env lean -DwarningAsError=true` compilation after public integration | all successful; the maintained audit printed 319 declarations, including 34 new Stage 12 checks, and every result remains within the recorded standard axioms, 2026-07-10 |
+| Stage 12 trust-zero root/audit/examples | direct `lake env lean -t0 -DwarningAsError=true` compilation | all successful; all 319 maintained checks remain within the recorded standard axioms, 2026-07-10 |
+| Stage 12 full builds | two consecutive `lake build` runs after final public-root integration | both successful, 3,585 jobs each, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

@@ -728,6 +728,24 @@ paper's cost models.
 - Claimed asymptotics have machine-checked finite inequalities/recurrences or are
   explicitly documented as unresolved.
 
+### Stage Results
+
+- The fixed elimination schedule has exactly `Nat.choose dimension 2` factors;
+  the qubit diagonal schedule has exactly `2^k` patterns. Quadratic syntax bounds
+  are proved for every full-control, affine two-level, and diagonal-pattern block.
+- With `B(k)=(k+1)^2*4^k`, every successor-width target satisfies the exact
+  finite construction sandwich `2*B(k) <= exactSynthesisCost <= 112*B(k)`.
+  `IsBigOWith` and `IsTheta` results are exported only for this selected
+  non-pruning syntax; they are not optimal target-complexity claims.
+- The final circuit's literal gate count equals its one-qubit/CNOT cost and is
+  unchanged under the broader Section 8 model. That model now correctly accepts
+  zero- and one-control macros. Existing verified circuits have Section 8 costs
+  five and thirteen; the unmerged relative-phase circuits cost seven, while the
+  source's merged cost three remains unresolved without grouped syntax.
+- Public resource modules, a root-excluded diagnostic, 319 maintained axiom
+  checks, strict/trust-zero compilation, the 3,587-job focused build, two
+  consecutive 3,585-job full builds, and hygiene scans pass.
+
 ## 13-AUDIT
 
 ### Big Picture Objective

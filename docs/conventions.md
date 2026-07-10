@@ -827,6 +827,13 @@ Named cost models:
   Toffoli, arbitrary two-qubit gates, swaps, or negative-control conjugations in
   separate coordinates.
 
+Under the repaired Section 8 model, the literal Lemma 6.1 square-root circuit has
+exact cost five and the displayed Lemma 7.1 circuit has exact cost thirteen. The
+two verified relative-phase circuits each remain seven literal nodes. The paper's
+three-operation relative-phase count groups neighboring nodes into three general
+two-wire operations; it is not assigned to the seven-node syntax without an
+explicit grouped circuit and evaluator theorem.
+
 `Circuit.registerWidth`, `gateCount`, `kindCount`, and `touchedSupport` inspect
 typed syntax only; `touchedSupport_card_le_registerWidth` proves the named support
 fits inside the ambient width.

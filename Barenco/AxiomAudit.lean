@@ -44,6 +44,11 @@ import Barenco.MultiControl.LinearResources
 import Barenco.Universality.ExactSynthesis
 import Barenco.Universality.WidthOne
 import Barenco.Universality.ZeroWidth
+import Barenco.Universality.EliminationResources
+import Barenco.Universality.TwoLevelResources
+import Barenco.Universality.DiagonalResources
+import Barenco.Universality.SynthesisResources
+import Barenco.Universality.Section8BasicResources
 
 /-!
 # Kernel axiom audit
@@ -346,3 +351,40 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Universality.basicCircuit_zero_eval
 #print axioms Barenco.Universality.zeroWidthNegUnitary_ne_one
 #print axioms Barenco.Universality.no_basicCircuit_zero_realizes_neg
+
+/-! ## Stage 12: aggregate resources and Section 8 cost model -/
+
+#print axioms Barenco.CostModel.arbitraryTwoQubit_controlled_eq_some_one_iff
+#print axioms Barenco.CostModel.arbitraryTwoQubit_controlled_eq_none_iff
+#print axioms Barenco.Circuit.arbitraryTwoQubit_cost_of_oneQubitCNOT_cost
+#print axioms Barenco.Circuit.gateCount_eq_of_oneQubitCNOT_cost
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.recursiveViaSquareCircuit_arbitraryTwoQubitCost_of_two_le
+#print axioms Barenco.ThreeQubit.doubleControlledRootCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliACircuit_arbitraryTwoQubitCost
+#print axioms Barenco.ThreeQubit.relativePhaseToffoliBCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.MultiControl.fourBitGrayCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.Universality.decomposeFinUnitary_factors_length
+#print axioms Barenco.Universality.decomposeFiniteUnitary_factors_length
+#print axioms Barenco.Universality.decomposeQubitUnitary_factors_length
+#print axioms Barenco.Universality.decomposeQubitUnitary_factors_length_succ
+#print axioms Barenco.Universality.sq_succ_le_fullControlCircuitCost
+#print axioms Barenco.Universality.fullControlCircuitCost_le_sq_succ
+#print axioms Barenco.Universality.affinePairGateCount_le
+#print axioms Barenco.Universality.canonicalAdjacentTwoLevelCircuitCost_eq
+#print axioms Barenco.Universality.twoLevelCircuitCost_bounds
+#print axioms Barenco.Universality.FiniteTwoLevelFactor.circuitCost_bounds
+#print axioms Barenco.Universality.card_complementBasis
+#print axioms Barenco.Universality.allComplementPatterns_length
+#print axioms Barenco.Universality.pow_two_mul_sq_succ_le_diagonalCircuitCost
+#print axioms Barenco.Universality.diagonalCircuitCost_le_pow_two_mul_sq_succ
+#print axioms Barenco.Universality.choose_two_pow_succ_add_pow
+#print axioms Barenco.Universality.two_mul_exactSynthesisBenchmark_le_cost
+#print axioms Barenco.Universality.exactSynthesisCost_le_benchmark
+#print axioms Barenco.Universality.exactSynthesisCost_bounds
+#print axioms Barenco.Universality.exactSynthesisCircuit_gateCount
+#print axioms Barenco.Universality.exactSynthesisCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.Universality.exact_arbitraryTwoQubit_universality
+#print axioms Barenco.Universality.exactSynthesisCost_isBigOWith_fixedSchedule
+#print axioms Barenco.Universality.exactSynthesisBenchmark_isBigOWith_cost
+#print axioms Barenco.Universality.exactSynthesisCost_isTheta_fixedSchedule

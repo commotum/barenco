@@ -1,14 +1,13 @@
 # 12-RESOURCES
 
-Status: in progress (source, construction, and pinned-API audit complete; narrow
-resource implementation beginning).
+Status: complete.
 
 ## Current Facts
 
-- Stages 3 and 7--11 already attach exact syntax-derived costs to every selected
+- Stages 3 and 7--11 attach exact syntax-derived costs to every selected
   controlled, multi-controlled, ancilla, approximation, lower-bound, and exact
-  universality circuit. Stage 12 must aggregate those results; it must not infer
-  resources from semantic equality or re-price an unsupported macro.
+  universality circuit. Stage 12 aggregates those results without inferring
+  resources from semantic equality or re-pricing an unsupported macro.
 - `CostModel.oneQubitCNOT` accepts exactly arbitrary certified one-qubit primitives
   and CNOTs at cost one. `CostModel.arbitraryTwoQubit` accepts those two kinds,
   certified controlled-one-qubit macros with zero or one control, and the metadata
@@ -26,7 +25,7 @@ resource implementation beginning).
   five, while rejection is valid only from prefix arity two onward.
 - `decomposeFinUnitary` uses a fixed, non-pruning left-Givens schedule. At a
   successor dimension `d+1`, it adds exactly `d` factors to the recursively
-  synthesized `d`-dimensional block. Therefore its factor-list length should be
+  synthesized `d`-dimensional block. Its factor-list length is proved to be
   exactly `Nat.choose dimension 2`, independently of the input unitary. The
   generic `decomposeFiniteUnitary` only maps those factors through an equivalence,
   so it should preserve that length. This is a construction count, not a minimum.
@@ -42,9 +41,9 @@ resource implementation beginning).
   supports a uniform quadratic-per-factor upper theorem, stronger than the
   source's repeated Gray-walk cubic upper route.
 - `fullControlCircuitCost` is piecewise exact: explicit constants for zero through
-  five controls, then `56*d^2 + 364*d + 440` at `d+6` controls. A simple uniform
-  polynomial envelope (expected `<= 56*(controlCount+1)^2`) will make the general
-  synthesis bound substantially easier to reuse than the shifted piecewise form.
+  five controls, then `56*d^2 + 364*d + 440` at `d+6` controls. The proved uniform
+  envelope `<= 56*(controlCount+1)^2` makes the general synthesis bound easier to
+  reuse than the shifted piecewise form.
 - The completed construction and Lean audits give sharper boundary-safe envelopes. Writing
   `n=controlCount+1`, every full-control block and every synthesized two-level
   factor cost at most `56*n^2`; every diagonal pattern also costs at most
@@ -53,8 +52,8 @@ resource implementation beginning).
   `112*n^2*4^controlCount`, equivalently `28*n^2*4^n` in full-width notation.
 - `exactSynthesisCost` is an exact finite sum of the actual factor circuit
   costs plus the actual diagonal-pattern schedule cost. It depends on factor
-  endpoints and the chosen unitary, so Stage 12 needs a pointwise uniform upper
-  bound before an asymptotic family theorem.
+  endpoints and the chosen unitary. `exactSynthesisCost_bounds` supplies the
+  pointwise uniform bounds used by the asymptotic family theorems.
 - The paper's path statement gives only `pathLength <= n+1`. Its conclusion that
   each factor has `Theta(n^3)` cost is false for adjacent endpoints and lacks a
   matching lower bound. The library's main affine circuit has a different schedule,
@@ -69,11 +68,11 @@ resource implementation beginning).
   one quadratically priced full-control block. Such a theorem must be named as the
   complexity of `exactSynthesisCircuit`, never as optimal target complexity or a
   lower bound on arbitrary exact circuits.
-- Section 8's five/thirteen-gate Toffoli upper counts, three-gate relative-phase
-  count, six-`U(4)` claim for `U(8)`, and dimension-count conjecture require
-  separate treatment. The last two remain unresolved/excluded from Stage 10;
-  pricing metadata alone is insufficient to formalize the first three merged
-  arbitrary-two-qubit circuits.
+- Section 8's five/thirteen-gate Toffoli upper counts are proved for the existing
+  literal circuits. The three-gate relative-phase count still requires a grouped
+  syntax; the six-`U(4)` claim for `U(8)` remains unresolved, and the dimension
+  count remains excluded as conjectural. Pricing metadata alone is insufficient
+  to establish the latter three claims.
 - More precisely, the five- and thirteen-node semantic circuits now have exact
   Section 8 cost theorems after the arity-one model repair. The
   three-gate relative-phase claim still requires an explicit grouping into three
@@ -89,9 +88,9 @@ resource implementation beginning).
 - The main synthesis uses no work wires. Its width is exactly the target unitary's
   width; no hidden reindexing, permutation, measurement, reset, or discarded
   subsystem is priced.
-- Exact count, pointwise constructed upper bound, `IsBigOWith`, and optimal
-  lower/`Theta` results are distinct declarations. Stage 12 will not use `Theta`
-  for the general construction without a proved matching lower theorem.
+- Exact count, pointwise constructed upper bound, `IsBigOWith`, fixed-algorithm
+  `IsTheta`, and optimal lower/`Theta` results are distinct declarations. The only
+  aggregate `IsTheta` theorem is explicitly named for the fixed non-pruning syntax.
 - Natural-number resource arithmetic is authoritative. Real-valued asymptotic
   statements may cast those proved inequalities, but may not replace them.
 - A theorem under the broader arbitrary-two-qubit cost model counts the literal
@@ -140,29 +139,24 @@ classification of Section 8 resource claims under both named cost models.
 
 ## Build Structure
 
-- Planned algebraic leaf:
+- Algebraic leaf:
   `Barenco/Universality/EliminationResources.lean`, importing only the elimination
   and finite-bridge declarations needed for factor-list lengths.
-- Planned circuit leaves:
+- Circuit leaves:
   `Barenco/Universality/TwoLevelResources.lean` for full-control, affine, and
   per-factor bounds; `DiagonalResources.lean` for pattern cardinality and schedule
   bounds; and `SynthesisResources.lean` for exact aggregation, model comparison,
   and Big-O/Theta statements.
-- Planned Section 8 pricing leaf:
+- Section 8 pricing leaf:
   `Barenco/Universality/Section8BasicResources.lean`, importing only the existing
   five- and thirteen-node semantic circuits plus the corrected cost model.
-- Optional diagnostic leaf:
+- Root-excluded diagnostic leaf:
   `Barenco/Universality/ResourceExamples.lean`, excluded from `Barenco.lean`.
-- `Barenco.lean` and `Barenco/AxiomAudit.lean` change only after theorem signatures
-  and focused builds are stable. High-fanout `Semantics.lean`, `Circuit.lean`, and
-  Stage 7 construction modules remain unchanged. `Cost.lean` is the one intentional
-  high-fanout edit: the audit proved that its named Section 8 model incorrectly
-  rejects certified arity-one controlled primitives. Focused and full consumer
-  builds are mandatory after that correction.
-- Initial focused commands:
-  `lake build Barenco.Universality.EliminationResources` and
-  `lake build Barenco.Universality.SynthesisResources`; adjacent builds will include
-  the diagnostic leaf, public root, and maintained axiom audit after integration.
+- `Barenco.lean` and `Barenco/AxiomAudit.lean` import and audit the completed public
+  resource leaves. High-fanout `Semantics.lean`, `Circuit.lean`, and Stage 7
+  construction modules remain unchanged. `Cost.lean` is the one intentional
+  high-fanout edit; `Recursive.lean` received the boundary correction exposed by
+  that model repair.
 
 ## Boundary Checks
 
@@ -185,23 +179,23 @@ classification of Section 8 resource claims under both named cost models.
 
 ## Completion Requirements
 
-- [ ] Exact factor-list lengths are proved for canonical Fin elimination, generic
+- [x] Exact factor-list lengths are proved for canonical Fin elimination, generic
   finite transport, and qubit dimensions.
-- [ ] Exact component costs are connected to explicit pointwise polynomial and
+- [x] Exact component costs are connected to explicit pointwise polynomial and
   exponential natural-number upper bounds.
-- [ ] The final exact synthesis has a proved uniform `C*n^2*4^n` bound and a
+- [x] The final exact synthesis has a proved uniform `C*n^2*4^n` bound and a
   correctly scoped asymptotic family theorem.
-- [ ] If a matching lower envelope is exported, its `Theta` theorem is explicitly
+- [x] If a matching lower envelope is exported, its `Theta` theorem is explicitly
   restricted to the fixed non-pruning `exactSynthesisCircuit` schedule and is not
   presented as optimal target complexity.
-- [ ] The final literal synthesis is priced under both named cost models without
+- [x] The final literal synthesis is priced under both named cost models without
   conflating them or assuming an unproved merger.
-- [ ] Every remaining Section 8 resource claim is proved, corrected, partially
+- [x] Every remaining Section 8 resource claim is proved, corrected, partially
   formalized, explicitly assumed, unresolved, or excluded with a precise reason.
-- [ ] Public imports, representative diagnostics, maintained axiom entries,
+- [x] Public imports, representative diagnostics, maintained axiom entries,
   forbidden scans, strict/trust-zero checks, focused builds, and two full builds
   pass and are recorded.
-- [ ] Traceability, corrections, conventions, and `0-plan.md` distinguish exact
+- [x] Traceability, corrections, conventions, and `0-plan.md` distinguish exact
   schedule counts, constructed upper bounds, asymptotics, lower bounds, and
   unresolved optimization/surjectivity claims.
 
@@ -227,5 +221,15 @@ classification of Section 8 resource claims under both named cost models.
 - `SynthesisResources.lean` aggregates the literal syntax into the pointwise
   sandwich
   `2*(k+1)^2*4^k <= exactSynthesisCost <= 112*(k+1)^2*4^k`, plus explicit
-  `IsBigOWith` and carefully named fixed-schedule `IsTheta` results. Compilation,
-  public integration, documentation, and final audits remain in progress.
+  `IsBigOWith` and carefully named fixed-schedule `IsTheta` results. The same
+  literal circuit has gate count equal to this cost and exactly the same cost under
+  the broader Section 8 model.
+- `CostModel.arbitraryTwoQubit` now accepts controlled arities zero and one. Exact
+  Section 8 costs five and thirteen are proved; both unmerged relative-phase
+  circuits have cost seven, while the paper's merged cost three remains unresolved
+  pending explicit grouped syntax. The recursive five-node macro is accepted at
+  prefix arities zero/one and rejected only from arity two.
+- Public integration, root-excluded arithmetic examples, 34 new maintained axiom
+  checks (319 total), strict and trust-zero warning-as-error compilation, the
+  3,587-job focused build, two consecutive 3,585-job full builds, documentation,
+  and repository hygiene scans all pass.
