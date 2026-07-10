@@ -1,0 +1,439 @@
+import Barenco.MultiControl.GrayFusion
+import Barenco.Optimization.SymbolicExpose
+
+/-!
+# Coherent exact mergers for the general Gray construction
+
+The raw Gray expansion in `GrayFusion` independently chooses factors for every
+signed root.  This file instead chooses one `phase/A/B/C` package for `V`, uses a
+boundary-oriented positive controlled-`V` block, and represents every negative
+block by the literal formal adjoint of that same package.  Free-group provenance
+therefore records the inverse endpoint pair at each Gray boundary.
+
+The positive block is
+
+`A(target); phase(control); CNOT; B(target); CNOT; C(target)`.
+
+Its negative block is the literal reverse inverse
+
+`C⁻¹(target); CNOT; B⁻¹(target); CNOT; phase⁻¹(control); A⁻¹(target)`.
+
+The initial `A/phase` swap is exact because those gates act on distinct wires.
+Consecutive Gray masks have opposite cardinality parity, so consecutive blocks
+have opposite signs.  Target-directed symbolic exposure and cancellation are
+used below without matrix equality tests or phase relaxation.
+-/
+
+namespace Barenco.MultiControl
+
+open Barenco.OneQubit
+open Barenco.ControlledCircuit
+open Barenco.Optimization
+open scoped symmDiff
+
+noncomputable section
+
+/-! ## Gray-cardinality sign lemmas -/
+
+/-- Adjacent Gray masks differ by inserting or deleting exactly one member. -/
+theorem GrayAdjacent.card_succ_or_succ_card {width : ℕ}
+    {first second : GrayMask width} (h : GrayAdjacent first second) :
+    second.card + 1 = first.card ∨ first.card + 1 = second.card := by
+  obtain ⟨changed, hchange⟩ := h.exists_unique_changed
+  have hchanged : changed ∈ (first ∆ second) := by
+    rw [hchange]
+    simp
+  rw [Finset.mem_symmDiff] at hchanged
+  rcases hchanged with hremove | hadd
+  · left
+    have hsecond : second = first.erase changed := by
+      ext wire
+      by_cases hwire : wire = changed
+      · subst wire
+        simp [hremove.2]
+      · have hnotdiff : wire ∉ (first ∆ second) := by
+          rw [hchange]
+          simpa using hwire
+        rw [Finset.mem_symmDiff] at hnotdiff
+        simp only [Finset.mem_erase, hwire, not_false_eq_true, true_and]
+        tauto
+    rw [hsecond]
+    exact Finset.card_erase_add_one hremove.1
+  · right
+    have hsecond : second = insert changed first := by
+      ext wire
+      by_cases hwire : wire = changed
+      · subst wire
+        simp [hadd.1]
+      · have hnotdiff : wire ∉ (first ∆ second) := by
+          rw [hchange]
+          simpa using hwire
+        rw [Finset.mem_symmDiff] at hnotdiff
+        simp only [Finset.mem_insert, hwire, false_or]
+        tauto
+    rw [hsecond, Finset.card_insert_of_notMem hadd.2]
+
+/-- Gray adjacency flips cardinality parity. -/
+theorem GrayAdjacent.odd_card_iff_even_card {width : ℕ}
+    {first second : GrayMask width} (h : GrayAdjacent first second) :
+    Odd first.card ↔ Even second.card := by
+  rw [Nat.odd_iff, Nat.even_iff]
+  rcases h.card_succ_or_succ_card with hcard | hcard <;> omega
+
+/-- Symmetrically, an even mask is followed by an odd mask. -/
+theorem GrayAdjacent.even_card_iff_odd_card {width : ℕ}
+    {first second : GrayMask width} (h : GrayAdjacent first second) :
+    Even first.card ↔ Odd second.card := by
+  rw [Nat.even_iff, Nat.odd_iff]
+  rcases h.card_succ_or_succ_card with hcard | hcard <;> omega
+
+/-- Odd-cardinality masks use the positive selected root. -/
+theorem signedGrayRoot_eq_of_odd {width : ℕ} (mask : GrayMask width)
+    (V : QubitUnitary) (hodd : Odd mask.card) :
+    signedGrayRoot mask V = V := by
+  have hevenPred : Even (mask.card - 1) := by
+    rw [Nat.odd_iff] at hodd
+    rw [Nat.even_iff]
+    omega
+  rw [signedGrayRoot, hevenPred.neg_one_pow]
+  exact zpow_one V
+
+/-- Every nonempty even-cardinality mask uses the inverse selected root. -/
+theorem signedGrayRoot_eq_inv_of_even {width : ℕ} (mask : GrayMask width)
+    (V : QubitUnitary) (hne : mask.Nonempty) (heven : Even mask.card) :
+    signedGrayRoot mask V = V⁻¹ := by
+  have hoddPred : Odd (mask.card - 1) := by
+    rw [Nat.even_iff] at heven
+    rw [Nat.odd_iff]
+    have hpos : 0 < mask.card := Finset.card_pos.mpr hne
+    omega
+  rw [signedGrayRoot, hoddPred.neg_one_pow]
+  exact zpow_neg_one V
+
+/-! ## One factor choice and symbolic inverse provenance -/
+
+/-- Decidable provenance atoms for the one selected controlled-`V` package. -/
+inductive GrayFactorAtom where
+  | phase
+  | A
+  | B
+  | C
+  deriving DecidableEq
+
+/-- Interpret every atom using one selected factor package for `V`. -/
+def grayFactorValuation (V : QubitUnitary) : GrayFactorAtom → QubitUnitary :=
+  let factors := selectedColumnABCFactors (specialUnitaryPart V)
+  fun atom ↦ match atom with
+    | .phase => controlPhaseUnitary (determinantPhaseAngle V)
+    | .A => specialUnitaryAsUnitary factors.A
+    | .B => specialUnitaryAsUnitary factors.B
+    | .C => specialUnitaryAsUnitary factors.C
+
+/--
+Boundary-oriented positive controlled-`V` syntax.  Moving `A` before the control
+phase exposes one inverse target pair at both signs of a later Gray boundary.
+-/
+def grayPositiveRootFusionCircuit {n : ℕ} (control target : Fin n)
+    (h : control ≠ target) (V : QubitUnitary) : FusionCircuit n :=
+  let factors := selectedColumnABCFactors (specialUnitaryPart V)
+  [.oneQubit target (specialUnitaryAsUnitary factors.A),
+    .oneQubit control (controlPhaseUnitary (determinantPhaseAngle V)),
+    .cnot control target h,
+    .oneQubit target (specialUnitaryAsUnitary factors.B),
+    .cnot control target h,
+    .oneQubit target (specialUnitaryAsUnitary factors.C)]
+
+/-- Symbolic form of the same boundary-oriented positive block. -/
+def grayPositiveRootSymbolicCircuit {n : ℕ} (control target : Fin n)
+    (h : control ≠ target) : SymbolicCircuit GrayFactorAtom n :=
+  [SymbolicPrimitive.atom target .A,
+    SymbolicPrimitive.atom control .phase,
+    .cnot control target h,
+    SymbolicPrimitive.atom target .B,
+    .cnot control target h,
+    SymbolicPrimitive.atom target .C]
+
+/-- Literal reverse/inverse symbolic block; no factors for `V⁻¹` are reselected. -/
+def grayNegativeRootSymbolicCircuit {n : ℕ} (control target : Fin n)
+    (h : control ≠ target) : SymbolicCircuit GrayFactorAtom n :=
+  [SymbolicPrimitive.inverseAtom target .C,
+    .cnot control target h,
+    SymbolicPrimitive.inverseAtom target .B,
+    .cnot control target h,
+    SymbolicPrimitive.inverseAtom control .phase,
+    SymbolicPrimitive.inverseAtom target .A]
+
+/-- Odd masks use the positive block and even masks its literal formal adjoint. -/
+def coherentGrayRootSymbolicCircuit {width n : ℕ} (mask : GrayMask width)
+    (control target : Fin n) (h : control ≠ target) :
+    SymbolicCircuit GrayFactorAtom n :=
+  if Odd mask.card then
+    grayPositiveRootSymbolicCircuit control target h
+  else
+    grayNegativeRootSymbolicCircuit control target h
+
+@[simp]
+theorem erase_grayPositiveRootSymbolicCircuit {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    SymbolicCircuit.erase (grayFactorValuation V)
+        (grayPositiveRootSymbolicCircuit control target h) =
+      grayPositiveRootFusionCircuit control target h V := by
+  simp [grayPositiveRootSymbolicCircuit, grayPositiveRootFusionCircuit,
+    grayFactorValuation, SymbolicPrimitive.atom]
+
+@[simp]
+theorem erase_grayNegativeRootSymbolicCircuit {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    SymbolicCircuit.erase (grayFactorValuation V)
+        (grayNegativeRootSymbolicCircuit control target h) =
+      (grayPositiveRootFusionCircuit control target h V).adjoint := by
+  simp [grayNegativeRootSymbolicCircuit, grayPositiveRootFusionCircuit,
+    grayFactorValuation, SymbolicPrimitive.inverseAtom,
+    FusionCircuit.adjoint, FusionPrimitive.adjoint]
+
+/-- The initial distinct-wire swap preserves the canonical selected evaluator. -/
+theorem eval_grayPositiveRootFusionCircuit {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    FusionCircuit.eval (grayPositiveRootFusionCircuit control target h V) =
+      positiveControlledUnitary target
+        ({⟨control, h⟩} : ControlSet target) V := by
+  let factors := selectedColumnABCFactors (specialUnitaryPart V)
+  have hcommute := oneQubit_denotationsCommute_of_ne
+    control target h
+    (controlPhaseUnitary (determinantPhaseAngle V))
+    (specialUnitaryAsUnitary factors.A)
+  have hswap := eval_swap_head
+    (.oneQubit control (controlPhaseUnitary (determinantPhaseAngle V)))
+    (.oneQubit target (specialUnitaryAsUnitary factors.A))
+    ([.cnot control target h,
+      .oneQubit target (specialUnitaryAsUnitary factors.B),
+      .cnot control target h,
+      .oneQubit target (specialUnitaryAsUnitary factors.C)] : FusionCircuit n)
+    hcommute
+  calc
+    FusionCircuit.eval (grayPositiveRootFusionCircuit control target h V) =
+        FusionCircuit.eval
+          (canonicalSelectedControlledU2FusionCircuit control target h V) := by
+      simpa [grayPositiveRootFusionCircuit,
+        canonicalSelectedControlledU2FusionCircuit, factors] using hswap.symm
+    _ = positiveControlledUnitary target
+          ({⟨control, h⟩} : ControlSet target) V :=
+      eval_canonicalSelectedControlledU2FusionCircuit control target h V
+
+private theorem singletonPositiveControlled_one {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) :
+    positiveControlledUnitary target
+      ({⟨control, h⟩} : ControlSet target) (1 : QubitUnitary) = 1 := by
+  apply Subtype.ext
+  rw [coe_positiveControlledUnitary,
+    positiveControlledRaw_singleton_eq_targetBlockRaw]
+  simp
+
+/-- Inversion passes through one positive control exactly. -/
+theorem singletonPositiveControlled_inv {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    (positiveControlledUnitary target
+      ({⟨control, h⟩} : ControlSet target) V)⁻¹ =
+      positiveControlledUnitary target
+        ({⟨control, h⟩} : ControlSet target) V⁻¹ := by
+  apply inv_eq_iff_mul_eq_one.mpr
+  rw [singleControlledUnitary_mul, mul_inv_cancel,
+    singletonPositiveControlled_one]
+
+/-- Exact evaluator of the literal negative adjoint block. -/
+theorem eval_erase_grayNegativeRootSymbolicCircuit {n : ℕ}
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (grayNegativeRootSymbolicCircuit control target h)) =
+      positiveControlledUnitary target
+        ({⟨control, h⟩} : ControlSet target) V⁻¹ := by
+  rw [erase_grayNegativeRootSymbolicCircuit, FusionCircuit.eval_adjoint,
+    eval_grayPositiveRootFusionCircuit, singletonPositiveControlled_inv]
+
+/-- Each coherent signed block has exactly the paper's signed-root semantics. -/
+theorem eval_erase_coherentGrayRootSymbolicCircuit {width n : ℕ}
+    (mask : GrayMask width) (hne : mask.Nonempty)
+    (control target : Fin n) (h : control ≠ target) (V : QubitUnitary) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (coherentGrayRootSymbolicCircuit mask control target h)) =
+      positiveControlledUnitary target
+        ({⟨control, h⟩} : ControlSet target) (signedGrayRoot mask V) := by
+  rcases Nat.even_or_odd mask.card with heven | hodd
+  · have hnotOdd : ¬Odd mask.card := Nat.not_odd_iff_even.mpr heven
+    rw [coherentGrayRootSymbolicCircuit, if_neg hnotOdd,
+      eval_erase_grayNegativeRootSymbolicCircuit,
+      signedGrayRoot_eq_inv_of_even mask V hne heven]
+  · rw [coherentGrayRootSymbolicCircuit, if_pos hodd,
+      erase_grayPositiveRootSymbolicCircuit,
+      eval_grayPositiveRootFusionCircuit,
+      signedGrayRoot_eq_of_odd mask V hodd]
+
+/-! ## Complete coherent Gray schedule -/
+
+namespace OrderedControlLayout
+
+private theorem erase_append (valuation : GrayFactorAtom → QubitUnitary)
+    {n : ℕ} (first second : SymbolicCircuit GrayFactorAtom n) :
+    SymbolicCircuit.erase valuation (first ++ second) =
+      FusionCircuit.append (SymbolicCircuit.erase valuation first)
+        (SymbolicCircuit.erase valuation second) := by
+  simp [SymbolicCircuit.erase, FusionCircuit.append]
+
+private theorem coherentGrayPivot_index_lt_of_mask {controlCount index : ℕ}
+    (hindex : index < (grayCode controlCount).length) :
+    index < (grayPivots controlCount).length := by
+  rw [length_grayPivots_eq_grayCode]
+  exact hindex
+
+private theorem coherentGrayMask_index_lt_of_edge {controlCount index : ℕ}
+    (hindex : index < (grayCNOTEdges controlCount).length) :
+    index < (grayCode controlCount).length := by
+  rw [length_grayCNOTEdges] at hindex
+  rw [length_grayCode]
+  omega
+
+private theorem coherentGrayFinalMask_index_lt (tail : ℕ) :
+    (grayCNOTEdges (tail + 1)).length <
+      (grayCode (tail + 1)).length := by
+  rw [length_grayCNOTEdges, length_grayCode]
+  have hpow : 0 < 2 ^ (tail + 1) := pow_pos (by omega) _
+  omega
+
+/-- One indexed coherent signed-root block. -/
+def coherentGrayRootCircuitAt {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) (index : ℕ)
+    (hindex : index < (grayCode controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let mask := (grayCode controlCount)[index]'hindex
+  let pivot := (grayPivots controlCount)[index]'
+    (coherentGrayPivot_index_lt_of_mask hindex)
+  coherentGrayRootSymbolicCircuit mask (layout.controlWire pivot)
+    layout.targetWire (layout.control_ne_target pivot)
+
+/-- One coherent signed root followed by its generated Gray CNOT. -/
+def coherentGrayTransitionPair {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) (index : ℕ)
+    (hindex : index < (grayCNOTEdges controlCount).length) :
+    SymbolicCircuit GrayFactorAtom ambientWidth :=
+  let edge := (grayCNOTEdges controlCount)[index]'hindex
+  coherentGrayRootCircuitAt layout V index
+      (coherentGrayMask_index_lt_of_edge hindex) ++
+    [.cnot (layout.controlWire edge.1) (layout.controlWire edge.2)
+      (layout.controlWire_ne (grayCNOTEdges_getElem_ne hindex))]
+
+/-- First `count` coherent root/Gray-CNOT pairs. -/
+def coherentGrayTransitionPrefixCircuit {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) :
+    (count : ℕ) → count ≤ (grayCNOTEdges controlCount).length →
+      SymbolicCircuit GrayFactorAtom ambientWidth
+  | 0, _ => []
+  | count + 1, hcount =>
+      coherentGrayTransitionPrefixCircuit layout V count (by omega) ++
+        coherentGrayTransitionPair layout V count (by omega)
+
+/-- Full coherent raw schedule for `tail+1` positive controls. -/
+def coherentGrayControlledViaRootCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) : SymbolicCircuit GrayFactorAtom ambientWidth :=
+  coherentGrayTransitionPrefixCircuit layout V
+      (grayCNOTEdges (tail + 1)).length le_rfl ++
+    coherentGrayRootCircuitAt layout V
+      (grayCNOTEdges (tail + 1)).length
+      (coherentGrayFinalMask_index_lt tail)
+
+/-- Selected exact-root wrapper for an arbitrary fully controlled `U`. -/
+def coherentGrayControlledCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) : SymbolicCircuit GrayFactorAtom ambientWidth :=
+  coherentGrayControlledViaRootCircuit layout (graySelectedRoot tail U)
+
+@[simp]
+theorem eval_erase_coherentGrayRootCircuitAt
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) (index : ℕ)
+    (hindex : index < (grayCode controlCount).length) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (coherentGrayRootCircuitAt layout V index hindex)) =
+      (grayRootPrimitiveAt layout V index hindex).denotation := by
+  have hmem : (grayCode controlCount)[index] ∈ grayCode controlCount :=
+    List.getElem_mem _
+  have hne : ((grayCode controlCount)[index]'hindex).Nonempty :=
+    (mem_grayCode_iff _).mp hmem
+  simp [coherentGrayRootCircuitAt, grayRootPrimitiveAt,
+    controlledTargetPrimitive, controlComplement,
+    eval_erase_coherentGrayRootSymbolicCircuit _ hne]
+
+@[simp]
+theorem eval_erase_coherentGrayTransitionPair
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) (index : ℕ)
+    (hindex : index < (grayCNOTEdges controlCount).length) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (coherentGrayTransitionPair layout V index hindex)) =
+      Circuit.eval (grayTransitionPair layout V index hindex) := by
+  rw [coherentGrayTransitionPair, erase_append,
+    FusionCircuit.eval_append, eval_erase_coherentGrayRootCircuitAt]
+  simp [grayTransitionPair, Circuit.eval_append,
+    FusionPrimitive.denotation, cnotPrimitive]
+
+/-- Every coherent raw prefix exactly matches the established macro prefix. -/
+theorem eval_erase_coherentGrayTransitionPrefixCircuit
+    {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (V : QubitUnitary) :
+    ∀ count (hcount : count ≤ (grayCNOTEdges controlCount).length),
+      FusionCircuit.eval
+          (SymbolicCircuit.erase (grayFactorValuation V)
+            (coherentGrayTransitionPrefixCircuit layout V count hcount)) =
+        Circuit.eval (grayTransitionPrefixCircuit layout V count hcount) := by
+  intro count hcount
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [coherentGrayTransitionPrefixCircuit, grayTransitionPrefixCircuit]
+      rw [erase_append, FusionCircuit.eval_append, Circuit.eval_append,
+        eval_erase_coherentGrayTransitionPair, ih]
+
+/-- Complete coherent raw syntax is exactly the checked Lemma 7.1 macro circuit. -/
+theorem eval_erase_coherentGrayControlledViaRootCircuit_eq_macro
+    {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (V : QubitUnitary) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation V)
+          (coherentGrayControlledViaRootCircuit layout V)) =
+      Circuit.eval (grayControlledViaRootCircuit layout V) := by
+  rw [coherentGrayControlledViaRootCircuit, grayControlledViaRootCircuit]
+  rw [erase_append, FusionCircuit.eval_append, Circuit.eval_append,
+    eval_erase_coherentGrayTransitionPrefixCircuit,
+    eval_erase_coherentGrayRootCircuitAt]
+  rfl
+
+/-- Exact arbitrary-register semantics of the selected-root coherent raw syntax. -/
+@[simp]
+theorem eval_erase_coherentGrayControlledCircuit {tail ambientWidth : ℕ}
+    (layout : OrderedControlLayout (tail + 1) ambientWidth)
+    (U : QubitUnitary) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase (grayFactorValuation (graySelectedRoot tail U))
+          (coherentGrayControlledCircuit layout U)) =
+      positiveControlledUnitary layout.targetWire layout.controlSet U := by
+  rw [coherentGrayControlledCircuit,
+    eval_erase_coherentGrayControlledViaRootCircuit_eq_macro]
+  simpa [grayControlledCircuit] using eval_grayControlledCircuit layout U
+
+end OrderedControlLayout
+
+end
+
+
+end Barenco.MultiControl
