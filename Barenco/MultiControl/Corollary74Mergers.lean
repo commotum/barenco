@@ -1,6 +1,6 @@
 import Barenco.MultiControl.Corollary74Fusion
 import Barenco.Optimization.SymbolicAdjoint
-import Barenco.Optimization.SymbolicExpose
+import Barenco.Optimization.SymbolicSweep
 
 /-!
 # Exact symbolic mergers for corrected Corollary 7.4
@@ -478,6 +478,98 @@ theorem eval_mixedExpandedRelativeCorollary74FusionCircuit
         pauliX := by
   rw [eval_mixedExpandedRelativeCorollary74FusionCircuit_eq_relative]
   exact eval_relativeCorollary74Circuit layout hleft hright htargetFree
+
+/-! ## Executable all-wire symbolic merger -/
+
+/--
+Run the certified ascending/descending target-directed sweep on the complete
+coherent raw chronology.
+-/
+def mergedRelativeCorollary74SymbolicCircuit
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  SymbolicCircuit.sweepBoth
+    (layout.mixedExpandedRelativeCorollary74SymbolicCircuit hleft hright)
+
+/-- Visible valued syntax emitted by the real symbolic sweep. -/
+def mergedRelativeCorollary74FusionCircuit
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) : FusionCircuit n :=
+  SymbolicCircuit.erase corollary74FactorValuation
+    (layout.mergedRelativeCorollary74SymbolicCircuit hleft hright)
+
+/-- Trusted public circuit syntax emitted after valuation and lowering. -/
+def mergedRelativeCorollary74Circuit
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) : Circuit n :=
+  (layout.mergedRelativeCorollary74FusionCircuit hleft hright).lower
+
+/-- The executable symbolic merger preserves exact full-register evaluation. -/
+@[simp]
+theorem eval_mergedRelativeCorollary74FusionCircuit_eq_raw
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    (layout.mergedRelativeCorollary74FusionCircuit hleft hright).eval =
+      (layout.mixedExpandedRelativeCorollary74FusionCircuit hleft hright).eval := by
+  rw [mergedRelativeCorollary74FusionCircuit,
+    mergedRelativeCorollary74SymbolicCircuit,
+    SymbolicCircuit.eval_erase_sweepBoth]
+  rfl
+
+@[simp]
+theorem eval_mergedRelativeCorollary74Circuit
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2)
+    (htargetFree : leftTail ≤ rightTail + 1) :
+    Circuit.eval (layout.mergedRelativeCorollary74Circuit hleft hright) =
+      positiveControlledUnitary layout.targetWire layout.dataLayout.controlSet
+        pauliX := by
+  rw [mergedRelativeCorollary74Circuit, FusionCircuit.eval_lower,
+    eval_mergedRelativeCorollary74FusionCircuit_eq_raw,
+    eval_mixedExpandedRelativeCorollary74FusionCircuit
+      layout hleft hright htargetFree]
+
+/-- The complete ordered CNOT trace is unchanged by the merger. -/
+@[simp]
+theorem cnotTrace_mergedRelativeCorollary74SymbolicCircuit_eq_raw
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    SymbolicCircuit.cnotTrace
+        (layout.mergedRelativeCorollary74SymbolicCircuit hleft hright) =
+      SymbolicCircuit.cnotTrace
+        (layout.mixedExpandedRelativeCorollary74SymbolicCircuit
+          hleft hright) := by
+  simp [mergedRelativeCorollary74SymbolicCircuit]
+
+/-! ## Balanced source-width wrapper -/
+
+def balancedMergedRelativeCorollary74Circuit (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) : Circuit sourceWidth :=
+  (balancedLayout sourceWidth hwidth).mergedRelativeCorollary74Circuit
+    (balancedLeftCapacity hwidth) (balancedRightCapacity hwidth)
+
+@[simp]
+theorem eval_balancedMergedRelativeCorollary74Circuit
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.eval (balancedMergedRelativeCorollary74Circuit sourceWidth hwidth) =
+      positiveControlledUnitary
+        (balancedLayout sourceWidth hwidth).targetWire
+        (balancedLayout sourceWidth hwidth).dataLayout.controlSet pauliX := by
+  apply eval_mergedRelativeCorollary74Circuit
+  exact balancedLeftTail_le_right_add_one hwidth
 
 end FourBlockLayout
 
