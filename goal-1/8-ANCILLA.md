@@ -1,7 +1,7 @@
 # 8-ANCILLA
 
-Status: in progress (source/API audit and architecture selection; no Stage 8 Lean
-module has been added yet).
+Status: in progress (semantic and primitive construction layers complete; resource
+wrappers, diagnostics, public integration, and final audits remain).
 
 ## Current Facts
 
@@ -92,19 +92,22 @@ language only.
 - `Barenco/OneQubit/SelectedABC.lean`: a compact selected
   column-chronological ABC factorization record for a `QubitSpecialUnitary`, with
   the exact inactive and active product equations.
-- `Barenco/ControlledCircuit/SelectedSU2.lean`: select the existing five-node
+- `Barenco/ControlledCircuit/SelectedSpecial.lean`: select the existing five-node
   controlled-SU(2) witness with exact `(3,2,5)` one-qubit/CNOT/total resource
   contract. Keep the six-node `Selected` wrapper for Lemma 7.11's arbitrary U(2).
 - `Barenco/MultiControl/LastTargetSwap.lean`: swap the last ordered control with
   the target, prove all prefix/target projections, and reuse
   `expandedRecursivePrefixXCircuit` as an exact primitive expansion of an MCX
   from the prefix onto the original target.
-- `Barenco/MultiControl/SpecialUnitary.lean`: parameterized Lemma 7.9 macro
+- `Barenco/MultiControl/LinearSpecialUnitary.lean`: parameterized Lemma 7.9 macro
   chronology, exact target-product/four-case evaluator, selected ABC wrapper, and
   structural macro counts/cost rejection.
-- `Barenco/MultiControl/SpecialUnitaryExpansion.lean`: substitute three selected
+- `Barenco/MultiControl/LinearSpecialUnitaryExpansion.lean`: substitute three selected
   five-node controlled-SU(2) circuits and two swapped-layout expanded MCXs; prove exact
   evaluator preservation and component/total/cost formulas.
+- `Barenco/MultiControl/LinearSpecialUnitaryPhase.lean`: isolate the source's
+  special `W`, compute its exact fully controlled input-column phase, and derive
+  only the justified basis behavior and measurement consequences.
 - `Barenco/MultiControl/CleanAncilla.lean`: reuse
   `OrderedControlLayout (p+1) ambientWidth` with its first `p` controls interpreted
   as data and its last control interpreted as the auxiliary; expose clean names
@@ -114,6 +117,9 @@ language only.
 - `Barenco/MultiControl/CleanAncillaExpansion.lean`: substitute two existing
   expanded prefix MCXs and one selected controlled-U circuit, retaining all clean
   subspace/restoration theorems and proving exact primitive resources.
+- `Barenco/MultiControl/LinearResources.lean`: define width-indexed numeric count
+  functions for both linear constructions, link them exactly to the named syntax,
+  and prove explicit `O(n)` upper bounds without asserting optimal `Theta(n)`.
 - `Barenco/MultiControl/AncillaExamples.lean`: root-excluded canonical width-seven
   and width-eight checks, an auxiliary-one counterexample for a nonidentity U,
   exact resource profiles, and fixed-wire factorization diagnostics.
@@ -247,3 +253,13 @@ language only.
   `BasisPhaseEq`, `SameBasisBehavior`, and `BasisMeasurementEq`, never a false
   global-phase claim. Strict/trust-zero checks and its 2,940-job focused build
   pass.
+- `CleanAncillaExpansion.lean` substitutes two exact corrected-Corollary-7.4
+  prefix MCXs and the selected six-node controlled-U circuit. Its evaluator is
+  exactly the three-macro Lemma 7.11 evaluator; the arbitrary-auxiliary basis
+  formula, clean-zero arbitrary-state equality, output closure, and explicit
+  factorization all transport to the primitive syntax. It declares exactly one
+  required clean wire and proves the structural one-clean-ancilla contract. Exact
+  profiles are `(64p−156,48p−102,112p−258)` and, at logical width `n=p+2`,
+  `(64n−284,48n−198,112n−482)`, including `(164,138,302)` at `n=7`.
+  Strict/trust-zero checks, a 3,485-job focused build, scans, standard-only axiom
+  checks, and an independent chronology/restoration/count review pass.

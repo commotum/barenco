@@ -159,7 +159,7 @@ extra assumption, omission, or unresolved obstruction.
 - [x] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
 - [x] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.
 - [x] `6-THREE-QUBIT` — Section 6 exact and relative-phase constructions.
-- [ ] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions (in progress).
+- [x] `7-MULTICONTROL` — Section 7 exact multi-control/Gray-code constructions.
 - [ ] `8-ANCILLA` — linear constructions with fixed/restored auxiliary wires.
 - [ ] `9-APPROXIMATION` — truncated roots, norm bounds, and measurement effects.
 - [ ] `10-LOWER-BOUNDS` — rigorous dependency and cost lower bounds.
