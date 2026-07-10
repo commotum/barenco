@@ -425,9 +425,11 @@ Current implementation facts:
   proves the exact signed recursive phase formula and `RelativePhase` proves the
   corrected `Arel;Bhybrid;adjoint(Arel);Bhybrid` circuit exactly on the full
   register, with four exact and `8n−44` relative occurrences. Both new leaves pass
-  focused and warning-as-error checks. The raw `56n−244` primitive expansion is
-  active; the source's optimized `48n−204` remains unresolved pending explicit
-  evaluator-preserving normalization.
+  focused and warning-as-error checks. `Corollary74Expansion` now proves exact
+  evaluator preservation and literal counts `32n−144` one-qubit,
+  `24n−100` CNOT, and `56n−244` total/cost. The source's optimized `48n−204`
+  remains unresolved because no explicit evaluator-preserving normalization
+  establishes it. Lemma 7.5 is next.
 
 ### Detailed Implementation Plan
 

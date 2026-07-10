@@ -377,8 +377,9 @@ circuit does not transfer the A circuit's resource count to that different synta
 and the two `eval_append_relativePhaseToffoli*Circuit_self` theorems consequently
 cancel two immediately adjacent identical copies. This does not prove the stronger
 Section 7 claim that relative-phase gates separated by other operations cancel
-merely because they occur in pairs; that use still requires an ordered basis-path
-phase calculation.
+merely because they occur in pairs. `MultiControl.RelativeHalf` and
+`MultiControl.RelativePhase` now supply the required ordered basis-path phase
+calculation for the corrected Corollary 7.4 construction.
 
 ## Section 7 Gray-Code Multi-Control Conventions
 
@@ -584,6 +585,29 @@ final target; the balanced partition satisfies the stronger `ℓ≤r+1`, and the
 library proves that its A implementation's touched support excludes that target.
 Any later “four target-touching exact Toffolis” theorem is restricted to this
 phase-ready balanced syntax.
+
+The relative-phase refinement does not reuse the same forward A ladder twice.
+With the Section 6 control order, a complete all-relative inward ladder has
+Boolean sign exponent
+`controlProduct * (lastBorrow xor target)`, and two forward A copies leave a
+residual phase. The exact contextual chronology is
+`Arel; Bhybrid; adjoint(Arel); Bhybrid`. Each hybrid B keeps its two outer
+final-target Toffolis exact and uses two identical all-relative smaller halves;
+the smaller palindrome is an exact signed involution, so those phases cancel.
+The balanced A phase support excludes the final target changed by B, which makes
+the forward/adjoint A phases inverse along the actual basis path. The exported
+theorem is exact full-register equality, not `BasisPhaseEq`.
+
+This mixed syntax has four exact Toffoli macros and `8n−44` seven-node relative
+occurrences for `n≥7`; at `n=7` the split is four and twelve. Before expanding
+the four exact macros, its one-qubit/CNOT cost is correctly `none`.
+`Corollary74Expansion` replaces them by four selected, checked sixteen-node
+circuits and proves evaluator preservation. The resulting unmerged syntax has
+exactly `32n−144` one-qubit gates plus `24n−100` CNOTs, or `56n−244` total,
+and its partial cost is `some (56n−244)`.
+The paper's optimized `48n−204` is not accepted from semantic equality or informal
+merger arithmetic; it requires a separately named normalized circuit and exact
+evaluator-preservation theorem.
 
 ## API Evidence and Representation Decision
 

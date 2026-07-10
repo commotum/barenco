@@ -20,6 +20,8 @@ import Barenco.MultiControl.BorrowedSemantics
 import Barenco.MultiControl.BorrowedResources
 import Barenco.MultiControl.FourBlock
 import Barenco.MultiControl.Corollary74
+import Barenco.MultiControl.RelativePhase
+import Barenco.MultiControl.Corollary74Expansion
 
 /-!
 # Barenco

@@ -1,8 +1,8 @@
 # 7-MULTICONTROL
 
-Status: in progress (Lemmas 7.1–7.3 and corrected Corollary 7.4's exact
-Toffoli-macro and contextual relative-phase layers complete; raw primitive
-expansion active, optimized source count unresolved).
+Status: in progress (Lemmas 7.1–7.3 and corrected Corollary 7.4 complete through
+an exact literal primitive upper bound; optimized source count unresolved;
+Lemma 7.5 next).
 
 ## Current Facts
 
@@ -108,8 +108,10 @@ expansion active, optimized source count unresolved).
 - Literal expansion therefore has raw cost
   `4·16 + 7·(8n−44) = 56n−244` before any one-qubit mergers. The source's informal
   six-per-relative count gives `48n−200`, not `48n−204`; four further merges are
-  required. No optimized count is accepted until a named expanded syntax and
-  evaluator-preserving normalization prove every merger.
+  required. `Corollary74Expansion` now proves the literal evaluator and exact
+  component counts `32n−144` one-qubit plus `24n−100` CNOT. No optimized count
+  is accepted until a named evaluator-preserving normalization proves every
+  merger.
 
 ## Source Claim Audit
 
@@ -280,7 +282,9 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
    **Implemented through contextual semantics/counts:** signed half/full formulas,
    hybrid-B exactness, adjoint-A basis action, exact contextual evaluator, balanced
    wrapper, and four-exact/`8n−44`-relative occurrence accounting compile. The
-   unmerged primitive expansion is the active substep.
+   unmerged primitive expansion now compiles with exact component/total/cost
+   theorems. The source's optimized count is recorded as unresolved because no
+   checked normalization establishes it.
 7. Define Lemma 7.5 as a five-macro chronological circuit and prove its evaluator
    equality by the same parity/conjugation structure as Lemma 6.1, with exact
    boundary/base cases. Expand recursive calls only in a separate syntax layer.
@@ -417,7 +421,7 @@ pivot invariant, not merely Hamming adjacency.
   exact `4(m−2)` Toffoli count.
 - [x] Lemma 7.3 has a named four-block circuit and full-register dirty-wire
   correctness/restoration for every legal partition, plus exact macro counts.
-- [ ] Corollary 7.4 uses the repaired partition, proves `8(n−5)` Toffoli macros,
+- [x] Corollary 7.4 uses the repaired partition, proves `8(n−5)` Toffoli macros,
   proves contextual relative-phase cancellation, and either proves or explicitly
   corrects `48n−204` from an expanded circuit.
 - [ ] Lemma 7.5 has exact evaluator/root theorems with explicit base cases, and

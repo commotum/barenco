@@ -29,6 +29,9 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
+The maintained audit module currently contains 143 `#print axioms` checks, with one
+row below for each checked declaration.
+
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
 |---|---|---|---|---|
 | `Barenco.fromPaper_mul` | `Barenco.Basic` | `propext`, `Classical.choice`, `Quot.sound` | standard mathlib matrix foundations; no project axiom | 2026-07-09 |
@@ -153,6 +156,27 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | `Barenco.MultiControl.FourBlockLayout.eval_balancedCorollary74Circuit` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | canonical exact-width corrected Corollary 7.4 evaluator; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.FourBlockLayout.balancedCorollary74Circuit_gateCount` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | exact syntax-derived `8(n−5)` count including the repaired boundary; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.FourBlockLayout.balancedCorollary74Circuit_oneQubitCNOTCost` | `Barenco.MultiControl.Corollary74` | `propext`, `Classical.choice`, `Quot.sound` | partial early-basic model rejects the unexpanded Toffoli syntax; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.relativeHalfPhaseExponent_succ` | `Barenco.MultiControl.RelativeHalf` | `propext`, `Classical.choice`, `Quot.sound` | exact recurrence for the relative half-ladder's input-column phase exponent; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.eval_relativeHalfLadderCircuit_sq` | `Barenco.MultiControl.RelativeHalf` | `propext`, `Classical.choice`, `Quot.sound` | every all-relative half-ladder palindrome is an exact full-register involution; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.eval_relativeHalfLadderCircuit_mulVec_basisKet` | `Barenco.MultiControl.RelativeHalf` | `propext`, `Classical.choice`, `Quot.sound` | exact signed arbitrary-width basis action of the all-relative half ladder; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.eval_relativeInwardLadderCircuit_mulVec_basisKet` | `Barenco.MultiControl.RelativeHalf` | `propext`, `Classical.choice`, `Quot.sound` | exact signed basis action and positive-controlled-X permutation of the full relative ladder; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.eval_hybridInwardLadderCircuit` | `Barenco.MultiControl.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | exact full-register evaluator for the hybrid ladder with exact outer Toffolis; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_adjoint_relativeCorollary74AImplementation_mulVec_basisKet` | `Barenco.MultiControl.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | explicit signed basis action for the adjoint A occurrence required by contextual cancellation; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.relativeCorollary74A_phase_after_ABA` | `Barenco.MultiControl.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | proves equality of the two A phase exponents along the exact `A;B;A` Boolean path; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_relativeCorollary74Circuit` | `Barenco.MultiControl.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | exact contextual relative-phase Corollary 7.4 evaluator under the target-free A bound; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedRelativeCorollary74RelativeOccurrenceCount` | `Barenco.MultiControl.RelativePhase` | `propext`, `Quot.sound` | exact balanced count `8n−44` of seven-node relative-Toffoli occurrences; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_balancedRelativeCorollary74Circuit` | `Barenco.MultiControl.RelativePhase` | `propext`, `Classical.choice`, `Quot.sound` | exact contextual semantics for every canonical source width at least seven; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.eval_exactToffoliExpansionCircuit` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | selected sixteen-node one-qubit/CNOT expansion exactly evaluates to Toffoli; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.exactToffoliExpansionCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | selected exact Toffoli expansion has certified cost sixteen; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.eval_expandedHybridInwardLadderCircuit` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | literal primitive expansion preserves the hybrid ladder evaluator; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.InwardLadderLayout.expandedHybridInwardLadderCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | exact syntax-derived one-qubit/CNOT cost of an expanded hybrid ladder; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_expandedRelativeCorollary74Circuit` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | fully expanded arbitrary-placement circuit retains exact contextual semantics; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.expandedRelativeCorollary74Circuit_oneQubitCNOTCost` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | exact generic early-basic cost of the literal contextual expansion; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.eval_balancedExpandedRelativeCorollary74Circuit` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | fully expanded balanced circuit exactly implements the multi-controlled X; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_oneQubitCount` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | exact raw one-qubit count `32n−144`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_cnotCount` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | exact raw CNOT count `24n−100`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_gateCount` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | exact unmerged primitive count `56n−244`; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.FourBlockLayout.balancedExpandedRelativeCorollary74Circuit_oneQubitCNOTCost` | `Barenco.MultiControl.Corollary74Expansion` | `propext`, `Classical.choice`, `Quot.sound` | one-qubit/CNOT model accepts the literal expansion with cost `56n−244`; no project axiom | 2026-07-10 |
 | exact universality headline | planned | pending | Stage 11 | — |
 | resource headline | planned | pending | Stage 12 | — |
 
@@ -188,5 +212,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 | Stage 7 corrected Corollary 7.4 warning-as-error/root/audit | direct strict compilation of `Corollary74.lean`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 122 declarations, all within `propext`, `Classical.choice`, and `Quot.sound`, 2026-07-10 |
 | Stage 7 corrected Corollary 7.4 focused/root/audit build | `lake build Barenco.MultiControl.Corollary74 Barenco.AxiomAudit Barenco` | successful, 3,486 jobs, 2026-07-10 |
 | Stage 7 corrected Corollary 7.4 full builds | two consecutive `lake build` runs after public-root integration | both successful, 3,485 jobs each, 2026-07-10 |
+| Stage 7 contextual/raw Corollary 7.4 warning-as-error/root/audit | direct strict compilation of `RelativeHalf.lean`, `RelativePhase.lean`, `Corollary74Expansion.lean`, `Barenco.lean`, and `AxiomAudit.lean` | successful; the maintained audit printed 143 declarations: two new arithmetic/count checks use `propext` and `Quot.sound`, and the other nineteen new checks use those plus `Classical.choice`, 2026-07-10 |
+| Stage 7 contextual/raw Corollary 7.4 focused/root/audit build | `lake build Barenco.MultiControl.RelativeHalf Barenco.MultiControl.RelativePhase Barenco.MultiControl.Corollary74Expansion Barenco.AxiomAudit Barenco` | successful, 3,489 jobs, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

@@ -95,10 +95,15 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Formal evidence:** `corollary74Circuit_toffoliCount` and
   `balancedCorollary74Circuit_gateCount` establish `8(n−5)=8n−40` from explicit
   syntax; `balancedLayout_targetWire_not_mem_aImplementation_touchedSupport`
-  establishes the phase-ready target exclusion. The component seven- and
-  sixteen-node counts are machine checked; the combined raw-count circuit and
-  contextual phase theorem are the active implementation slice. No claim yet
-  that `48n−204` is correct.
+  establishes the phase-ready target exclusion.
+  `eval_balancedRelativeCorollary74Circuit`,
+  `balancedRelativeCorollary74Circuit_toffoliCount`, and
+  `balancedRelativeCorollary74RelativeOccurrenceCount` now prove exact contextual
+  semantics with four exact and `8n−44` relative occurrences.
+  `eval_balancedExpandedRelativeCorollary74Circuit` and the accompanying syntax
+  theorems prove the literal expansion's exact semantics, `32n−144` one-qubit
+  count, `24n−100` CNOT count, and `56n−244` accepted total cost. No claim that
+  `48n−204` is correct is made.
 - **Additional structural requirement:** a generic minimally capacitated Lemma 7.3
   substitution may borrow the final target inside an A ladder, causing additional
   Toffolis to touch it. The repaired balanced partition satisfies a stronger
@@ -113,7 +118,8 @@ statement. “Open” means the repair is identified but not yet machine checked
   cannot justify their cancellation. Different coordinated exact-gate
   orientations produce different provisional constants, so none is accepted
   without named normalized syntax and an exact evaluator theorem.
-- **Status:** open.
+- **Status:** corrected and proved through a literal primitive upper bound;
+  optimized source count unresolved.
 
 ## C-005 — Quadratic “Theta” is not an optimal-synthesis theorem
 
@@ -594,6 +600,11 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Dependent impact:** contextual correctness and every early-basic count in
   Corollary 7.4, plus Lemma 7.5/Corollary 7.6 costs that depend on it.
 - **Formal evidence:** the exact balanced target-exclusion theorem already compiles;
-  the signed-half, hybrid-B, adjoint-A, full evaluator, and occurrence-count
-  theorems are the next `MultiControl.RelativePhase` implementation slice.
-- **Status:** corrected architecture identified; formal phase-cancellation proof open.
+  `relativeHalfPhaseExponent`, `eval_relativeHalfLadderCircuit_sq`,
+  `eval_relativeInwardLadderCircuit_mulVec_basisKet`,
+  `eval_hybridInwardLadderCircuit`,
+  `eval_adjoint_relativeCorollary74AImplementation_mulVec_basisKet`, and
+  `eval_relativeCorollary74Circuit` now machine-check the signed-half, hybrid-B,
+  adjoint-A, and full contextual arguments. The balanced wrapper proves four exact
+  and `8n−44` relative occurrences.
+- **Status:** corrected and proved.
