@@ -12,6 +12,29 @@ increasing ambient order.
 
 namespace Barenco.MultiControl
 
+/-- An ordered pair of distinct logical control positions suitable for one CNOT. -/
+structure ControlEdge (controlCount : ℕ) where
+  control : Fin controlCount
+  target : Fin controlCount
+  ne : control ≠ target
+
+namespace ControlEdge
+
+/-- Forget the distinctness proof and expose the ordered endpoint pair. -/
+def toPair {controlCount : ℕ} (edge : ControlEdge controlCount) :
+    Fin controlCount × Fin controlCount :=
+  (edge.control, edge.target)
+
+@[simp]
+theorem toPair_fst {controlCount : ℕ} (edge : ControlEdge controlCount) :
+    edge.toPair.1 = edge.control := rfl
+
+@[simp]
+theorem toPair_snd {controlCount : ℕ} (edge : ControlEdge controlCount) :
+    edge.toPair.2 = edge.target := rfl
+
+end ControlEdge
+
 /-- An ordered control register embedded disjointly from a named target wire. -/
 structure OrderedControlLayout (controlCount ambientWidth : ℕ) where
   controlWire : Fin controlCount ↪ Fin ambientWidth
@@ -94,6 +117,12 @@ def cnotPrimitive {controlCount ambientWidth : ℕ}
     Primitive ambientWidth :=
   Primitive.cnot (layout.controlWire control) (layout.controlWire target)
     (layout.controlWire_ne h)
+
+/-- Package a proved-valid logical control edge as an ambient CNOT primitive. -/
+def cnotEdgePrimitive {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (edge : ControlEdge controlCount) : Primitive ambientWidth :=
+  layout.cnotPrimitive edge.control edge.target edge.ne
 
 @[simp]
 theorem cnotPrimitive_kind {controlCount ambientWidth : ℕ}
