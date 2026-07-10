@@ -448,6 +448,83 @@ theorem relativeCorollary74A_phase_after_ABA
     exact layout.aInwardLadderLayout_targetWire _]
   rw [hlastBorrow, hdirty]
 
+/--
+Exact arbitrary-width basis action of the contextual relative-phase circuit.
+The two A signs cancel only under the explicit target-free capacity bound.
+-/
+theorem eval_relativeCorollary74Circuit_mulVec_basisKet
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2) (hright : rightTail ≤ leftTail + 2)
+    (htargetFree : leftTail ≤ rightTail + 1) (input : Basis n) :
+    (Circuit.eval (layout.relativeCorollary74Circuit hleft hright) : Gate n) *ᵥ
+        basisKet input = basisKet (layout.fourBlockUpdate input) := by
+  rw [relativeCorollary74Circuit, Circuit.eval_append, Circuit.eval_append,
+    Circuit.eval_append]
+  simp only [Submonoid.coe_mul]
+  rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+  rw [eval_relativeCorollary74AImplementation_mulVec_basisKet]
+  rw [Matrix.mulVec_smul]
+  rw [eval_hybridCorollary74BImplementation_mulVec_basisKet]
+  rw [Matrix.mulVec_smul]
+  rw [eval_adjoint_relativeCorollary74AImplementation_mulVec_basisKet]
+  rw [smul_smul]
+  rw [Matrix.mulVec_smul]
+  rw [eval_hybridCorollary74BImplementation_mulVec_basisKet]
+  rw [relativeCorollary74A_phase_after_ABA layout hleft htargetFree]
+  rw [show InwardLadderLayout.relativePhaseSign
+          (InwardLadderLayout.relativeInwardPhaseExponent
+            (layout.corollary74ALayout hleft) input) *
+        InwardLadderLayout.relativePhaseSign
+          (InwardLadderLayout.relativeInwardPhaseExponent
+            (layout.corollary74ALayout hleft) input) = 1 by
+      cases InwardLadderLayout.relativeInwardPhaseExponent
+        (layout.corollary74ALayout hleft) input <;> simp]
+  simp only [one_smul]
+  rfl
+
+/--
+Corrected contextual Corollary 7.4: exact full-register equality, not merely
+agreement up to basis-dependent phase.
+-/
+@[simp]
+theorem eval_relativeCorollary74Circuit
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2) (hright : rightTail ≤ leftTail + 2)
+    (htargetFree : leftTail ≤ rightTail + 1) :
+    Circuit.eval (layout.relativeCorollary74Circuit hleft hright) =
+      positiveControlledUnitary layout.targetWire layout.dataLayout.controlSet pauliX := by
+  calc
+    Circuit.eval (layout.relativeCorollary74Circuit hleft hright) =
+        Circuit.eval layout.fourBlockCircuit := by
+      apply Subtype.ext
+      rw [matrix_eq_iff_mulVec_basisKet_eq]
+      intro input
+      rw [eval_relativeCorollary74Circuit_mulVec_basisKet
+        layout hleft hright htargetFree]
+      exact (eval_fourBlockCircuit_mulVec_basisKet layout input).symm
+    _ = _ := eval_fourBlockCircuit layout
+
+/-! ## Contextual occurrence accounting -/
+
+/--
+Construction-specific number of seven-node relative-Toffoli occurrences: two
+complete A ladders and four smaller B halves.
+-/
+def relativeCorollary74RelativeOccurrenceCount
+    (leftTail rightTail : ℕ) : ℕ :=
+  2 * InwardLadderLayout.relativeInwardOccurrenceCount leftTail +
+    4 * InwardLadderLayout.relativeHalfOccurrenceCount rightTail
+
+@[simp]
+theorem relativeCorollary74RelativeOccurrenceCount_eq
+    (leftTail rightTail : ℕ) :
+    relativeCorollary74RelativeOccurrenceCount leftTail rightTail =
+      8 * (leftTail + rightTail) + 12 := by
+  simp [relativeCorollary74RelativeOccurrenceCount]
+  omega
+
 @[simp]
 theorem relativeCorollary74Circuit_toffoliCount {leftTail rightTail n : ℕ}
     (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
@@ -500,6 +577,97 @@ theorem relativeCorollary74Circuit_oneQubitCNOTCost {leftTail rightTail n : ℕ}
         (layout.relativeCorollary74Circuit hleft hright) = none := by
   simp [relativeCorollary74Circuit, relativeCorollary74AImplementation,
     hybridCorollary74BImplementation, Circuit.cost_append, Circuit.addCost]
+
+/-! ## Balanced source-width construction -/
+
+/-- Canonical phase-safe contextual circuit on exactly `sourceWidth` wires. -/
+def balancedRelativeCorollary74Circuit (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) : Circuit sourceWidth :=
+  (balancedLayout sourceWidth hwidth).relativeCorollary74Circuit
+    (balancedLeftCapacity hwidth) (balancedRightCapacity hwidth)
+
+/-- Exact corrected Corollary 7.4 semantics for every source width at least seven. -/
+@[simp]
+theorem eval_balancedRelativeCorollary74Circuit (sourceWidth : ℕ)
+    (hwidth : 7 ≤ sourceWidth) :
+    Circuit.eval (balancedRelativeCorollary74Circuit sourceWidth hwidth) =
+      positiveControlledUnitary
+        (balancedLayout sourceWidth hwidth).targetWire
+        (balancedLayout sourceWidth hwidth).dataLayout.controlSet pauliX := by
+  apply eval_relativeCorollary74Circuit
+  exact balancedLeftTail_le_right_add_one hwidth
+
+/-- Exactly `8n−44` Toffoli occurrences use the seven-node relative circuit. -/
+@[simp]
+theorem balancedRelativeCorollary74RelativeOccurrenceCount
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    relativeCorollary74RelativeOccurrenceCount
+        (balancedLeftTail sourceWidth) (balancedRightTail sourceWidth) =
+      8 * sourceWidth - 44 := by
+  rw [relativeCorollary74RelativeOccurrenceCount_eq]
+  have hsum := balancedTails_add_seven hwidth
+  omega
+
+/-- The remaining four syntactic nodes are the exact final-target Toffolis. -/
+@[simp]
+theorem balancedRelativeCorollary74Circuit_toffoliCount
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.kindCount .toffoli
+        (balancedRelativeCorollary74Circuit sourceWidth hwidth) = 4 := by
+  apply relativeCorollary74Circuit_toffoliCount
+
+/-- Four one-qubit nodes per relative occurrence, before exact-node expansion. -/
+@[simp]
+theorem balancedRelativeCorollary74Circuit_oneQubitCount
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.kindCount .oneQubit
+        (balancedRelativeCorollary74Circuit sourceWidth hwidth) =
+      4 * (8 * sourceWidth - 44) := by
+  rw [balancedRelativeCorollary74Circuit,
+    relativeCorollary74Circuit_oneQubitCount]
+  have hsum := balancedTails_add_seven hwidth
+  omega
+
+/-- Three CNOT nodes per relative occurrence, before exact-node expansion. -/
+@[simp]
+theorem balancedRelativeCorollary74Circuit_cnotCount
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.kindCount .cnot
+        (balancedRelativeCorollary74Circuit sourceWidth hwidth) =
+      3 * (8 * sourceWidth - 44) := by
+  rw [balancedRelativeCorollary74Circuit,
+    relativeCorollary74Circuit_cnotCount]
+  have hsum := balancedTails_add_seven hwidth
+  omega
+
+/-- Mixed-syntax size: seven nodes per relative occurrence plus four exact macros. -/
+@[simp]
+theorem balancedRelativeCorollary74Circuit_gateCount
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.gateCount (balancedRelativeCorollary74Circuit sourceWidth hwidth) =
+      7 * (8 * sourceWidth - 44) + 4 := by
+  rw [balancedRelativeCorollary74Circuit,
+    relativeCorollary74Circuit_gateCount]
+  have hsum := balancedTails_add_seven hwidth
+  omega
+
+/-- Mixed syntax still contains four unsupported exact Toffoli macros. -/
+@[simp]
+theorem balancedRelativeCorollary74Circuit_oneQubitCNOTCost
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.cost CostModel.oneQubitCNOT
+        (balancedRelativeCorollary74Circuit sourceWidth hwidth) = none := by
+  apply relativeCorollary74Circuit_oneQubitCNOTCost
+
+/-- Width-seven sanity check: four exact and twelve relative occurrences. -/
+theorem balancedRelativeCorollary74Circuit_seven_occurrences :
+    Circuit.kindCount .toffoli
+        (balancedRelativeCorollary74Circuit 7 (by omega)) = 4 ∧
+      relativeCorollary74RelativeOccurrenceCount
+          (balancedLeftTail 7) (balancedRightTail 7) = 12 := by
+  constructor
+  · simp
+  · norm_num [balancedLeftTail, balancedRightTail]
 
 end
 

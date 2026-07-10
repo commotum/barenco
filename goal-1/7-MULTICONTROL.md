@@ -1,7 +1,8 @@
 # 7-MULTICONTROL
 
 Status: in progress (Lemmas 7.1–7.3 and corrected Corollary 7.4's exact
-Toffoli-macro layer complete; contextual phase/basic expansion next).
+Toffoli-macro and contextual relative-phase layers complete; raw primitive
+expansion active, optimized source count unresolved).
 
 ## Current Facts
 
@@ -90,8 +91,8 @@ Toffoli-macro layer complete; contextual phase/basic expansion next).
   safe, but it invalidates any generic claim that only four Toffolis touch the
   target. The repaired balanced split proves the stronger `ℓ≤r+1`, so the chosen
   A-workspace prefix stays inside the right data-control group and avoids the
-  final target. This phase-ready strengthening must be proved before the later
-  “four exact occurrences” accounting is attempted.
+  final target. This stronger fact is now used in the exact contextual phase
+  proof and is materially required there.
 - The Section 6 relative-Toffoli phase is asymmetric (`first=1, second=0,
   target=1`). For an all-relative inward ladder with positive borrowed count `k`,
   the exact MCX permutation acquires exponent
@@ -101,7 +102,9 @@ Toffoli-macro layer complete; contextual phase/basic expansion next).
   chronology must use `Arel; Bhybrid; adjoint(Arel); Bhybrid`. In `Bhybrid`, the
   two outer Toffolis that touch the final target are exact; the repeated smaller
   all-relative half is a palindromic involution and cancels its phase. This leaves
-  exactly four exact and `8n−44` relative Toffoli occurrences.
+  exactly four exact and `8n−44` relative Toffoli occurrences. `RelativeHalf`
+  now proves the signed half/full formulas and `RelativePhase` proves this exact
+  full-register contextual evaluator for every balanced `n≥7`.
 - Literal expansion therefore has raw cost
   `4·16 + 7·(8n−44) = 56n−244` before any one-qubit mergers. The source's informal
   six-per-relative count gives `48n−200`, not `48n−204`; four further merges are
@@ -116,7 +119,7 @@ Toffoli-macro layer complete; contextual phase/basic expansion next).
 | Lemma 7.1 | For `n≥3`, `∧_{n−1}(U)` uses `2^(n−1)−1` controlled `V`/`V†` gates and `2^(n−1)−2` CNOTs, with `V^(2^(n−2))=U`; proof omitted. After expansion/merging the paper claims `3·2^(n−1)−4` CNOTs and `2·2^(n−1)` one-qubit gates. | The macro count is plausible but needs a constructed schedule, accumulator invariant, root equation, and exact evaluator proof. The expanded count needs coordinated Section 5 decompositions and explicit merges; it does not follow from the semantic theorem. Stage 7. |
 | Lemma 7.2 | For `n≥5` and `3≤m≤⌈n/2⌉`, a `∧ₘ(X)` gate uses `4(m−2)` three-bit Toffolis while borrowing `m−2` arbitrary wires and restoring them. | Corrected and proved as exact full-register equality through `InwardLadderLayout`: `b+1=m−2>0`, capacity is `2m−1≤n`, all dirty/spectator wires are restored, and the syntax count is exactly `4(b+1)=4(m−2)`. The layout-parametric theorem supports arbitrary nonadjacent placements. |
 | Lemma 7.3 | For `n≥5` and `2≤m≤n−3`, a `∧_{n−2}(X)` gate is `A;B;A;B`, where `A=∧ₘ(X)` computes into one borrowed wire and `B=∧_{n−m−1}(X)` uses it with the remaining controls. Proof is only “by inspection.” | Corrected and proved by explicit Boolean-ring algebra, exact basis action, and full arbitrary-width operator equality. The borrowed wire begins arbitrarily and is restored; syntax and substitution counts are exact. |
-| Corollary 7.4 | For `n≥7`, compose Lemmas 7.2–7.3 to obtain `8(n−5)` Toffolis and allegedly `48n−204` early-basic operations; four Toffolis are exact and the rest may be relative-phase implementations. | Corrected and proved through the exact Toffoli-macro layer: the floor partition, canonical width-`n` circuit, `n−2` controls, arbitrary dirty/spectator restoration, `8(n−5)` count, `n=7` boundary, and phase-ready A target exclusion compile. The erroneous remainder and final basic count remain open pending ordered contextual phase cancellation and explicit mergers. |
+| Corollary 7.4 | For `n≥7`, compose Lemmas 7.2–7.3 to obtain `8(n−5)` Toffolis and allegedly `48n−204` early-basic operations; four Toffolis are exact and the rest may be relative-phase implementations. | Corrected and proved through contextual phase cancellation: the repaired width-`n` circuit has exact full-register semantics, four exact and `8n−44` relative occurrences, and uses `Arel;Bhybrid;adjoint(Arel);Bhybrid`. The literal `56n−244` primitive expansion is active. The printed optimized `48n−204` remains unresolved pending named evaluator-preserving mergers. |
 | Lemma 7.5 | A fully controlled `U` is built recursively from a square root `V`, two singly controlled `V`/`V†` gates, two `∧_{n−2}(X)` gates, and one recursively smaller controlled `V`. | Exact generalization of Lemma 6.1 is recoverable. The statement omits a lower bound on `n`; the displayed recursive form requires at least one control (`n≥2`) or an explicit base case. Stage 7. |
 | Corollary 7.6 | Recurrence `C_{n−1}=C_{n−2}+Θ(n)` is reported as a `Θ(n²)` simulation, with `48n²+O(n)` after detailed counting. | Export an exact recurrence and an `O(n²)` upper bound for the named construction. Do not claim optimal quadratic synthesis; see C-005. Its leading constant depends on the unresolved Corollary 7.4 count. Stage 7 for the construction/upper recurrence; final asymptotic packaging may continue in Stage 12. |
 | Lemma 7.7 | A nonscalar fully controlled `U` needs at least `n−1` basic operations, argued by connectivity of the CNOT interaction graph. | The proof actually establishes a CNOT lower bound even with arbitrary one-qubit gates. It needs a tensor-factorization theorem up to wire reindexing and an exact definition `¬∃δ, U=Ph(δ)I`. Routed to Stage 10. |
@@ -262,9 +265,8 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
 5. Define the Lemma 7.3 four-block circuit. Prove `A;B;A;B` by explicit Boolean
    algebra for an arbitrary borrowed bit, then lift it to full operator equality.
    **Implemented:** exact syntax, dirty/spectator restoration, arbitrary-width
-   evaluator, four-macro count, and checked A/B substitution all compile. Next,
-   instantiate Lemma 7.2 expansions and the repaired floor partition to obtain
-   Corollary 7.4's `8(n−5)` Toffoli count.
+   evaluator, four-macro count, checked A/B substitution, repaired floor
+   partition, and exact `8(n−5)` Corollary 7.4 Toffoli count all compile.
 6. Construct separate exact and relative-phase expanded Corollary 7.4 circuits.
    First define the all-relative palindromic half and prove its signed basis action,
    involution, and closed phase exponent. Build `Bhybrid` with two exact outer
@@ -275,6 +277,10 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
    `56n−244` upper bound. Only after that proof, formalize legal local-gate mergers
    and decide whether `48n−204` is true; otherwise state the strongest corrected
    explicit count.
+   **Implemented through contextual semantics/counts:** signed half/full formulas,
+   hybrid-B exactness, adjoint-A basis action, exact contextual evaluator, balanced
+   wrapper, and four-exact/`8n−44`-relative occurrence accounting compile. The
+   unmerged primitive expansion is the active substep.
 7. Define Lemma 7.5 as a five-macro chronological circuit and prove its evaluator
    equality by the same parity/conjugation structure as Lemma 6.1, with exact
    boundary/base cases. Expand recursive calls only in a separate syntax layer.
@@ -334,9 +340,11 @@ pivot invariant, not merely Hamming adjacency.
   Boolean phase exponent, palindromic-half signed action/involution, closed half
   and full-ladder phase formulas, and syntax counts.
 - `Barenco/MultiControl/RelativePhase.lean`: hybrid-B exactness, adjoint-A
-  contextual cancellation, four-exact/`8n−44`-relative occurrence counts, and
-  explicit early-basic expansion/count. Keep both heavy leaves out of the core
-  Boolean/runtime modules.
+  contextual cancellation, and four-exact/`8n−44`-relative occurrence counts.
+  Keep both heavy leaves out of the core Boolean/runtime modules.
+- `Barenco/MultiControl/Corollary74Expansion.lean`: selected checked sixteen-node
+  exact-Toffoli witnesses, expansion of the four exposed hybrid-B outer nodes,
+  exact evaluator preservation, and the unmerged `56n−244` primitive count.
 - `Barenco/MultiControl/Recursive.lean`: runtime/public Lemma 7.5 constructor and
   proof-side/public exact evaluator and root-selected theorem.
 - `Barenco/MultiControl/Resources.lean`: construction-specific recurrences and
@@ -433,7 +441,7 @@ pivot invariant, not merely Hamming adjacency.
 - The first implementation slice is fixed as the signed subset-parity identity,
   followed by the reflected-Gray pivot invariant and the exact four-bit circuit.
 - Open source issues carried into implementation are Corollary 7.4's contextual
-  phases/basic count, Lemma 7.5's omitted width boundary, Corollary 7.10's index
+  optimized basic count, Lemma 7.5's omitted width boundary, Corollary 7.10's index
   mismatch, and every clean/dirty auxiliary contract described above.
 - `Parity.lean` exports `xorParity`, `xorParity_symmDiff`,
   `xorParity_eq_add_of_symmDiff_eq_singleton`, `signedParityContribution`,
@@ -505,8 +513,19 @@ pivot invariant, not merely Hamming adjacency.
   proves logical width `n`, exactly `n−2` controls, exact full-register semantics,
   exactly `8(n−5)` Toffolis, unsupported early-basic cost, and the `n=7` count 16.
   Its stronger capacity proof culminates in a touched-support theorem showing A
-  never names the final target; this is the prerequisite, not yet the proof, for
-  the later four-special-occurrence phase accounting.
+  never names the final target; `RelativePhase.lean` now consumes this prerequisite
+  in the four-special-occurrence phase proof.
+- `RelativeHalf.lean` replaces each inward-ladder Toffoli by the Section 6
+  seven-node relative circuit, proves the exact `101` Boolean exponent recurrence,
+  exact palindromic-half involution, signed half action, and the full-ladder phase
+  `controlProduct·(lastBorrow xor target)`, with exact occurrence/primitive costs.
+  `RelativePhase.lean` proves hybrid B exact with two retained outer Toffolis,
+  derives the inverse signed action of adjoint A, and proves the corrected
+  `Arel;Bhybrid;adjoint(Arel);Bhybrid` circuit exactly equal to the intended
+  full-register controlled-X under the stronger target-free capacity. The
+  balanced wrapper has four exact and `8n−44` relative occurrences, including
+  four/twelve at `n=7`. Both leaves pass focused and warning-as-error checks;
+  forbidden scans and `git diff --check` are clean.
 - Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
   `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
   proves the source's original `n=9,m=5` split exhausts A's right workspace and

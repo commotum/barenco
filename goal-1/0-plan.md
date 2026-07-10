@@ -421,10 +421,13 @@ Current implementation facts:
 - Corrected Corollary 7.4 now has explicit shared-register ladder substitution,
   exact arbitrary-placement semantics, a canonical exact-width circuit for every
   `n≥7`, `n−2` controls, exact `8(n−5)` Toffoli count, the `n=7` boundary, honest
-  unexpanded cost rejection, and a phase-ready theorem that A never touches the
-  final target. The focused root/audit build has 3,486 jobs and all 122 maintained
-  prints are standard; two post-root full builds have 3,485 jobs each. Contextual
-  relative-phase/basic-operation expansion is next.
+  unexpanded cost rejection, and a target-free A theorem. `RelativeHalf` now
+  proves the exact signed recursive phase formula and `RelativePhase` proves the
+  corrected `Arel;Bhybrid;adjoint(Arel);Bhybrid` circuit exactly on the full
+  register, with four exact and `8n−44` relative occurrences. Both new leaves pass
+  focused and warning-as-error checks. The raw `56n−244` primitive expansion is
+  active; the source's optimized `48n−204` remains unresolved pending explicit
+  evaluator-preserving normalization.
 
 ### Detailed Implementation Plan
 
