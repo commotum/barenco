@@ -23,10 +23,10 @@ Two explicit maps expose the geometry used in the proof:
 * `eventProjection` keeps the event coordinates and zeros the others.  Its norm
   is contractive, and its squared norm is exactly the event probability.
 * `eventReflection` is `+1` on the event and `-1` off the event.  It is a linear
-  isometric equivalence.  Its expectation yields a sharp, cardinality-free
+  isometric equivalence.  Its expectation yields a stronger, cardinality-free
   probability estimate.
 
-The sharp exported bound has constant one.  A separate constant-two corollary
+The stronger exported bound has constant one.  A separate constant-two corollary
 records exactly the weaker estimate claimed in Barenco et al.
 -/
 
@@ -195,7 +195,7 @@ theorem eventReflection_inner_self_re (event : Finset ι)
   · simp [eventReflection_apply, hmem, pow_two, Complex.mul_re, hnorm]
 
 /--
-A sharp event estimate for two equal-norm pure amplitude vectors.
+A constant-one event estimate for two equal-norm pure amplitude vectors.
 
 The equal-norm hypothesis is exactly what lets the non-event contribution
 cancel in the reflection expectation.  Unitary images of a common input satisfy
@@ -294,7 +294,7 @@ private theorem unitaryAction_norm_eq (U : Matrix.unitaryGroup ι ℂ)
     exact h
 
 /--
-Sharp cardinality-free computational-basis event bound for unitary actions.
+Stronger constant-one computational-basis event bound for unitary actions.
 
 For any pure input of norm at most one, the change in the Born probability of
 any finite computational-basis event is at most the L2 induced operator distance
@@ -340,7 +340,7 @@ theorem operatorDistance_eventProbability_le
 /--
 The constant-two computational-basis event estimate stated by Barenco et al.
 
-The factor two is valid but non-sharp; `operatorDistance_eventProbability_le`
+The factor two is valid but weaker; `operatorDistance_eventProbability_le`
 proves the stronger constant-one bound under the same hypotheses.  This remains
 a theorem about standard-basis events, not arbitrary POVMs.
 -/
