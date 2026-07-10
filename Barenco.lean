@@ -36,6 +36,11 @@ import Barenco.MultiControl.Resources
 import Barenco.MultiControl.Approximate
 import Barenco.MultiControl.ApproximateExpansion
 import Barenco.MultiControl.ApproximationResources
+import Barenco.LowerBounds.BasicCircuit
+import Barenco.LowerBounds.InteractionGraph
+import Barenco.LowerBounds.PartitionFactorization
+import Barenco.LowerBounds.ScalarObstruction
+import Barenco.LowerBounds.Lemma77
 import Barenco.MultiControl.LastTargetSwap
 import Barenco.MultiControl.LinearSpecialUnitary
 import Barenco.MultiControl.LinearSpecialUnitaryExpansion
