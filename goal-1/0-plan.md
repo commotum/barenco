@@ -70,6 +70,10 @@ extra assumption, omission, or unresolved obstruction.
   preserved. Generated `.lake/` and PDF-render scratch are ignored.
 - `BUILD-PLAN.md` is the repository-wide Lean build protocol. It remains generic;
   goal-specific ownership, commands, and evidence live in each stage file.
+- Stage 2 now provides certified basis transport, block/Kronecker semantics,
+  arbitrary-target local and positive multi-controlled gates, Pauli-X/CNOT truth
+  tables, trustworthy chronological circuit syntax, adjoints, and structural smart
+  constructors. Diagnostic boundary examples compile for widths 0–3.
 - The paper's main numbered chain is Lemmas 4.1–4.3; Lemmas/Corollaries 5.1–5.6;
   Lemmas/Corollaries 6.1–6.2; Lemmas/Corollaries 7.1–7.12; and the general
   synthesis/resource discussion in Section 8.
@@ -123,7 +127,7 @@ extra assumption, omission, or unresolved obstruction.
 ## Stage Index
 
 - [x] `1-GUARDRAILS` — pin the project, audit sources/APIs, and freeze conventions.
-- [ ] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits (in progress).
+- [x] `2-SEMANTICS` — finite registers, unitary gates, local embeddings, circuits.
 - [ ] `3-EQUIVALENCE` — phase relations, basis behavior, approximation, costs.
 - [ ] `4-ONE-QUBIT` — Section 4 identities, Euler forms, and unitary roots.
 - [ ] `5-CONTROLLED` — Section 5 controlled-one-qubit decompositions and counts.

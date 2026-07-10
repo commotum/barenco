@@ -20,8 +20,11 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Repair:** use `x₁,…,xₘ,1`. The Markdown transcription already makes this silent
   correction.
 - **Dependent impact:** foundational basis-action definition only.
-- **Formal evidence:** planned `controlled_apply_basis`.
-- **Status:** open.
+- **Formal evidence:** `Barenco.positiveControlledRaw_truthTable` gives the corrected
+  arbitrary-width basis action; `positiveControlledRaw_mem_unitaryGroup` proves the
+  resulting matrix is unitary for unitary `U`.
+- **Status:** corrected and proved at the reusable semantic level; the later
+  paper-order wrapper will only add notation/lexicographic presentation.
 
 ## C-002 — Row action hidden behind ket notation
 

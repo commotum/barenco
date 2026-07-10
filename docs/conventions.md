@@ -23,6 +23,9 @@ recorded in `docs/corrections.md`, and coverage is recorded in
   ket `|x₀,…,xₙ₋₁⟩`.
 - `false` is computational value `0`; `true` is value `1`.
 - A semantic gate is a square complex matrix indexed by basis assignments.
+- `basisKet x` is the amplitude function `Pi.single x 1`; matrix action on it is
+  exactly the `x`-column (`mulVec_basisKet`). Matrix equality can therefore be
+  proved by equality on every computational-basis ket.
 - The public semantics uses standard column vectors. `U row col` is the amplitude
   of output basis state `row` from input basis state `col`; hence
   `U.mulVec ψ` represents applying `U` to state `ψ`.
@@ -66,8 +69,19 @@ matrices; paper-facing bridge theorems use `fromPaper` explicitly.
   expose the reversal: `eval (c₁ ++ c₂) = eval c₂ * eval c₁`.
 - Adjoint/inverse circuits reverse the list and adjoint every primitive.
 
-The first semantics module must prove these equations and include a noncommuting
-two-gate sanity example. Comments or diagram order alone are not verification.
+`Circuit.eval` proves these equations directly in the unitary group:
+`eval_append`, `eval_adjoint`, and the cancellation theorems establish composition
+and inverse behavior. `Barenco.SemanticsExamples` contains a noncommuting
+two-primitive sanity theorem; comments or diagram order are not its evidence.
+
+`Primitive` has a module-private raw constructor. Resource-relevant values are
+created by trusted smart constructors (`Primitive.oneQubit`,
+`Primitive.positiveControlled`, and `Primitive.cnot`) whose kind, exact support,
+support cardinality, and certified denotation are fixed together. The only generic
+wrapper is `Primitive.unclassified`: it receives kind `.other` and full-register
+support, so later cost models must reject or explicitly price it. Toffoli and
+arbitrary-two-qubit kinds deliberately have no smart constructor until their
+certified semantics exists.
 
 ## Wires, Controls, Targets, and Embeddings
 
@@ -86,6 +100,16 @@ two-gate sanity example. Comments or diagram order alone are not verification.
 - Kronecker products may be used for contiguous constructions, but tensor
   associativity and wire reordering use explicit `Matrix.reindex` equivalences;
   they are not definitional equalities.
+
+The implemented target split is
+`splitTarget target : Basis n ≃ Bool × ComplementBasis target`. A
+`ControlSet target` is a `Finset` of subtype indices carrying proofs that each
+control differs from the target, so duplicate controls and control/target aliasing
+are impossible. `localUnitary`, `controlledUnitary`, and
+`positiveControlledUnitary` are certified constructors; their raw matrices have
+entry and complete basis-column action theorems. `cnotUnitary control target h`
+requires `h : control ≠ target`, and its truth-table theorem quantifies over every
+basis assignment and register width.
 
 ## Unitary Gates
 
@@ -202,4 +226,3 @@ it makes arbitrary controls, wire updates, and untouched-wire proofs direct.
 `BitVec n` will be bridged in for Gray codes; `Fin (2^n)` will be bridged only for
 lexicographic matrices and finite-dimensional decomposition APIs. This avoids bit
 arithmetic in the foundational gate semantics while retaining later synthesis tools.
-
