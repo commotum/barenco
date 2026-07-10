@@ -1,6 +1,6 @@
 # 7-MULTICONTROL
 
-Status: in progress (source audit and first Gray/parity implementation slice complete).
+Status: in progress (Gray/parity/accumulator foundations complete; Lemma 7.1 circuit bridge in progress).
 
 ## Current Facts
 
@@ -45,12 +45,18 @@ Status: in progress (source audit and first Gray/parity implementation slice com
   after a singleton mask.
 - `Barenco.MultiControl.GrayAccumulator` defines the generated CNOT edges and
   their Boolean action, proves the fixed-pivot and pivot-transfer update laws,
-  and reconstructs the six CNOT edges of the displayed four-bit circuit. The
-  remaining obligation is a general pointwise alignment/restoration theorem for
-  the generated schedule before the edges enter quantum circuit syntax.
+  reconstructs the six CNOT edges of the displayed four-bit circuit, proves a
+  prefix accumulator invariant, certifies every generated edge as nondegenerate,
+  and proves exact full-schedule restoration at every width, including zero.
 - `Barenco.MultiControl.Layout` packages an ordered injective control embedding
   disjoint from an arbitrary ambient target and bridges it to `ControlSet`, CNOT,
   and singly controlled target primitives.
+- `Barenco.MultiControl.Lemma71` now proves the signed target-root product, the
+  selected power-of-two-root formula, the arbitrary-width basis semantics of
+  certified embedded CNOT lists, and exact restoration by the generated CNOT-only
+  circuit. The next implementation slice interleaves each signed controlled root
+  with those CNOTs and proves a target-local-state prefix invariant; this is the
+  missing bridge to full Lemma 7.1 semantics and macro counts.
 
 ## Source Claim Audit
 
@@ -366,8 +372,8 @@ pivot invariant, not merely Hamming adjacency.
   schedule is exactly `100,110,010,011,111,101,001`.
 - `GrayAccumulator.lean` exports `grayCNOTEdges`, `xorWireUpdate`,
   `parityAccumulatorState`, the two local accumulator transition theorems, and
-  exact edge count `2^width-2`; the raw edge-choice helper is private until a
-  general generated-schedule validity theorem is proved.
+  exact edge count `2^width-2`, generated-edge validity, a prefix invariant, and
+  exact full restoration for every width.
 - `Layout.lean` exports `OrderedControlLayout`, its exact-cardinality `controlSet`,
   ordered restriction, and certified embedded CNOT/controlled-target primitives.
   `MultiControlExamples.lean` checks the source's three-control signed identity,
@@ -382,3 +388,8 @@ pivot invariant, not merely Hamming adjacency.
   scan and `git diff --check` passed.
 - Corrections C-022 and C-023 now record Corollary 7.10's control-count mismatch
   and Lemma 7.5's omitted recursive boundary/base cases.
+- `Lemma71.lean` additionally exports the order-independent target product
+  formula, a selected exact root, the ordered-control ambient CNOT evaluator,
+  certified generated CNOT syntax, and its full-register restoration theorem.
+  No Lemma 7.1 correctness or operation-count claim is recorded yet: those await
+  the explicit interleaved circuit and its target-local-state evaluator.

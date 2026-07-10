@@ -224,6 +224,22 @@ theorem runEmbeddedCNOTUpdates_apply_targetWire {controlCount ambientWidth : ℕ
           (embeddedCNOTUpdate layout edge.1 edge.2 input) layout.targetWire = _
       rw [ih, embeddedCNOTUpdate_apply_targetWire]
 
+/-- A wire outside the ordered control image is untouched by every logical edge. -/
+theorem runEmbeddedCNOTUpdates_apply_of_not_control {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (edges : List (Fin controlCount × Fin controlCount))
+    (input : Basis ambientWidth) (wire : Fin ambientWidth)
+    (hwire : ∀ control, wire ≠ layout.controlWire control) :
+    runEmbeddedCNOTUpdates layout edges input wire = input wire := by
+  induction edges generalizing input with
+  | nil => rfl
+  | cons edge edges ih =>
+      change runEmbeddedCNOTUpdates layout edges
+          (embeddedCNOTUpdate layout edge.1 edge.2 input) wire = _
+      rw [ih]
+      exact embeddedCNOTUpdate_apply_of_ne layout edge.1 edge.2 input wire
+        (hwire edge.2)
+
 /-- Chronological circuit obtained from an ordered list of proved-valid logical edges. -/
 def cnotEdgeCircuit {controlCount ambientWidth : ℕ}
     (layout : OrderedControlLayout controlCount ambientWidth)
@@ -261,5 +277,64 @@ theorem eval_cnotEdgeCircuit_mulVec_basisKet {controlCount ambientWidth : ℕ}
       simpa only [cnotEdgeCircuit, controlEdgePairs, runEmbeddedCNOTUpdates,
         List.foldl_cons, ControlEdge.toPair_fst, ControlEdge.toPair_snd] using
         ih (embeddedCNOTUpdate layout edge.control edge.target input)
+
+/-! ## The proved-valid generated CNOT circuit -/
+
+/-- Attach the generated distinctness theorem to every raw Gray CNOT edge. -/
+def certifiedGrayCNOTEdges (controlCount : ℕ) : List (ControlEdge controlCount) :=
+  (grayCNOTEdges controlCount).attach.map fun edge =>
+    { control := edge.1.1
+      target := edge.1.2
+      ne := grayCNOTEdges_wires_ne edge.2 }
+
+@[simp]
+theorem length_certifiedGrayCNOTEdges (controlCount : ℕ) :
+    (certifiedGrayCNOTEdges controlCount).length = 2 ^ controlCount - 2 := by
+  simp [certifiedGrayCNOTEdges]
+
+/-- Forgetting proof fields recovers the exact generated edge schedule. -/
+theorem controlEdgePairs_certifiedGrayCNOTEdges (controlCount : ℕ) :
+    controlEdgePairs (certifiedGrayCNOTEdges controlCount) =
+      grayCNOTEdges controlCount := by
+  simpa [certifiedGrayCNOTEdges, controlEdgePairs, ControlEdge.toPair,
+    List.map_map, Function.comp_def] using
+    (List.attach_map_subtype_val (grayCNOTEdges controlCount))
+
+/-- The CNOT-only syntax underlying the interleaved Gray construction. -/
+def grayCNOTCircuit {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) : Circuit ambientWidth :=
+  cnotEdgeCircuit layout (certifiedGrayCNOTEdges controlCount)
+
+@[simp]
+theorem length_grayCNOTCircuit {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth) :
+    (grayCNOTCircuit layout).length = 2 ^ controlCount - 2 := by
+  simp [grayCNOTCircuit]
+
+/-- The complete generated logical CNOT update restores the full ambient basis assignment. -/
+theorem runEmbedded_grayCNOTEdges_eq_self {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (input : Basis ambientWidth) :
+    runEmbeddedCNOTUpdates layout (grayCNOTEdges controlCount) input = input := by
+  funext wire
+  by_cases hcontrol : ∃ control, layout.controlWire control = wire
+  · rcases hcontrol with ⟨control, rfl⟩
+    have hrestricted := congrFun
+      (restrictControls_runEmbeddedCNOTUpdates layout
+        (grayCNOTEdges controlCount) input) control
+    rw [runXorEdges_grayCNOTEdges] at hrestricted
+    exact hrestricted
+  · apply runEmbeddedCNOTUpdates_apply_of_not_control
+    intro control heq
+    exact hcontrol ⟨control, heq.symm⟩
+
+/-- Exact arbitrary-width restoration action of the generated CNOT-only circuit. -/
+theorem eval_grayCNOTCircuit_mulVec_basisKet {controlCount ambientWidth : ℕ}
+    (layout : OrderedControlLayout controlCount ambientWidth)
+    (input : Basis ambientWidth) :
+    (Circuit.eval (grayCNOTCircuit layout) : Gate ambientWidth) *ᵥ basisKet input =
+      basisKet input := by
+  rw [grayCNOTCircuit, eval_cnotEdgeCircuit_mulVec_basisKet,
+    controlEdgePairs_certifiedGrayCNOTEdges, runEmbedded_grayCNOTEdges_eq_self]
 
 end Barenco.MultiControl
