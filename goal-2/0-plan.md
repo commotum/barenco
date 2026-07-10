@@ -2,8 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–6 are complete; Stage 7 Gray-family post-merger counting
-is the first incomplete stage.
+Status: active. Stages 1–7 are complete; Stage 8 Corollary 7.4 post-merger
+counting is the first incomplete stage.
 
 ## Big-Picture Objective
 
@@ -177,16 +177,22 @@ collection of hand-simplified paper examples.
   axiom checks, strict/trust-zero compilation, the 3,604-job full build, scans,
   and synchronized documentation pass. This verifies a constructive upper count,
   not minimality.
+- Stage 7 adds exact target-directed symbolic exposure and a coherent Gray family
+  whose negative blocks are literal adjoints of one selected positive factor
+  package. Named theorems prove the first root is positive, every indexed adjacent
+  pair alternates `V/V⁻¹`, and every actual boundary normalizes to its unchanged
+  Gray CNOT. Literal regrouping, streaming-output normal-form, exact arbitrary-
+  register evaluator, and complete ordered-CNOT-trace theorems compile. For
+  `m=tail+1>0` controls, the emitted symbolic/fusion/lowered syntax has exact
+  profile `(2*2^m, 3*2^m-4, 5*2^m-4)`, both named models charge the literal total,
+  and a syntax-linked fixed-construction `Theta(2^m)` theorem is proved. The
+  `(4,2,6)`, `(8,8,16)`, and `(16,20,36)` diagnostics and a reordered padded
+  layout compile. Twenty-one checks raise the maintained audit to 457; focused,
+  adjacent, strict, trust-zero, full-build, documentation, and hygiene evidence is
+  recorded in `7-GRAY-MERGERS.md`. This verifies the paper's post-merger count as
+  a constructive upper bound, not a minimum or historical-efficiency claim.
 
 ## Remaining Assumptions to Test
-- The paper's Gray count may follow from same-target one-qubit mergers across
-  transparent controlled-U expansion boundaries. Boundary gates and selected
-  factors may prevent the naive formula; no count is trusted before syntax exists.
-- A specific candidate is to select one transparent controlled-`V` circuit, use
-  its literal adjoint for the opposite Gray sign, prove that consecutive Gray
-  masks alternate sign, and cancel one inverse target-gate pair at each of the
-  `2^m - 2` boundaries. If correct, the normalized profile is
-  `(2 * 2^m, 3 * 2^m - 4, 5 * 2^m - 4)`.
 - The Corollary 7.4 constant may require rewrites beyond the general Gray mergers.
   Its source arithmetic and phase errors remain corrected regardless of whether a
   lower count is found.
@@ -228,7 +234,7 @@ The goal is complete only when all of the following hold:
 - [x] `4-FUSION-IR` — payload-preserving optimizer syntax and lowering bridges.
 - [x] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
 - [x] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
-- [ ] `7-GRAY-MERGERS` — normalize the general Gray family and settle its checked count.
+- [x] `7-GRAY-MERGERS` — normalize the general Gray family and settle its checked count.
 - [ ] `8-COR74-MERGERS` — test the optimized Corollary 7.4 count and dependencies.
 - [ ] `9-AUDIT` — public integration, documentation, builds, and axiom audit.
 

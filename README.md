@@ -127,7 +127,8 @@ claim or a lower bound on arbitrary implementations of `U`.
   alternating signs. An executable target-directed boundary normalizer preserves
   exact arbitrary-register semantics and the complete CNOT order, and emits
   `2*2^m` one-qubit plus `3*2^m-4` CNOT nodes for every `m>0`. This verifies the
-  paper's count as a constructive upper bound; it does not prove minimality or the
+  paper's count as a constructive upper bound and gives a syntax-linked
+  fixed-construction `Theta(2^m)` theorem; it does not prove minimality or the
   time-dependent “most efficient known” claim.
 - The claimed six-`U(4)` synthesis and the heuristic dimension-counting lower
   bound are not established as theorems.

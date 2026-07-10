@@ -205,13 +205,17 @@ whether its actual one-qubit/CNOT profile is the printed
   exactly `2*2^m` one-qubit nodes, `3*2^m-4` CNOTs, no generic U(4) nodes, and
   total `5*2^m-4`. Both named cost models return that literal total. This verifies
   the paper's post-merger formula as a constructive upper count, not a minimum.
+- Arbitrary families of layouts and selected roots inherit explicit constant-five
+  forward and constant-one reverse bounds against `2^(tail+1)`, yielding the
+  syntax-linked fixed-construction theorem
+  `mergedGrayControlledViaRootCircuit_gateCount_isTheta`.
 - Root-excluded `GrayMergerExamples` proves profiles `(4,2,6)`, `(8,8,16)`, and
   `(16,20,36)` and checks exact semantics, normal-form output, and CNOT chronology
   on the width-six reordered/padded control embedding `![4,0,5]` with target `2`.
 - The focused/adjacent/public/audit build passed with 3,608 jobs; the separate
   root/audit integration passed with 3,607 jobs; the full build passed with 3,606
   jobs. All six warning-as-error and all six trust-zero direct compilations passed.
-- Eighteen new audit checks raise the synchronized source/table total to 454 and
+- Twenty-one new audit checks raise the synchronized source/table total to 457 and
   use only `propext`, `Classical.choice`, and `Quot.sound` (one append theorem uses
   a strict subset). The public tree has 135 Lean files. Proof-hole,
   custom-declaration, runtime-choice/matrix-decision/constructor-forgery,

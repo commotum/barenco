@@ -226,6 +226,8 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Optimization.SymbolicCircuit.oneQubitCount_append
 #print axioms Barenco.MultiControl.GrayAdjacent.odd_card_iff_even_card
 #print axioms Barenco.MultiControl.signedGrayRoot_eq_inv_of_even
+#print axioms Barenco.MultiControl.signedGrayRoot_first_eq
+#print axioms Barenco.MultiControl.signedGrayRoot_consecutive_alternates
 #print axioms Barenco.MultiControl.eval_erase_coherentGrayRootSymbolicCircuit
 #print axioms Barenco.MultiControl.normalizeAtWire_grayBoundary
 #print axioms Barenco.MultiControl.OrderedControlLayout.coherentGrayNormalizedBoundaryAt_eq_singleton
@@ -238,6 +240,7 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootSymbolicCircuit_gateCount
 #print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost
 #print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_arbitraryTwoQubitCost
+#print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_gateCount_isTheta
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose

@@ -667,7 +667,12 @@ and complete ordered-CNOT-trace theorems precede the resource results. For
 The broader Section 8 model charges the same literal total because this output
 contains only one-qubit and CNOT nodes. These are constructive counts for the
 named exact syntax, not minimality or optimizer-completeness statements. Zero
-controls remain the separate local-gate base case.
+controls remain the separate local-gate base case. For arbitrary families of
+ambient layouts and roots, the literal gate-count function has explicit
+constant-five and reverse constant-one bounds against `2^(tail+1)`;
+`mergedGrayControlledViaRootCircuit_gateCount_isTheta` packages the resulting
+fixed-construction `Theta(2^m)` statement. It is not a complexity lower bound for
+arbitrary equivalent circuits.
 
 Lemma 7.2 uses a different syntax and workspace contract.
 `InwardLadderLayout b ambientWidth` injects `b+2` ordered controls, `b` dirty

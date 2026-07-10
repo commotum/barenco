@@ -29,7 +29,7 @@ Generated dependencies under `.lake/` are excluded from the project-source audit
 
 ## Headline Audit Table
 
-The maintained audit module currently contains 454 `#print axioms` checks, with one
+The maintained audit module currently contains 457 `#print axioms` checks, with one
 row below for each checked declaration.
 
 | Declaration | Module | `#print axioms` result | Explanation | Last verified |
@@ -476,6 +476,8 @@ row below for each checked declaration.
 | `Barenco.Optimization.SymbolicCircuit.oneQubitCount_append` | `Barenco.Optimization.SymbolicCancellation` | `propext`, `Quot.sound` | symbolic one-qubit counts compose from literal list append; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.GrayAdjacent.odd_card_iff_even_card` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | Gray adjacency flips mask-cardinality parity; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.signedGrayRoot_eq_inv_of_even` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | nonempty even masks use the inverse selected root; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.signedGrayRoot_first_eq` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | the first positive-width Gray mask uses the positive selected root; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.signedGrayRoot_consecutive_alternates` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | every indexed adjacent pair alternates exactly between `V` and `V⁻¹`; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.eval_erase_coherentGrayRootSymbolicCircuit` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | coherent positive/literal-adjoint blocks implement the exact signed root; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.normalizeAtWire_grayBoundary` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | executable exposure/cancellation deletes one formal inverse pair at a Gray boundary; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.OrderedControlLayout.coherentGrayNormalizedBoundaryAt_eq_singleton` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | every generated boundary emits its unchanged literal Gray CNOT; no project axiom | 2026-07-10 |
@@ -488,6 +490,7 @@ row below for each checked declaration.
 | `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootSymbolicCircuit_gateCount` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | literal emitted syntax has total `5·2^m−4`; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | erased emitted syntax has accepted early cost `5·2^m−4`; no project axiom | 2026-07-10 |
 | `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_arbitraryTwoQubitCost` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | trusted lowered syntax has the same literal Section 8 cost; no project axiom | 2026-07-10 |
+| `Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_gateCount_isTheta` | `Barenco.MultiControl.GrayMergers` | `propext`, `Classical.choice`, `Quot.sound` | exact syntax-linked gate counts give the fixed-construction `Theta(2^m)` result; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
 
@@ -580,8 +583,8 @@ row below for each checked declaration.
 | Goal 2 Stage 6 hygiene | repository proof-hole/custom-declaration scans; scoped no-unclassified/no-forged-constructor/no-runtime-choice/no-paper-special-case/root-exclusion scans; audit/table/file counts; `git diff --check` | all clean; diagnostics remain root-excluded, audit source and documentation contain exactly 436 entries, and the project has 132 Lean files below `Barenco/`, 2026-07-10 |
 | Goal 2 Stage 7 focused/adjacent/public/audit integration | `SymbolicCancellation`, `SymbolicExpose`, Gray code/Lemma 7.1/raw fusion/merger/diagnostic/expansion, recursive consumer, `Barenco`, and `Barenco.AxiomAudit` | successful, 3,608 jobs; the separate public-root/audit integration passed with 3,607 jobs, 2026-07-10 |
 | Goal 2 Stage 7 strict boundary | direct warning-as-error compilation of `SymbolicCancellation.lean`, `SymbolicExpose.lean`, `GrayMergers.lean`, the root-excluded `GrayMergerExamples.lean`, `Barenco.lean`, and `AxiomAudit.lean` | all six checks successful, 2026-07-10 |
-| Goal 2 Stage 7 trust-zero boundary | the same six direct warning-as-error compilations with `-t0` | all six checks successful; the 18 new checks use only `propext`, `Classical.choice`, and `Quot.sound` (one append result uses the recorded strict subset), 2026-07-10 |
+| Goal 2 Stage 7 trust-zero boundary | the same six direct warning-as-error compilations with `-t0` | all six checks successful; the 21 new checks use only `propext`, `Classical.choice`, and `Quot.sound` (one append result uses the recorded strict subset), 2026-07-10 |
 | Goal 2 Stage 7 full build | `lake build` after public integration, diagnostics, traceability, corrections, conventions, and audit synchronization | successful, 3,606 jobs, 2026-07-10 |
-| Goal 2 Stage 7 hygiene | project proof-hole/custom-declaration scans; scoped no-unclassified/no-forged-constructor/no-matrix-decision/no-runtime-choice/no-low-width-branch scans; diagnostic root-exclusion; audit/table/file counts; `git diff --check` | all clean; expected `.arbitraryTwoQubit` hits are theorem statements about the second cost model, diagnostics remain root-excluded, audit source/table both contain exactly 454 entries, and the project has 135 Lean files below `Barenco/`, 2026-07-10 |
+| Goal 2 Stage 7 hygiene | project proof-hole/custom-declaration scans; scoped no-unclassified/no-forged-constructor/no-matrix-decision/no-runtime-choice/no-low-width-branch scans; diagnostic root-exclusion; audit/table/file counts; `git diff --check` | all clean; expected `.arbitraryTwoQubit` hits are theorem statements about the second cost model, diagnostics remain root-excluded, audit source/table both contain exactly 457 entries, and the project has 135 Lean files below `Barenco/`, 2026-07-10 |
 | Stage 2 full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |
 | Stage 2 second unchanged full build | `lake build` | successful, 2,360 jobs, 2026-07-09 |

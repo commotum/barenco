@@ -1,5 +1,6 @@
 import Barenco.MultiControl.GrayFusion
 import Barenco.Optimization.SymbolicExpose
+import Mathlib.Analysis.Asymptotics.Lemmas
 
 /-!
 # Coherent exact mergers for the general Gray construction
@@ -30,6 +31,7 @@ open Barenco.OneQubit
 open Barenco.ControlledCircuit
 open Barenco.Optimization
 open scoped symmDiff
+open Filter Asymptotics
 
 noncomputable section
 
@@ -1300,6 +1302,74 @@ theorem mergedGrayControlledFusionCircuit_profile
       mergedGrayControlledViaRootFusionCircuit_twoQubitCount layout _,
       mergedGrayControlledViaRootFusionCircuit_gateCount layout _,
       mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost layout _⟩
+
+/-! ## Syntax-linked exponential asymptotics -/
+
+/-- Explicit constant-five upper bound against the exact Gray power benchmark. -/
+theorem mergedGrayControlledViaRootCircuit_gateCount_isBigOWith
+    (ambientWidth : ℕ → ℕ)
+    (layout : ∀ tail, OrderedControlLayout (tail + 1) (ambientWidth tail))
+    (V : ℕ → QubitUnitary) :
+    IsBigOWith 5 atTop
+      (fun tail : ℕ =>
+        (Circuit.gateCount
+          (mergedGrayControlledViaRootCircuit (layout tail) (V tail)) : ℝ))
+      (fun tail : ℕ => ((2 ^ (tail + 1) : ℕ) : ℝ)) := by
+  rw [isBigOWith_iff]
+  filter_upwards [] with tail
+  have hle :
+      Circuit.gateCount
+          (mergedGrayControlledViaRootCircuit (layout tail) (V tail)) ≤
+        5 * 2 ^ (tail + 1) := by
+    rw [mergedGrayControlledViaRootCircuit_gateCount]
+    omega
+  simp only [Real.norm_eq_abs]
+  rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (Nat.cast_nonneg _)]
+  exact_mod_cast hle
+
+/-- The exact emitted count also dominates its Gray power benchmark. -/
+theorem grayPower_isBigOWith_mergedGrayControlledViaRootCircuit_gateCount
+    (ambientWidth : ℕ → ℕ)
+    (layout : ∀ tail, OrderedControlLayout (tail + 1) (ambientWidth tail))
+    (V : ℕ → QubitUnitary) :
+    IsBigOWith 1 atTop
+      (fun tail : ℕ => ((2 ^ (tail + 1) : ℕ) : ℝ))
+      (fun tail : ℕ =>
+        (Circuit.gateCount
+          (mergedGrayControlledViaRootCircuit (layout tail) (V tail)) : ℝ)) := by
+  rw [isBigOWith_iff]
+  filter_upwards [] with tail
+  have hpow : 2 ≤ 2 ^ (tail + 1) := by
+    have hone : 1 < 2 ^ (tail + 1) := one_lt_pow₀ (by omega) (by omega)
+    omega
+  have hle :
+      2 ^ (tail + 1) ≤
+        Circuit.gateCount
+          (mergedGrayControlledViaRootCircuit (layout tail) (V tail)) := by
+    rw [mergedGrayControlledViaRootCircuit_gateCount]
+    omega
+  simp only [Real.norm_eq_abs, one_mul]
+  rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (Nat.cast_nonneg _)]
+  exact_mod_cast hle
+
+/--
+The literal gate count of every chosen layout/root family is
+`Theta(2^(tail+1))`. This is a fixed-construction result, not a lower bound on
+arbitrary equivalent circuits.
+-/
+theorem mergedGrayControlledViaRootCircuit_gateCount_isTheta
+    (ambientWidth : ℕ → ℕ)
+    (layout : ∀ tail, OrderedControlLayout (tail + 1) (ambientWidth tail))
+    (V : ℕ → QubitUnitary) :
+    (fun tail : ℕ =>
+      (Circuit.gateCount
+        (mergedGrayControlledViaRootCircuit (layout tail) (V tail)) : ℝ))
+      =Θ[atTop]
+    (fun tail : ℕ => ((2 ^ (tail + 1) : ℕ) : ℝ)) :=
+  ⟨(mergedGrayControlledViaRootCircuit_gateCount_isBigOWith
+      ambientWidth layout V).isBigO,
+    (grayPower_isBigOWith_mergedGrayControlledViaRootCircuit_gateCount
+      ambientWidth layout V).isBigO⟩
 
 @[simp]
 theorem eval_erase_coherentGrayRootCircuitAt

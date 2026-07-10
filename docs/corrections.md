@@ -1031,7 +1031,8 @@ statement. “Open” means the repair is identified but not yet machine checked
   `mergedGrayControlledViaRootSymbolicCircuit_eq_normalForm`,
   `eval_mergedGrayControlledCircuit`,
   `cnotTrace_mergedGrayControlledViaRootSymbolicCircuit_eq_raw`, and the
-  `mergedGrayControlledViaRoot*Count`/cost theorems.
+  `mergedGrayControlledViaRoot*Count`/cost theorems, together with
+  `mergedGrayControlledViaRootCircuit_gateCount_isTheta`.
 - **Status:** corrected and proved. For `m=n-1>0` controls, the named exact emitted
   syntax has `2 * 2^m` one-qubit nodes, `3 * 2^m - 4` CNOTs, and total/cost
   `5 * 2^m - 4`, exactly the source's post-merger arithmetic. This is a

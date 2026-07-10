@@ -42,7 +42,7 @@ claim.
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
 - Project Lean files below `Barenco/`: 135, plus `Barenco.lean`
-- Maintained kernel axiom checks: 454
+- Maintained kernel axiom checks: 457
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -177,7 +177,7 @@ a proved affine X/CNOT endpoint normalization.
 | Lemma 6.1 | exact five-node at-most-two-wire macro cost under Section 8; exact expansion cost 16 under one-qubit/CNOT |
 | Relative-phase Toffoli | both source circuits remain seven nodes; the named A-derived merged syntax has exactly three certified `U(4)` nodes, exact full-register equality to the signed unitary, Section 8 cost `some 3`, and one-qubit/CNOT cost `none`; this is a constructive upper count, not a minimum |
 | Four-bit Gray circuit | exact Section 8 cost 13: seven singly controlled roots and six CNOTs |
-| General Gray expansion and merger | for `m>=1` controls, exact raw profile `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8`; the coherent executable merger emits exactly `2*2^m` one-qubit, the same `3*2^m-4` CNOTs, and total/cost `5*2^m-4`, verifying the paper's post-merger count as a constructive upper bound |
+| General Gray expansion and merger | for `m>=1` controls, exact raw profile `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8`; the coherent executable merger emits exactly `2*2^m` one-qubit, the same `3*2^m-4` CNOTs, and total/cost `5*2^m-4`, verifying the paper's post-merger count as a constructive upper bound and yielding a syntax-linked fixed-construction `Theta(2^m)` theorem |
 | Lemma 7.2 dirty ladder | for `m>=3` controls with stated ambient capacity, exact `4(m-2)` Toffoli occurrences and restoration |
 | Corollary 7.4 | for logical width `n>=7`, exact macro total `8(n-5)`; selected raw expansion `32n-144` one-qubit + `24n-100` CNOT = `56n-244`; printed optimized `48n-204` unresolved |
 | Recursive exact multi-control | for width `n>=7`, with depth offset `d=n-7`: exact total `56d^2+364d+440`; construction-specific `IsBigOWith 56` in width |
@@ -306,10 +306,10 @@ equal to the established arbitrary-register evaluator, and counted from syntax.
 
 The Stage 7 focused/adjacent/public/audit sweep passed with 3,608 jobs, all twelve
 direct warning-as-error and trust-zero checks passed, and the integrated full build
-passed with 3,606 jobs. Eighteen representative Stage 7 checks raise the maintained
-audit from 436 to 454; every new result stays within `propext`,
+passed with 3,606 jobs. Twenty-one representative Stage 7 checks raise the maintained
+audit from 436 to 457; every new result stays within `propext`,
 `Classical.choice`, and `Quot.sound` (some use a strict subset). The audit table and
-source both contain 454 entries, the public tree contains 135 Lean files, the
+source both contain 457 entries, the public tree contains 135 Lean files, the
 root-excluded diagnostics remain excluded, and all hygiene scans and
 `git diff --check` passed.
 
