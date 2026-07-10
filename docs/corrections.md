@@ -982,3 +982,47 @@ statement. “Open” means the repair is identified but not yet machine checked
   `exactSynthesisCost_isTheta_fixedSchedule`.
 - **Status:** corrected and proved for the named non-pruning affine construction;
   no general exact-synthesis lower bound or optimality theorem is claimed.
+
+## C-034 — “Most efficient known” is not a timeless mathematical theorem
+
+- **Source:** Section 7, manuscript p. 18; Markdown line 652.
+- **Issue:** after discussing the Gray construction, the paper says it was the
+  most efficient known method for three through eight bits. This is a historical
+  comparative statement, not a theorem proved in the paper. It does not specify
+  an exhaustive circuit class, whether gates may be merged, the precise primitive
+  cost model, or a reproducible search/benchmark protocol. It is also inherently
+  time-dependent.
+- **Repair:** classify the statement explicitly as unverified historical context.
+  Export only construction-specific exact counts and proved bounds for named
+  syntax. Do not reinterpret “known” as an optimality or minimality theorem.
+- **Dependent impact:** the status of Lemma 7.1's resource row and any comparison
+  between the raw Gray expansion, later recursive constructions, or modern
+  synthesis methods. No semantic circuit theorem depends on the claim.
+- **Formal evidence:** the library's exact `expandedGrayControlledCircuit` count
+  theorems price one specific schedule. No declaration asserts comparative
+  efficiency or optimality.
+- **Status:** intentionally excluded as a formal theorem and now explicitly traced.
+
+## C-035 — Lemma 7.1's post-merger one-qubit count lacks a merger construction
+
+- **Source:** Section 7, manuscript p. 18; Markdown lines 654–665.
+- **Issue:** after the omitted Gray-code proof, the paper reports a post-merger
+  count of `2 * 2^(n-1)` one-bit gates and `3 * 2^(n-1) - 4` XOR gates. The
+  inter-block one-qubit merger schedule is not displayed or proved. A semantic
+  equality cannot by itself justify deleting or combining syntax nodes.
+- **Repair:** reconstruct the omitted Gray/parity invariant and price the literal
+  checked expansion before optimization. For `m=n-1` controls it has exactly
+  `4 * (2^m - 1)` one-qubit gates, `3 * 2^m - 4` CNOTs, and total
+  `7 * 2^m - 8`. Retain the smaller source one-qubit count as unresolved until an
+  explicit merged circuit and evaluator-preservation theorem are supplied.
+- **Dependent impact:** Lemma 7.1 resource status, the historical small-width
+  comparison, and any downstream formula that uses the source's merged primitive
+  count. The exact Gray semantics and CNOT count are unaffected.
+- **Formal evidence:** `expandedGrayControlledCircuit`,
+  `eval_expandedGrayControlledCircuit`,
+  `expandedGrayControlledCircuit_oneQubitCount`,
+  `expandedGrayControlledCircuit_cnotCount`,
+  `expandedGrayControlledCircuit_gateCount`, and
+  `expandedGrayControlledCircuit_oneQubitCNOTCost`.
+- **Status:** exact semantics and the raw literal resource profile are proved; the
+  post-merger one-qubit count and a Gray-family asymptotic theorem are not exported.
