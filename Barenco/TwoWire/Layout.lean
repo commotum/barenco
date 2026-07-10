@@ -149,7 +149,7 @@ def splitTwoWire {n : ℕ} (pair : OrderedWirePair n) :
       simp
     · by_cases hsecond : wire = pair.second
       · subst wire
-        simp [pair.ne.symm]
+        simp
       · simp [reconstructTwoWire, hfirst, hsecond]
   right_inv data := by
     apply Prod.ext
@@ -258,7 +258,7 @@ abbrev AgreeOffTwoWire {n : ℕ} (pair : OrderedWirePair n)
 
 theorem agreeOffTwoWire_refl {n : ℕ} (pair : OrderedWirePair n)
     (input : Basis n) : AgreeOffTwoWire pair input input := by
-  intro
+  intro wire hfirst hsecond
   rfl
 
 theorem agreeOffTwoWire_symm {n : ℕ} {pair : OrderedWirePair n}
@@ -292,7 +292,6 @@ theorem splitTwoWire_snd_eq_iff {n : ℕ} (pair : OrderedWirePair n)
       AgreeOffTwoWire pair left right := by
   rw [splitTwoWire_snd, splitTwoWire_snd,
     agreeOffTwoWire_iff_spectatorBits_eq]
-  exact eq_comm
 
 theorem agreeOffTwoWire_setTwoWire {n : ℕ} (pair : OrderedWirePair n)
     (input : Basis n) (bits : Basis 2) :
@@ -347,7 +346,7 @@ theorem eq_setTwoWire_iff {n : ℕ} (pair : OrderedWirePair n)
     apply (splitTwoWire pair).injective
     apply Prod.ext
     · simpa using hlocal
-    · exact (splitTwoWire_snd_eq_iff pair left input).2 hagree
+    · simpa using (splitTwoWire_snd_eq_iff pair left input).2 hagree
 
 theorem setTwoWire_eq_iff {n : ℕ} (pair : OrderedWirePair n)
     (input right : Basis n) (bits : Basis 2) :
@@ -430,10 +429,17 @@ theorem setTwoWire_swap {n : ℕ} (pair : OrderedWirePair n)
   funext wire
   by_cases hfirst : wire = pair.first
   · subst wire
-    simp
+    calc
+      setTwoWire pair.swap input bits pair.first = bits 1 := by
+        simpa using setTwoWire_apply_second pair.swap input bits
+      _ = setTwoWire pair input (reverseTwoQubitBasis bits) pair.first := by simp
   · by_cases hsecond : wire = pair.second
     · subst wire
-      simp [pair.ne.symm]
-    · simp [setTwoWire_apply_of_ne, hfirst, hsecond]
+      calc
+        setTwoWire pair.swap input bits pair.second = bits 0 := by
+          simpa using setTwoWire_apply_first pair.swap input bits
+        _ = setTwoWire pair input (reverseTwoQubitBasis bits) pair.second := by simp
+    · rw [setTwoWire_apply_of_ne pair.swap input bits wire hsecond hfirst,
+        setTwoWire_apply_of_ne pair input (reverseTwoQubitBasis bits) wire hfirst hsecond]
 
 end Barenco
