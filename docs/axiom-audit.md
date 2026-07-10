@@ -353,6 +353,22 @@ row below for each checked declaration.
 | `Barenco.Universality.exactSynthesisCost_isBigOWith_fixedSchedule` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | fixed-schedule cost has explicit Big-O constant 112; no project axiom | 2026-07-10 |
 | `Barenco.Universality.exactSynthesisBenchmark_isBigOWith_cost` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | reverse constant-one Big-O bound for the fixed schedule; no project axiom | 2026-07-10 |
 | `Barenco.Universality.exactSynthesisCost_isTheta_fixedSchedule` | `Barenco.Universality.SynthesisResources` | `propext`, `Classical.choice`, `Quot.sound` | construction-specific `Theta((k+1)^2*4^k)` result, not optimal synthesis; no project axiom | 2026-07-10 |
+| `Barenco.OrderedWirePair.swap_swap` | `Barenco.TwoWire.Layout` | `propext` | reversing an ordered pair twice restores it; no project axiom | 2026-07-10 |
+| `Barenco.splitTwoWire_snd_eq_iff` | `Barenco.TwoWire.Layout` | `propext`, `Quot.sound` | equality of complementary assignments is exactly spectator agreement; no project axiom | 2026-07-10 |
+| `Barenco.setTwoWire_swap` | `Barenco.TwoWire.Layout` | `propext`, `Classical.choice`, `Quot.sound` | reversed pair updates are explicit local-bit swaps; no project axiom | 2026-07-10 |
+| `Barenco.twoWireRaw_mulVec_basisKet_eq_sum` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | raw basis action is the explicit four-term selected-pair superposition; no project axiom | 2026-07-10 |
+| `Barenco.twoWireRaw_mulVec` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | arbitrary-state action mixes amplitudes only inside one spectator block; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_mulVec_basisKet_eq_zero_of_changed` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | a certified two-wire gate has zero amplitude across a changed spectator; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_mulVec_basisKet_eq_sum` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | certified basis action has the exact four-term local expansion; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_mulVec` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | certified arbitrary-state action preserves every spectator block; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_mul` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | ordered-pair embedding preserves exact unitary multiplication; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_inv` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | ordered-pair embedding preserves inverse/adjoint; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_mk_proof_irrel` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | distinctness proof witnesses do not affect certified semantics; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_swap` | `Barenco.TwoWire.Semantics` | `propext`, `Classical.choice`, `Quot.sound` | reversing ambient pair orientation exactly reindexes the local unitary by bit swap; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_localUnitary_zero` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | local bit zero embeds as the ambient first-wire gate; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_localUnitary_one` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | local bit one embeds as the ambient second-wire gate; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_positiveControlledUnitary_zero_one` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | canonical local singleton control embeds exactly on arbitrary ambient wires; no project axiom | 2026-07-10 |
+| `Barenco.twoWireUnitary_cnotUnitary_zero_one` | `Barenco.TwoWire.ControlledBridges` | `propext`, `Classical.choice`, `Quot.sound` | canonical local CNOT embeds exactly from pair first to pair second; no project axiom | 2026-07-10 |
 
 ## Build Reproducibility Evidence
 

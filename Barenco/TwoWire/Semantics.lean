@@ -152,6 +152,47 @@ theorem twoWireRaw_mulVec_basisKet_eq_sum {n : ℕ}
       exact agreeOffTwoWire_setTwoWire pair input output
     simp [hne]
 
+/-! ## Certified basis-column action -/
+
+/-- Certified basis-column action, with every spectator block made explicit. -/
+theorem twoWireUnitary_mulVec_basisKet {n : ℕ}
+    (pair : OrderedWirePair n) (U : TwoQubitUnitary) (input : Basis n) :
+    (twoWireUnitary pair U : Gate n) *ᵥ basisKet input = fun row =>
+      if AgreeOffTwoWire pair row input then
+        U (twoWireLocalBits pair row) (twoWireLocalBits pair input)
+      else 0 := by
+  rw [coe_twoWireUnitary, twoWireRaw_mulVec_basisKet]
+
+/-- Certified selected output-pair amplitude of a basis column. -/
+@[simp]
+theorem twoWireUnitary_mulVec_basisKet_setTwoWire {n : ℕ}
+    (pair : OrderedWirePair n) (U : TwoQubitUnitary)
+    (input : Basis n) (output : Basis 2) :
+    ((twoWireUnitary pair U : Gate n) *ᵥ basisKet input)
+        (setTwoWire pair input output) =
+      U output (twoWireLocalBits pair input) := by
+  rw [coe_twoWireUnitary, twoWireRaw_mulVec_basisKet_setTwoWire]
+
+/-- A certified two-wire gate has zero basis-column amplitude after a spectator change. -/
+theorem twoWireUnitary_mulVec_basisKet_eq_zero_of_changed {n : ℕ}
+    (pair : OrderedWirePair n) (U : TwoQubitUnitary)
+    (input row : Basis n) (wire : Fin n)
+    (hfirst : wire ≠ pair.first) (hsecond : wire ≠ pair.second)
+    (hchanged : row wire ≠ input wire) :
+    ((twoWireUnitary pair U : Gate n) *ᵥ basisKet input) row = 0 := by
+  rw [coe_twoWireUnitary]
+  exact twoWireRaw_mulVec_basisKet_eq_zero_of_changed pair U input row wire
+    hfirst hsecond hchanged
+
+/-- Certified basis action as the explicit four-term selected-pair superposition. -/
+theorem twoWireUnitary_mulVec_basisKet_eq_sum {n : ℕ}
+    (pair : OrderedWirePair n) (U : TwoQubitUnitary) (input : Basis n) :
+    (twoWireUnitary pair U : Gate n) *ᵥ basisKet input =
+      ∑ output : Basis 2,
+        U output (twoWireLocalBits pair input) •
+          basisKet (setTwoWire pair input output) := by
+  rw [coe_twoWireUnitary, twoWireRaw_mulVec_basisKet_eq_sum]
+
 /-- Arbitrary-state action depends only on the input amplitudes with the same spectators. -/
 theorem twoWireRaw_mulVec {n : ℕ} (pair : OrderedWirePair n)
     (U : TwoQubitMatrix) (state : State n) (row : Basis n) :
@@ -181,6 +222,15 @@ theorem twoWireRaw_mulVec {n : ℕ} (pair : OrderedWirePair n)
         twoWireSpectatorBits_reconstructTwoWire]
       exact Ne.symm hspectators
   · simp
+
+/-- Certified arbitrary-state action with the spectator block made explicit. -/
+theorem twoWireUnitary_mulVec {n : ℕ} (pair : OrderedWirePair n)
+    (U : TwoQubitUnitary) (state : State n) (row : Basis n) :
+    ((twoWireUnitary pair U : Gate n) *ᵥ state) row =
+      ∑ inputLocal : Basis 2,
+        U (twoWireLocalBits pair row) inputLocal *
+          state (setTwoWire pair row inputLocal) := by
+  rw [coe_twoWireUnitary, twoWireRaw_mulVec]
 
 /-- Fixed-right-identity Kronecker preserves identity. -/
 private theorem kroneckerUnitary_one_one (ι κ : Type*)

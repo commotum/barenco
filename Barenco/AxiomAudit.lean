@@ -81,6 +81,9 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.setTwoWire_swap
 #print axioms Barenco.twoWireRaw_mulVec_basisKet_eq_sum
 #print axioms Barenco.twoWireRaw_mulVec
+#print axioms Barenco.twoWireUnitary_mulVec_basisKet_eq_zero_of_changed
+#print axioms Barenco.twoWireUnitary_mulVec_basisKet_eq_sum
+#print axioms Barenco.twoWireUnitary_mulVec
 #print axioms Barenco.twoWireUnitary_mul
 #print axioms Barenco.twoWireUnitary_inv
 #print axioms Barenco.twoWireUnitary_mk_proof_irrel
