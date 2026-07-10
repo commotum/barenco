@@ -575,7 +575,13 @@ theorem recursivePrimitiveCircuit_depth_one_resources {ambientWidth : ℕ}
       Circuit.gateCount (recursivePrimitiveCircuit 1 layout U) = 860 ∧
       Circuit.cost CostModel.oneQubitCNOT
         (recursivePrimitiveCircuit 1 layout U) = some 860 := by
-  norm_num
+  constructor
+  · simpa using recursivePrimitiveCircuit_oneQubitCount 1 layout U
+  constructor
+  · simpa using recursivePrimitiveCircuit_cnotCount 1 layout U
+  constructor
+  · simpa using recursivePrimitiveCircuit_gateCount 1 layout U
+  · simpa using recursivePrimitiveCircuit_oneQubitCNOTCost 1 layout U
 
 end OrderedControlLayout
 

@@ -1,9 +1,10 @@
 # 7-MULTICONTROL
 
-Status: in progress (Lemmas 7.1–7.5 are semantically complete; corrected
-Corollary 7.4 is complete through an exact literal primitive upper bound;
-the recursive primitive expansion and corrected Corollary 7.6 resource theorem
-are in progress; the optimized source count remains unresolved).
+Status: in progress (Lemmas 7.1–7.5 and the full recursive primitive expansion
+are complete; corrected Corollary 7.4 is complete through an exact literal
+primitive upper bound; the corrected Corollary 7.6 recurrence/asymptotic wrapper
+and final integration are in progress; the optimized source count remains
+unresolved).
 
 ## Current Facts
 
@@ -138,8 +139,13 @@ are in progress; the optimized source count remains unresolved).
   for an empty prefix (one total control), while a zero-control gate is a separate
   local circuit. A direct primitive Gray expansion supplies the six-control base
   with exact `(252,188,440)` one-qubit/CNOT/total counts. The remaining syntax
-  task is to embed the corrected Corollary 7.4 prefix-controlled-X circuit into
-  every recursive step and link its exact component counts to the closed forms.
+  primitive layer now embeds the corrected Corollary 7.4 prefix-controlled-X
+  circuit into every recursive step, borrowing and exactly restoring the original
+  unitary target. `recursivePrimitiveCircuit` has exact arbitrary-width semantics
+  and syntax-derived counts `32d²+200d+252` one-qubit,
+  `24d²+164d+188` CNOT, and `56d²+364d+440` total/accepted cost. Its exact
+  successor increments are `64d+232`, `48d+188`, and `112d+420`; depths zero and
+  one have checked profiles `(252,188,440)` and `(484,376,860)`.
 - A strict scratch proof has checked the planned asymptotic wrapper:
   after casting the exact natural-number count to `ℝ`, the shifted polynomial
   is `IsBigOWith 860` of `d²` at `atTop`, using the eventual threshold `d≥1`.
@@ -329,6 +335,9 @@ asymptotic resource upper bounds justified by explicit circuit syntax.
 8. Define a natural-number recurrence from the constructed circuits, prove an
    exact finite upper formula and `O(n²)`, and label any two-sided `Θ` theorem as
    the count of this algorithm only. Do not import the later lower-bound claim.
+   **In progress:** counted syntax and closed depth formulas compile; the remaining
+   leaf exposes Nat-safe source-width formulas, exact width recurrence, and the
+   cast-to-real asymptotic theorem.
 9. Add low-dimensional diagnostics: the seven-mask n=4 sequence, all sixteen
    basis inputs for the diagram, smallest legal Lemma 7.2/7.3 instances, dirty
    borrowed wires in both basis values, the repaired `n=7` partition, nonadjacent
@@ -395,10 +404,11 @@ pivot invariant, not merely Hamming adjacency.
 - `Barenco/MultiControl/GrayExpansion.lean`: explicit schedule-aware substitution
   of selected six-node circuits into Lemma 7.1, with exact evaluator and general
   one-qubit/CNOT counts. Do not inspect/flat-map opaque primitive metadata.
-- `Barenco/MultiControl/RecursiveExpansion.lean`: width-seven expanded-Gray base
-  and explicit recursive substitution of two selected controlled gates, two
+- `Barenco/MultiControl/RecursiveExpansion.lean`: width-seven expanded-Gray base,
+  explicit recursive substitution of two selected controlled gates, two
   arbitrary-layout corrected Corollary 7.4 circuits, and the smaller recursive
-  call.
+  call, with exact evaluator, recurrences, closed component counts, accepted cost,
+  and depth-zero/depth-one sanity checks. **Implemented and focused-build green.**
 - `Barenco/MultiControl/Resources.lean`: construction-specific recurrences and
   exact component/total closed forms and cast-to-real `O(n²)` only after all
   counted syntax exists.
@@ -614,6 +624,17 @@ pivot invariant, not merely Hamming adjacency.
   chronology, boundary algebra, substitution theorem, and resource accounting.
   Strict root/audit compilation passes with 160 maintained axiom prints, all
   within `propext`, `Classical.choice`, and `Quot.sound`.
+- `RecursiveExpansion.lean` transports a canonical balanced Corollary 7.4
+  workspace into every arbitrary ambient recursive layout: prefix controls remain
+  controls, the unitary target is the dirty restored wire, and the last control is
+  the temporary X target. Its exact primitive recursion stops at the direct
+  six-control Gray circuit, proves full-register evaluator equality, and derives
+  successor increments `(64d+232,48d+188,112d+420)` and closed profiles
+  `(32d²+200d+252,24d²+164d+188,56d²+364d+440)`, with accepted cost equal to
+  the total. Depth-zero/depth-one checks are `(252,188,440)` and `(484,376,860)`.
+  Strict warning-as-error compilation, a 3,482-job focused build, forbidden scan,
+  and `git diff --check` pass; representative axiom checks use only `propext`,
+  `Classical.choice`, and `Quot.sound`.
 - Root-excluded `Corollary74Examples.lean` pins balanced widths 7/8/9 with tails
   `(0,0)/(1,0)/(1,1)`, control counts 5/6/7, and Toffoli counts 16/24/32. It also
   proves the source's original `n=9,m=5` split exhausts A's right workspace and
