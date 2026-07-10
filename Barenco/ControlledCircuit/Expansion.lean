@@ -101,7 +101,7 @@ private theorem localUnitary_mul_localUnitary {n : ℕ} (target : Fin n)
     localUnitary target U * localUnitary target W = localUnitary target (U * W) := by
   apply Subtype.ext
   simp only [Submonoid.coe_mul, coe_localUnitary]
-  rw [localRaw_mul_localRaw, Submonoid.coe_mul]
+  rw [localRaw_mul_localRaw]
 
 /--
 The three adjacent one-qubit merge groups reduce the expanded core to the
@@ -130,19 +130,19 @@ theorem eval_expandedVMacroCoreCircuit_eq_controlledABCCircuit {n : ℕ}
       Circuit.eval
           [Primitive.oneQubit target (F * P), Primitive.oneQubit target D] =
         localUnitary target P := by
-    simpa [Circuit.eval, localUnitary_mul_localUnitary, hfirstProduct]
+    simp [Circuit.eval, localUnitary_mul_localUnitary, hfirstProduct]
   have hmiddle :
       Circuit.eval
           [Primitive.oneQubit target F,
             Primitive.oneQubit target (F * Q * D),
             Primitive.oneQubit target D] =
         localUnitary target Q := by
-    simpa [Circuit.eval, localUnitary_mul_localUnitary, hmiddleProduct]
+    simp [Circuit.eval, localUnitary_mul_localUnitary, hmiddleProduct]
   have hlast :
       Circuit.eval
           [Primitive.oneQubit target F, Primitive.oneQubit target (R * D)] =
         localUnitary target R := by
-    simpa [Circuit.eval, localUnitary_mul_localUnitary, hlastProduct]
+    simp [Circuit.eval, localUnitary_mul_localUnitary, hlastProduct]
   change Circuit.eval (Circuit.append
       [Primitive.oneQubit target (F * P), Primitive.oneQubit target D]
       (Circuit.append [Primitive.cnot control target h]
@@ -178,7 +178,7 @@ theorem eval_controlledVMacroCoreCircuit_eq_controlledABCCircuit {n : ℕ}
     calc
       ((R : QubitMatrix) * D) * (F * Q * D) * (F * P) =
         (R : QubitMatrix) * (D * F) * Q * (D * F) * P := by
-          noncomm_ring
+          simp only [Matrix.mul_assoc]
       _ = (R : QubitMatrix) * Q * P := by rw [hDF]; simp
   · simp only [if_true, Submonoid.coe_mul]
     rw [hV]
@@ -187,7 +187,7 @@ theorem eval_controlledVMacroCoreCircuit_eq_controlledABCCircuit {n : ℕ}
           (F * sigmaX * D) * (F * P) =
         (R : QubitMatrix) * (D * F) * sigmaX * (D * F) * Q * (D * F) *
           sigmaX * (D * F) * P := by
-          noncomm_ring
+          simp only [Matrix.mul_assoc]
       _ = (R : QubitMatrix) * sigmaX * Q * sigmaX * P := by rw [hDF]; simp
 
 /-- Exact evaluator preservation when both controlled-`V` macros are expanded. -/

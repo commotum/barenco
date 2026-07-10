@@ -1,5 +1,7 @@
 import Barenco.Circuit
 import Barenco.Cost
+import Barenco.ControlledCircuit.Expansion
+import Barenco.ControlledCircuit.ControlledZ
 import Barenco.Equivalence.Measurement
 import Barenco.Equivalence.OperatorNorm
 import Barenco.Equivalence.Phase
@@ -61,3 +63,21 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.OneQubit.unitaryRoot_pow
 #print axioms Barenco.OneQubit.unitaryRoot_pow_two_pow
 #print axioms Barenco.OneQubit.sigmaXUnitary_eq_pauliX
+#print axioms Barenco.ControlledCircuit.targetBlockRaw_mul
+#print axioms Barenco.ControlledCircuit.eval_controlledABCCircuit_eq_iff
+#print axioms Barenco.ControlledCircuit.controlledSU2Circuit_correct_iff
+#print axioms Barenco.ControlledCircuit.controlledABCCircuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.controlledScalarUnitary_eq_localControl
+#print axioms Barenco.ControlledCircuit.controlledU2Circuit_exists
+#print axioms Barenco.ControlledCircuit.controlledU2Circuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.pauliConjugate_eq_sigmaX_mul_symmetricEuler
+#print axioms Barenco.ControlledCircuit.twoCNOTFamily_iff
+#print axioms Barenco.ControlledCircuit.oneCNOTFamily_iff
+#print axioms Barenco.ControlledCircuit.twoCNOTCircuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.oneCNOTCircuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.controlledVMacroU2Circuit_exists
+#print axioms Barenco.ControlledCircuit.controlledVMacroU2Circuit_oneQubitCNOTCost
+#print axioms Barenco.ControlledCircuit.eval_expandedVMacroU2Circuit_eq_macro
+#print axioms Barenco.ControlledCircuit.eval_expandedVMacroU2Circuit_eq_controlledU2Circuit
+#print axioms Barenco.ControlledCircuit.expanded_and_mergedVMacroU2Circuit_oneQubitCNOTCosts
+#print axioms Barenco.ControlledCircuit.controlledZUnitary_swap
