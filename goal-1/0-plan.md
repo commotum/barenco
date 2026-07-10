@@ -363,9 +363,10 @@ Toffoli behavior.
 - Stage 6 is complete under `BUILD-PLAN.md`. Its combined 2,948-job build, two
   consecutive 2,946-job full builds, warning-as-error checks, 84-declaration axiom
   audit, forbidden-shortcut scan, and documentation synchronization are recorded
-  in `goal-1/6-THREE-QUBIT.md` and the maintained docs. The only related pending
-  obligation is Stage 7's contextual Corollary 7.4 phase-cancellation theorem;
-  Stage 6 proves only exact cancellation of adjacent identical copies.
+  in `goal-1/6-THREE-QUBIT.md` and the maintained docs. Stage 7 has now discharged
+  the related contextual obligation by computing the phases along the actual
+  corrected Corollary 7.4 path; Stage 6 itself still claims only exact
+  cancellation of adjacent identical copies.
 
 ### Detailed Implementation Plan
 
@@ -439,6 +440,10 @@ Current implementation facts:
   Corollary 7.6 API proves the Nat-safe width formula
   `56n²+636−420n`, exact increment `112n−364`, and a construction-specific
   `IsBigOWith 56`/`O(n²)` theorem. No optimal `Θ(n²)` claim is exported.
+- Stage 7 is complete. Its final public root and 175-entry axiom audit pass direct
+  warning-as-error and trust-zero compilation; the integrated focused build has
+  3,495 jobs, two final full builds have 3,493 jobs each, and forbidden/diff
+  scans are clean. Later claims 7.7–7.12 remain explicitly routed to Stages 8–10.
 
 ### Detailed Implementation Plan
 
