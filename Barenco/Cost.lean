@@ -132,6 +132,22 @@ theorem cost_cons {n : ℕ} (model : CostModel) (primitive : Primitive n)
     cost model (primitive :: circuit) =
       addCost (model.primitiveCost primitive.kind) (cost model circuit) := rfl
 
+/-- Any unsupported primitive makes the cost of the entire containing circuit undefined. -/
+theorem cost_eq_none_of_mem {n : ℕ} (model : CostModel) {primitive : Primitive n}
+    {circuit : Circuit n} (hmem : primitive ∈ circuit)
+    (hunsupported : model.primitiveCost primitive.kind = none) :
+    cost model circuit = none := by
+  induction circuit with
+  | nil => simp at hmem
+  | cons head circuit ih =>
+      rw [cost_cons]
+      rcases List.mem_cons.mp hmem with hhead | htail
+      · subst head
+        rw [hunsupported]
+        exact addCost_none_left _
+      · rw [ih htail]
+        exact addCost_none_right _
+
 @[simp]
 theorem addCost_none_left (value : Option ℕ) : addCost none value = none := by
   cases value <;> rfl
@@ -273,11 +289,19 @@ theorem oneQubitCNOT_rejects_positiveControlled {n : ℕ} (target : Fin n)
   simp [Circuit.cost, Circuit.addCost]
 
 @[simp]
-theorem namedModels_reject_unclassified {n : ℕ} (tag label : String)
-    (U : UnitaryGate n) :
+theorem namedModels_reject_unclassified {n : ℕ} (tag : String) (U : UnitaryGate n) :
     Circuit.cost CostModel.oneQubitCNOT [Primitive.unclassified tag U] = none ∧
-      Circuit.cost CostModel.arbitraryTwoQubit [Primitive.unclassified label U] = none := by
+      Circuit.cost CostModel.arbitraryTwoQubit [Primitive.unclassified tag U] = none := by
   simp [Circuit.cost, Circuit.addCost]
+
+/-- Both paper cost models reject any circuit containing an unclassified primitive. -/
+theorem namedModels_reject_unclassified_of_mem {n : ℕ} (tag : String) (U : UnitaryGate n)
+    (circuit : Circuit n) (hmem : Primitive.unclassified tag U ∈ circuit) :
+    Circuit.cost CostModel.oneQubitCNOT circuit = none ∧
+      Circuit.cost CostModel.arbitraryTwoQubit circuit = none := by
+  constructor
+  · exact Circuit.cost_eq_none_of_mem CostModel.oneQubitCNOT hmem (by simp)
+  · exact Circuit.cost_eq_none_of_mem CostModel.arbitraryTwoQubit hmem (by simp)
 
 end Primitive
 

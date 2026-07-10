@@ -125,6 +125,11 @@ theorem conjTranspose {ι : Type*} {U V : Matrix ι ι ℂ} (h : GlobalPhaseEq U
     (Circle.coe_inv_eq_conj phase).symm
   rw [Matrix.conjTranspose_smul, hstar]
 
+/-- Quantum-gate terminology alias for `GlobalPhaseEq.conjTranspose`. -/
+theorem adjoint {ι : Type*} {U V : Matrix ι ι ℂ} (h : GlobalPhaseEq U V) :
+    GlobalPhaseEq Uᴴ Vᴴ :=
+  GlobalPhaseEq.conjTranspose h
+
 end GlobalPhaseEq
 
 /-- Exact circuit equivalence implies global-phase equality of the raw matrices. -/

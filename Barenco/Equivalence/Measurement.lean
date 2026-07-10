@@ -1,5 +1,4 @@
-import Barenco.Semantics
-import Mathlib.Analysis.Complex.Circle
+import Barenco.Equivalence.Phase
 import Mathlib.LinearAlgebra.Matrix.Trace
 
 /-!
@@ -118,6 +117,18 @@ theorem ChannelEq.allMeasurementEq {U V : Matrix ι ι ℂ} (h : ChannelEq U V) 
     AllMeasurementEq U V :=
   fun input effect => h.bornWeight_eq input effect
 
+/-- A single global phase cancels between the two sides of conjugation. -/
+theorem GlobalPhaseEq.toChannelEq {U V : Matrix ι ι ℂ} (h : GlobalPhaseEq U V) :
+    ChannelEq U V := by
+  rcases h with ⟨phase, rfl⟩
+  intro input
+  exact (conjugationChannel_circle_smul phase U input).symm
+
+/-- Global-phase equality implies equality of every arbitrary-effect Born weight. -/
+theorem GlobalPhaseEq.toAllMeasurementEq {U V : Matrix ι ι ℂ}
+    (h : GlobalPhaseEq U V) : AllMeasurementEq U V :=
+  h.toChannelEq.allMeasurementEq
+
 section Identity
 
 variable [DecidableEq ι]
@@ -126,6 +137,34 @@ variable [DecidableEq ι]
 theorem conjugationChannel_one (input : Matrix ι ι ℂ) :
     conjugationChannel (1 : Matrix ι ι ℂ) input = input := by
   simp [conjugationChannel]
+
+/-- A matrix unit with its sole nonzero entry at `(row, col)`. -/
+def matrixUnit (row col : ι) : Matrix ι ι ℂ :=
+  Matrix.single row col 1
+
+omit [Fintype ι] in
+@[simp]
+theorem matrixUnit_apply (row col i j : ι) :
+    matrixUnit row col i j = if i = row ∧ j = col then 1 else 0 :=
+  by simp [matrixUnit, Matrix.single_apply, eq_comm]
+
+/-- Pairing with the transposed matrix unit extracts one matrix entry. -/
+@[simp]
+theorem bornWeight_matrixUnit (state : Matrix ι ι ℂ) (row col : ι) :
+    BornWeight (matrixUnit col row) state = state row col := by
+  simp [BornWeight, matrixUnit, Matrix.trace_single_mul]
+
+/-- Arbitrary-effect equality separates channels because matrix units separate entries. -/
+theorem AllMeasurementEq.toChannelEq {U V : Matrix ι ι ℂ} (h : AllMeasurementEq U V) :
+    ChannelEq U V := by
+  intro input
+  ext row col
+  simpa using h input (matrixUnit col row)
+
+/-- Channel equality and all-arbitrary-effect equality are the same relation. -/
+theorem channelEq_iff_allMeasurementEq (U V : Matrix ι ι ℂ) :
+    ChannelEq U V ↔ AllMeasurementEq U V :=
+  ⟨ChannelEq.allMeasurementEq, AllMeasurementEq.toChannelEq⟩
 
 /-- The rank-one projector onto a computational-basis index. -/
 def basisProjector (input : ι) : Matrix ι ι ℂ := fun row col =>
@@ -152,6 +191,16 @@ theorem conjugationChannel_basisProjector_apply_self
   simp only [conjugationChannel, Matrix.mul_apply, Matrix.conjTranspose_apply]
   simp_rw [hinner]
   simp [Complex.mul_conj]
+
+/-- Equality on all matrix inputs implies equality of computational-basis probabilities. -/
+theorem ChannelEq.toBasisMeasurementEq {U V : Matrix ι ι ℂ} (h : ChannelEq U V) :
+    BasisMeasurementEq U V := by
+  intro output input
+  have hdiagonal := congrArg (fun M : Matrix ι ι ℂ => M output output)
+    (h (basisProjector input))
+  rw [conjugationChannel_basisProjector_apply_self,
+    conjugationChannel_basisProjector_apply_self] at hdiagonal
+  exact Complex.ofReal_injective hdiagonal
 
 end Identity
 
