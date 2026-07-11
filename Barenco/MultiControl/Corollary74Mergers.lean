@@ -972,6 +972,287 @@ theorem eval_mixedHybridInwardLadderFusionCircuit {b n : ℕ}
   simp [mixedHybridInwardLadderFusionCircuit, hybridInwardLadderCircuit,
     FusionCircuit.eval_append, Circuit.eval_append]
 
+/-! ## Selective exact/relative mergers inside B -/
+
+/-- Forward exact expansion without its final target `C` endpoint. -/
+def exactToffoliForwardPrefixSymbolicCircuit {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  [SymbolicPrimitive.atom second .phase,
+    SymbolicPrimitive.atom target .A,
+    .cnot second target hsecondTarget,
+    SymbolicPrimitive.atom target .B,
+    .cnot second target hsecondTarget,
+    .cnot first second hfirstSecond,
+    .cnot second target hsecondTarget,
+    SymbolicPrimitive.inverseAtom target .B,
+    .cnot second target hsecondTarget,
+    SymbolicPrimitive.inverseAtom second .phase,
+    .cnot first second hfirstSecond,
+    SymbolicPrimitive.atom first .phase,
+    .cnot first target hfirstTarget,
+    SymbolicPrimitive.atom target .B,
+    .cnot first target hfirstTarget]
+
+@[simp]
+theorem exactToffoliForwardSymbolicCircuit_eq_prefix_end {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    exactToffoliForwardSymbolicCircuit first second target
+        hfirstSecond hfirstTarget hsecondTarget =
+      exactToffoliForwardPrefixSymbolicCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget ++
+        [SymbolicPrimitive.atom target .C] := by
+  rfl
+
+/-- Interior of the standard-role exact adjoint, excluding `C⁻¹` and `phase⁻¹`. -/
+def exactToffoliAdjointMiddleSymbolicCircuit {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  [.cnot first target hfirstTarget,
+    SymbolicPrimitive.inverseAtom target .B,
+    .cnot first target hfirstTarget,
+    SymbolicPrimitive.inverseAtom first .phase,
+    .cnot first second hfirstSecond,
+    SymbolicPrimitive.atom second .phase,
+    .cnot second target hsecondTarget,
+    SymbolicPrimitive.atom target .B,
+    .cnot second target hsecondTarget,
+    .cnot first second hfirstSecond,
+    .cnot second target hsecondTarget,
+    SymbolicPrimitive.inverseAtom target .B,
+    .cnot second target hsecondTarget,
+    SymbolicPrimitive.inverseAtom target .A]
+
+@[simp]
+theorem exactToffoliAdjointSymbolicCircuit_eq_start_middle_end {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    exactToffoliAdjointSymbolicCircuit first second target
+        hfirstSecond hfirstTarget hsecondTarget =
+      [SymbolicPrimitive.inverseAtom target .C] ++
+        exactToffoliAdjointMiddleSymbolicCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget ++
+        [SymbolicPrimitive.inverseAtom second .phase] := by
+  rfl
+
+/-- Tail of a merged half after deleting its common initial relative atom. -/
+def selectiveRelativeHalfNormalTail {n : ℕ} :
+    (b : ℕ) → InwardLadderLayout b n →
+      SymbolicCircuit Corollary74FactorAtom n
+  | 0, layout =>
+      layout.relativeBaseCoreSymbolicCircuit ++
+        [relativeToffoliEndSymbolic layout.targetWire]
+  | b + 1, layout =>
+      layout.relativeOuterCoreSymbolicCircuit ++
+        selectiveRelativeHalfNormalForm b layout.smaller ++
+          relativeToffoliTailSymbolicCircuit
+            (layout.controlWire (Fin.last (b + 2)))
+            (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.controlWire_ne_targetWire _)
+            (layout.borrowedWire_ne_targetWire _)
+
+@[simp]
+theorem selectiveRelativeHalfNormalForm_eq_start_tail {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    selectiveRelativeHalfNormalForm b layout =
+      [relativeToffoliStartSymbolic layout.targetWire] ++
+        selectiveRelativeHalfNormalTail b layout := by
+  cases b <;> rfl
+
+@[simp]
+theorem selectiveRelativeHalfNormalTail_oneQubitCount {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.oneQubitCount
+        (selectiveRelativeHalfNormalTail b layout) = 6 * b + 3 := by
+  have h := selectiveRelativeHalfNormalForm_oneQubitCount layout
+  rw [selectiveRelativeHalfNormalForm_eq_start_tail,
+    SymbolicCircuit.oneQubitCount_append] at h
+  change 1 + SymbolicCircuit.oneQubitCount
+      (selectiveRelativeHalfNormalTail b layout) = 6 * b + 4 at h
+  omega
+
+@[simp]
+theorem selectiveRelativeHalfNormalTail_cnotCount {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.cnotCount
+        (selectiveRelativeHalfNormalTail b layout) = 6 * b + 3 := by
+  have h := selectiveRelativeHalfNormalForm_cnotCount layout
+  rw [selectiveRelativeHalfNormalForm_eq_start_tail,
+    SymbolicCircuit.cnotCount_append] at h
+  simpa [relativeToffoliStartSymbolic, SymbolicPrimitive.atom,
+    SymbolicCircuit.cnotCount, SymbolicCircuit.cnotWeight] using h
+
+/-- Adjacent phase-inverse/relative fusion invoked by the real normalizer. -/
+def phaseRelativeNormalizedBoundarySymbolicCircuit {n : ℕ} (wire : Fin n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  SymbolicCircuit.normalizeAtWire wire
+    [SymbolicPrimitive.inverseAtom wire .phase,
+      SymbolicPrimitive.atom wire .relative]
+
+/-- Explicit single-word output of the phase/relative boundary fusion. -/
+def phaseRelativeBoundaryNormalForm {n : ℕ} (wire : Fin n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  [.oneQubit wire
+    (FreeGroup.of Corollary74FactorAtom.relative *
+      (FreeGroup.of Corollary74FactorAtom.phase)⁻¹)]
+
+@[simp]
+theorem phaseRelativeNormalizedBoundarySymbolicCircuit_eq_normalForm {n : ℕ}
+    (wire : Fin n) :
+    phaseRelativeNormalizedBoundarySymbolicCircuit wire =
+      phaseRelativeBoundaryNormalForm wire := by
+  have hne : FreeGroup.of Corollary74FactorAtom.relative *
+      (FreeGroup.of Corollary74FactorAtom.phase)⁻¹ ≠ 1 := by decide
+  simp [phaseRelativeNormalizedBoundarySymbolicCircuit,
+    phaseRelativeBoundaryNormalForm, SymbolicCircuit.normalizeAtWire,
+    SymbolicCircuit.exposeWire, SymbolicCircuit.exposeWireInsert,
+    SymbolicCircuit.normalize, NormalizeCore.normalize, NormalizeCore.insert,
+    SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+    SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom, hne]
+
+@[simp]
+theorem exactToffoliForwardPrefixSymbolicCircuit_oneQubitCount {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    SymbolicCircuit.oneQubitCount
+        (exactToffoliForwardPrefixSymbolicCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget) = 7 := rfl
+
+@[simp]
+theorem exactToffoliForwardPrefixSymbolicCircuit_cnotCount {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    SymbolicCircuit.cnotCount
+        (exactToffoliForwardPrefixSymbolicCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget) = 8 := rfl
+
+@[simp]
+theorem exactToffoliAdjointMiddleSymbolicCircuit_oneQubitCount {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    SymbolicCircuit.oneQubitCount
+        (exactToffoliAdjointMiddleSymbolicCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget) = 6 := rfl
+
+@[simp]
+theorem exactToffoliAdjointMiddleSymbolicCircuit_cnotCount {n : ℕ}
+    (first second target : Fin n)
+    (hfirstSecond : first ≠ second)
+    (hfirstTarget : first ≠ target)
+    (hsecondTarget : second ≠ target) :
+    SymbolicCircuit.cnotCount
+        (exactToffoliAdjointMiddleSymbolicCircuit first second target
+          hfirstSecond hfirstTarget hsecondTarget) = 8 := rfl
+
+@[simp]
+theorem phaseRelativeBoundaryNormalForm_oneQubitCount {n : ℕ}
+    (wire : Fin n) :
+    SymbolicCircuit.oneQubitCount (phaseRelativeBoundaryNormalForm wire) = 1 :=
+  rfl
+
+@[simp]
+theorem phaseRelativeBoundaryNormalForm_cnotCount {n : ℕ}
+    (wire : Fin n) :
+    SymbolicCircuit.cnotCount (phaseRelativeBoundaryNormalForm wire) = 0 :=
+  rfl
+
+/-- Explicit post-merger normal form for mixed B. -/
+def selectiveMergedMixedHybridNormalForm {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  exactToffoliForwardPrefixSymbolicCircuit
+      (layout.borrowedWire (Fin.last b))
+      (layout.controlWire (Fin.last (b + 2))) layout.targetWire
+      (layout.controlWire_ne_borrowedWire _ _).symm
+      (layout.borrowedWire_ne_targetWire _)
+      (layout.controlWire_ne_targetWire _) ++
+    selectiveRelativeHalfNormalForm b layout.smaller ++
+      exactToffoliAdjointMiddleSymbolicCircuit
+        (layout.controlWire (Fin.last (b + 2)))
+        (layout.borrowedWire (Fin.last b)) layout.targetWire
+        (layout.controlWire_ne_borrowedWire _ _)
+        (layout.controlWire_ne_targetWire _)
+        (layout.borrowedWire_ne_targetWire _) ++
+        phaseRelativeBoundaryNormalForm
+          (layout.borrowedWire (Fin.last b)) ++
+          selectiveRelativeHalfNormalTail b layout.smaller
+
+/-- Actual executable two-boundary merger for mixed B. -/
+def selectiveMergedMixedHybridSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  exactToffoliForwardPrefixSymbolicCircuit
+      (layout.borrowedWire (Fin.last b))
+      (layout.controlWire (Fin.last (b + 2))) layout.targetWire
+      (layout.controlWire_ne_borrowedWire _ _).symm
+      (layout.borrowedWire_ne_targetWire _)
+      (layout.controlWire_ne_targetWire _) ++
+    SymbolicCircuit.normalizeAtWire layout.targetWire
+      ([SymbolicPrimitive.atom layout.targetWire .C] ++
+        selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller ++
+          [SymbolicPrimitive.inverseAtom layout.targetWire .C]) ++
+      exactToffoliAdjointMiddleSymbolicCircuit
+        (layout.controlWire (Fin.last (b + 2)))
+        (layout.borrowedWire (Fin.last b)) layout.targetWire
+        (layout.controlWire_ne_borrowedWire _ _)
+        (layout.controlWire_ne_targetWire _)
+        (layout.borrowedWire_ne_targetWire _) ++
+        phaseRelativeNormalizedBoundarySymbolicCircuit
+          (layout.borrowedWire (Fin.last b)) ++
+          selectiveRelativeHalfNormalTail b layout.smaller
+
+@[simp]
+theorem selectiveMergedMixedHybridSymbolicCircuit_eq_normalForm {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    selectiveMergedMixedHybridSymbolicCircuit layout =
+      selectiveMergedMixedHybridNormalForm layout := by
+  rw [selectiveMergedMixedHybridSymbolicCircuit,
+    selectiveMergedMixedHybridNormalForm,
+    selectiveMergedRelativeHalfSymbolicCircuit_eq_normalForm]
+  rw [SymbolicCircuit.normalizeAtWire_atom_across_avoiding_inverse
+    layout.targetWire Corollary74FactorAtom.C
+    (selectiveRelativeHalfNormalForm b layout.smaller)
+    (selectiveRelativeHalfNormalForm_smaller_avoids_target layout)]
+  rw [normalize_selectiveRelativeHalfNormalForm,
+    phaseRelativeNormalizedBoundarySymbolicCircuit_eq_normalForm]
+
+@[simp]
+theorem selectiveMergedMixedHybridSymbolicCircuit_oneQubitCount {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit.oneQubitCount
+        (selectiveMergedMixedHybridSymbolicCircuit layout) = 12 * b + 21 := by
+  rw [selectiveMergedMixedHybridSymbolicCircuit_eq_normalForm]
+  simp [selectiveMergedMixedHybridNormalForm]
+  trace_state
+  omega
+
+@[simp]
+theorem selectiveMergedMixedHybridSymbolicCircuit_cnotCount {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit.cnotCount
+        (selectiveMergedMixedHybridSymbolicCircuit layout) = 12 * b + 22 := by
+  rw [selectiveMergedMixedHybridSymbolicCircuit_eq_normalForm]
+  simp [selectiveMergedMixedHybridNormalForm]
+  trace_state
+  omega
+
 end InwardLadderLayout
 
 namespace FourBlockLayout
