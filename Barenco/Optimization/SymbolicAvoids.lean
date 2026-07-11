@@ -165,6 +165,27 @@ theorem normalizeAtWire_inverse_across_avoiding {Atom : Type*}
     ((FreeGroup.of atom)⁻¹) (FreeGroup.of atom) middle havoid]
   exact normalize_append_inverse_atom_atom middle wire atom
 
+/-- Join two stable circuits across one explicitly blocked boundary. -/
+theorem Stable.append_of_last_first {Atom : Type*} [DecidableEq Atom]
+    {n : ℕ} (earlier : SymbolicCircuit Atom n)
+    (last next : SymbolicPrimitive Atom n) (later : SymbolicCircuit Atom n)
+    (hfirst : Stable (earlier ++ [last]))
+    (hsecond : Stable (next :: later))
+    (hblocked : SymbolicPrimitive.combine last next =
+      NormalizeCore.CombineResult.blocked) :
+    Stable ((earlier ++ [last]) ++ next :: later) := by
+  induction earlier with
+  | nil =>
+      exact ⟨hfirst, hblocked, hsecond⟩
+  | cons gate earlier ih =>
+      cases earlier with
+      | nil =>
+          exact ⟨hfirst.1, hfirst.2.1,
+            ih hfirst.2.2⟩
+      | cons second rest =>
+          exact ⟨hfirst.1, hfirst.2.1,
+            ih hfirst.2.2⟩
+
 end SymbolicCircuit
 
 end Barenco.Optimization

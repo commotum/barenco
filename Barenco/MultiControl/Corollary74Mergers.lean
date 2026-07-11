@@ -1,5 +1,6 @@
 import Barenco.MultiControl.Corollary74Fusion
 import Barenco.Optimization.SymbolicAdjoint
+import Barenco.Optimization.SymbolicAvoids
 import Barenco.Optimization.SymbolicSweep
 
 /-!
@@ -266,6 +267,279 @@ theorem erase_relativeInwardLadderSymbolicCircuit {b n : ℕ}
           (relativeHalfLadderSymbolicCircuit b layout.smaller) =
         relativeHalfLadderFusionCircuit b layout.smaller from
       erase_relativeHalfLadderSymbolicCircuit layout.smaller]
+
+/-! ## Exact recursive merger for relative half ladders -/
+
+/-- First endpoint of every relative-phase Toffoli occurrence. -/
+def relativeToffoliStartSymbolic {n : ℕ} (target : Fin n) :
+    SymbolicPrimitive Corollary74FactorAtom n :=
+  SymbolicPrimitive.atom target .relative
+
+/-- Five-node interior after removing both relative-Toffoli endpoints. -/
+def relativeToffoliCoreSymbolicCircuit {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  [.cnot second target hsecondTarget,
+    SymbolicPrimitive.atom target .relative,
+    .cnot first target hfirstTarget,
+    SymbolicPrimitive.inverseAtom target .relative,
+    .cnot second target hsecondTarget]
+
+/-- Last endpoint of every relative-phase Toffoli occurrence. -/
+def relativeToffoliEndSymbolic {n : ℕ} (target : Fin n) :
+    SymbolicPrimitive Corollary74FactorAtom n :=
+  SymbolicPrimitive.inverseAtom target .relative
+
+def relativeToffoliPrefixSymbolicCircuit {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  [relativeToffoliStartSymbolic target] ++
+    relativeToffoliCoreSymbolicCircuit first second target
+      hfirstTarget hsecondTarget
+
+def relativeToffoliTailSymbolicCircuit {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  relativeToffoliCoreSymbolicCircuit first second target
+      hfirstTarget hsecondTarget ++
+    [relativeToffoliEndSymbolic target]
+
+@[simp]
+theorem relativeToffoliSymbolicCircuit_eq_prefix_end {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    relativeToffoliSymbolicCircuit first second target
+        hfirstTarget hsecondTarget =
+      relativeToffoliPrefixSymbolicCircuit first second target
+          hfirstTarget hsecondTarget ++
+        [relativeToffoliEndSymbolic target] := by
+  rfl
+
+@[simp]
+theorem relativeToffoliSymbolicCircuit_eq_start_tail {n : ℕ}
+    (first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target) :
+    relativeToffoliSymbolicCircuit first second target
+        hfirstTarget hsecondTarget =
+      [relativeToffoliStartSymbolic target] ++
+        relativeToffoliTailSymbolicCircuit first second target
+          hfirstTarget hsecondTarget := by
+  rfl
+
+def relativeBaseCoreSymbolicCircuit {n : ℕ}
+    (layout : InwardLadderLayout 0 n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  relativeToffoliCoreSymbolicCircuit
+    (layout.controlWire 0) (layout.controlWire 1) layout.targetWire
+    (layout.controlWire_ne_targetWire 0)
+    (layout.controlWire_ne_targetWire 1)
+
+def relativeOuterCoreSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  relativeToffoliCoreSymbolicCircuit
+    (layout.controlWire (Fin.last (b + 2)))
+    (layout.borrowedWire (Fin.last b)) layout.targetWire
+    (layout.controlWire_ne_targetWire _)
+    (layout.borrowedWire_ne_targetWire _)
+
+def relativeOuterPrefixSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  [relativeToffoliStartSymbolic layout.targetWire] ++
+    layout.relativeOuterCoreSymbolicCircuit
+
+@[simp]
+theorem relativeBaseSymbolicCircuit_eq_start_core_end {n : ℕ}
+    (layout : InwardLadderLayout 0 n) :
+    layout.relativeBaseSymbolicCircuit =
+      [relativeToffoliStartSymbolic layout.targetWire] ++
+        layout.relativeBaseCoreSymbolicCircuit ++
+          [relativeToffoliEndSymbolic layout.targetWire] := by
+  rfl
+
+@[simp]
+theorem relativeOuterSymbolicCircuit_eq_prefix_end {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    layout.relativeOuterSymbolicCircuit =
+      layout.relativeOuterPrefixSymbolicCircuit ++
+        [relativeToffoliEndSymbolic layout.targetWire] := by
+  rfl
+
+/--
+Explicit normal form after cancelling the two outer endpoints across the entire
+smaller half, whose gates avoid the outer target.
+-/
+def selectiveRelativeHalfNormalForm {n : ℕ} :
+    (b : ℕ) → InwardLadderLayout b n →
+      SymbolicCircuit Corollary74FactorAtom n
+  | 0, layout => layout.relativeBaseSymbolicCircuit
+  | b + 1, layout =>
+      layout.relativeOuterPrefixSymbolicCircuit ++
+        selectiveRelativeHalfNormalForm b layout.smaller ++
+          relativeToffoliTailSymbolicCircuit
+            (layout.controlWire (Fin.last (b + 2)))
+            (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.controlWire_ne_targetWire _)
+            (layout.borrowedWire_ne_targetWire _)
+
+/-- Actual executable `normalizeAtWire` pass at every recursive level. -/
+def selectiveMergedRelativeHalfSymbolicCircuit {n : ℕ} :
+    (b : ℕ) → InwardLadderLayout b n →
+      SymbolicCircuit Corollary74FactorAtom n
+  | 0, layout => layout.relativeBaseSymbolicCircuit
+  | b + 1, layout =>
+      layout.relativeOuterPrefixSymbolicCircuit ++
+        SymbolicCircuit.normalizeAtWire layout.targetWire
+          ([relativeToffoliEndSymbolic layout.targetWire] ++
+            selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller ++
+              [relativeToffoliStartSymbolic layout.targetWire]) ++
+        relativeToffoliTailSymbolicCircuit
+          (layout.controlWire (Fin.last (b + 2)))
+          (layout.borrowedWire (Fin.last b)) layout.targetWire
+          (layout.controlWire_ne_targetWire _)
+          (layout.borrowedWire_ne_targetWire _)
+
+private theorem relativeToffoliSymbolicCircuit_all_avoids {n : ℕ}
+    (wire first second target : Fin n)
+    (hfirstTarget : first ≠ target) (hsecondTarget : second ≠ target)
+    (hwireFirst : wire ≠ first) (hwireSecond : wire ≠ second)
+    (hwireTarget : wire ≠ target) :
+    ∀ gate ∈ relativeToffoliSymbolicCircuit first second target
+        hfirstTarget hsecondTarget,
+      SymbolicPrimitive.AvoidsWire wire gate := by
+  intro gate hgate
+  simp only [relativeToffoliSymbolicCircuit, List.mem_cons,
+    List.not_mem_nil, or_false] at hgate
+  have htargetWire : target ≠ wire := hwireTarget.symm
+  rcases hgate with hgate | hgate | hgate | hgate | hgate | hgate | hgate
+  all_goals subst gate
+  all_goals simp [SymbolicPrimitive.atom,
+    SymbolicPrimitive.inverseAtom, SymbolicPrimitive.AvoidsWire,
+    hwireFirst, hwireSecond, hwireTarget, htargetWire]
+
+private theorem relativeOuterPrefix_all_avoids {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (wire : Fin n)
+    (hcontrol : ∀ control, wire ≠ layout.controlWire control)
+    (hwork : ∀ work, wire ≠ layout.workWire work) :
+    ∀ gate ∈ layout.relativeOuterPrefixSymbolicCircuit,
+      SymbolicPrimitive.AvoidsWire wire gate := by
+  intro gate hgate
+  have hall := relativeToffoliSymbolicCircuit_all_avoids wire
+    (layout.controlWire (Fin.last (b + 2)))
+    (layout.borrowedWire (Fin.last b)) layout.targetWire
+    (layout.controlWire_ne_targetWire _)
+    (layout.borrowedWire_ne_targetWire _)
+    (hcontrol _) (hwork _) (hwork _)
+  apply hall gate
+  simp [relativeOuterPrefixSymbolicCircuit,
+    relativeOuterCoreSymbolicCircuit,
+    relativeToffoliCoreSymbolicCircuit,
+    relativeToffoliSymbolicCircuit,
+    relativeToffoliStartSymbolic] at hgate ⊢
+  tauto
+
+private theorem relativeOuterTail_all_avoids {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) (wire : Fin n)
+    (hcontrol : ∀ control, wire ≠ layout.controlWire control)
+    (hwork : ∀ work, wire ≠ layout.workWire work) :
+    ∀ gate ∈ relativeToffoliTailSymbolicCircuit
+        (layout.controlWire (Fin.last (b + 2)))
+        (layout.borrowedWire (Fin.last b)) layout.targetWire
+        (layout.controlWire_ne_targetWire _)
+        (layout.borrowedWire_ne_targetWire _),
+      SymbolicPrimitive.AvoidsWire wire gate := by
+  intro gate hgate
+  have hall := relativeToffoliSymbolicCircuit_all_avoids wire
+    (layout.controlWire (Fin.last (b + 2)))
+    (layout.borrowedWire (Fin.last b)) layout.targetWire
+    (layout.controlWire_ne_targetWire _)
+    (layout.borrowedWire_ne_targetWire _)
+    (hcontrol _) (hwork _) (hwork _)
+  apply hall gate
+  simp [relativeToffoliTailSymbolicCircuit,
+    relativeToffoliCoreSymbolicCircuit,
+    relativeToffoliSymbolicCircuit,
+    relativeToffoliEndSymbolic] at hgate ⊢
+  tauto
+
+theorem selectiveRelativeHalfNormalForm_all_avoids {b n : ℕ}
+    (layout : InwardLadderLayout b n) (wire : Fin n)
+    (hcontrol : ∀ control, wire ≠ layout.controlWire control)
+    (hwork : ∀ work, wire ≠ layout.workWire work) :
+    ∀ gate ∈ selectiveRelativeHalfNormalForm b layout,
+      SymbolicPrimitive.AvoidsWire wire gate := by
+  induction b with
+  | zero =>
+      exact relativeToffoliSymbolicCircuit_all_avoids wire
+        (layout.controlWire 0) (layout.controlWire 1) layout.targetWire
+        (layout.controlWire_ne_targetWire 0)
+        (layout.controlWire_ne_targetWire 1)
+        (hcontrol 0) (hcontrol 1) (hwork (Fin.last 0))
+  | succ b ih =>
+      intro gate hgate
+      simp only [selectiveRelativeHalfNormalForm, List.mem_append] at hgate
+      rcases hgate with (hprefix | hsmaller) | htail
+      · exact relativeOuterPrefix_all_avoids layout wire hcontrol hwork gate hprefix
+      · have hcsmall : ∀ control,
+            wire ≠ layout.smaller.controlWire control := by
+          intro control
+          simpa using hcontrol control.castSucc
+        have hwsmall : ∀ work,
+            wire ≠ layout.smaller.workWire work := by
+          intro work
+          simpa using hwork work.castSucc
+        exact ih layout.smaller hcsmall hwsmall gate hsmaller
+      · exact relativeOuterTail_all_avoids layout wire hcontrol hwork gate htail
+
+theorem selectiveRelativeHalfNormalForm_smaller_avoids_target {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    ∀ gate ∈ selectiveRelativeHalfNormalForm b layout.smaller,
+      SymbolicPrimitive.AvoidsWire layout.targetWire gate := by
+  apply selectiveRelativeHalfNormalForm_all_avoids
+  · exact layout.targetWire_ne_smaller_controlWire
+  · exact layout.targetWire_ne_smaller_workWire
+
+theorem selectiveRelativeHalfNormalForm_start {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    ∃ tail, selectiveRelativeHalfNormalForm b layout =
+      relativeToffoliStartSymbolic layout.targetWire :: tail := by
+  cases b with
+  | zero =>
+      refine ⟨_, rfl⟩
+  | succ b =>
+      refine ⟨layout.relativeOuterCoreSymbolicCircuit ++
+        selectiveRelativeHalfNormalForm b layout.smaller ++
+        relativeToffoliTailSymbolicCircuit
+          (layout.controlWire (Fin.last (b + 2)))
+          (layout.borrowedWire (Fin.last b)) layout.targetWire
+          (layout.controlWire_ne_targetWire _)
+          (layout.borrowedWire_ne_targetWire _), ?_⟩
+      simp [selectiveRelativeHalfNormalForm,
+        relativeOuterPrefixSymbolicCircuit, List.append_assoc]
+
+theorem selectiveRelativeHalfNormalForm_end {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    ∃ initial, selectiveRelativeHalfNormalForm b layout =
+      initial ++ [relativeToffoliEndSymbolic layout.targetWire] := by
+  cases b with
+  | zero =>
+      refine ⟨[relativeToffoliStartSymbolic layout.targetWire] ++
+        layout.relativeBaseCoreSymbolicCircuit, ?_⟩
+      rfl
+  | succ b =>
+      refine ⟨layout.relativeOuterPrefixSymbolicCircuit ++
+        selectiveRelativeHalfNormalForm b layout.smaller ++
+        relativeToffoliCoreSymbolicCircuit
+          (layout.controlWire (Fin.last (b + 2)))
+          (layout.borrowedWire (Fin.last b)) layout.targetWire
+          (layout.controlWire_ne_targetWire _)
+          (layout.borrowedWire_ne_targetWire _), ?_⟩
+      simp [selectiveRelativeHalfNormalForm,
+        relativeToffoliTailSymbolicCircuit, List.append_assoc]
 
 /-! ## Coherent mixed orientations for the two exact outer occurrences -/
 
