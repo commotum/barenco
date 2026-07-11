@@ -2,8 +2,8 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–7 are complete; Stage 8 Corollary 7.4 post-merger
-counting is the first incomplete stage.
+Status: active. Stages 1–8 are complete; Stage 9 release audit is the first
+incomplete stage.
 
 ## Big-Picture Objective
 
@@ -205,8 +205,8 @@ collection of hand-simplified paper examples.
   legal optimizer input. The underlying `doubleControlledExpansion16Circuit` is
   an explicit oriented sixteen-node schedule, while
   `selectedColumnABCFactors (specialUnitaryPart (unitarySquareRoot pauliX))`
-  provides one transparent checked factor package. Stage 8 must connect those
-  factors to explicit fusion/symbolic syntax before claiming any merger.
+  provides one transparent checked factor package. Stage 8 connects those factors
+  to explicit fusion/symbolic syntax and never optimizes the opaque chosen wrapper.
 - Stage 8's public named symbolic, visible, and lowered circuit families realize
   the strongest checked profile `(24n-102,24n-100,48n-202)` for every balanced
   `n>=7`; widths seven, eight, and nine specialize to `(66,68,134)`,
@@ -225,7 +225,7 @@ collection of hand-simplified paper examples.
   `48n-204` was not recovered; neither result is a refutation or global lower
   bound.
 
-## Remaining Assumptions to Test
+## Residual Paper-Facing Question
 - The Corollary 7.4 constant may require rewrites beyond the general Gray mergers.
   Its source arithmetic and phase errors remain corrected regardless of whether a
   lower count is found.
@@ -273,7 +273,7 @@ The goal is complete only when all of the following hold:
 - [x] `5-NORMALIZE` — executable exact fusion/normalization and cost monotonicity.
 - [x] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
 - [x] `7-GRAY-MERGERS` — normalize the general Gray family and settle its checked count.
-- [ ] `8-COR74-MERGERS` — test the optimized Corollary 7.4 count and dependencies.
+- [x] `8-COR74-MERGERS` — test the optimized Corollary 7.4 count and dependencies.
 - [ ] `9-AUDIT` — public integration, documentation, builds, and axiom audit.
 
 ## 1-GUARDRAILS
@@ -683,6 +683,27 @@ construction and test the paper's optimized total `48n - 204`.
   reason or are rederived from the new circuit family.
 - Focused Corollary/recursive builds, boundary examples, strict, trust-zero, axiom,
   documentation, and hygiene checks pass.
+
+### Stage Results
+
+- Public transparent expansion, ladder, raw Corollary, coherent merger, complete
+  cross-block merger, and resource leaves compile without using the opaque
+  whole-circuit Toffoli witness as optimizer input.  The emitted balanced circuit
+  has exact profile `(24n-102,24n-100,48n-202)` for every `n>=7`, implements the
+  repaired controlled X exactly, restores every non-target wire, and preserves
+  the complete coherent mixed raw CNOT trace.
+- The paper's `48n-204` is not recovered by this named construction and is not
+  refuted.  Width-seven/eight/nine diagnostics prove `(66,68,134)`,
+  `(90,92,182)`, and `(114,116,230)`.  `RecursiveExpansion` deliberately remains
+  linked to the unchanged raw substitution, so its established counts are not
+  altered.
+- Ten focused Stage 8 leaves built with 3,496 jobs; the adjacent/public/audit
+  regression and final changed-boundary build each passed with 3,617 jobs.  All
+  ten leaves plus root and audit passed strict and trust-zero compilation.  The
+  maintained audit has 480 checks, its 23 Stage 8 additions use only standard
+  foundations, repository forbidden/no-cheating scans and root-exclusion checks
+  are clean, documentation is synchronized, and `git diff --check` passes.  Full
+  clean-room release verification remains Stage 9.
 
 ## 9-AUDIT
 

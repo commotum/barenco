@@ -1,6 +1,6 @@
 # 8-COR74-MERGERS
 
-Status: in progress (2026-07-10).
+Status: complete (2026-07-11).
 
 ## Current Facts
 
@@ -246,7 +246,7 @@ that named construction realizes the paper's `48n-204` count.
   to remain based on the unchanged raw substitution.
 - [x] Stable declarations are publicly integrated and representative headline
   theorems enter the maintained axiom audit; diagnostics remain root-excluded.
-- [ ] Focused/adjacent/public/full builds, strict, trust-zero, forbidden/no-cheating
+- [x] Focused/adjacent/public/full builds, strict, trust-zero, forbidden/no-cheating
   scans, documentation/table synchronization, and `git diff --check` pass with
   exact evidence recorded below.
 
@@ -292,3 +292,28 @@ that named construction realizes the paper's `48n-204` count.
   construction.  Consequently its existing exact recurrences and asymptotic
   constants remain valid and are not silently edited to use an unproved
   substitution.
+- The focused build of all ten Stage 8 public/diagnostic leaves passed with 3,496
+  jobs.  The adjacent regression covering `Corollary74Expansion`,
+  `RelativePhase`, `RecursiveExpansion`, `GrayMergers`, the Stage 8 diagnostic,
+  public root, and axiom audit passed with 3,617 jobs.  A final current-tree build
+  of the changed sweep/resource/example/root/audit boundary also passed with
+  3,617 jobs.
+- All ten Stage 8 leaves plus `Barenco.lean` and `Barenco/AxiomAudit.lean` passed
+  direct `-DwarningAsError=true` and `-t0 -DwarningAsError=true` compilation.  The
+  final audit printed all 480 maintained checks in both modes.  Its 23 new Stage
+  8 entries use only `propext`, `Classical.choice`, and `Quot.sound`; the two
+  structural adjoint count/trace facts omit `Classical.choice`.  No project axiom
+  appears.
+- Repository Lean scans found no proof holes, forbidden decision shortcuts,
+  tracing commands, custom `axiom`, or actual `opaque` declaration.  The sole raw
+  `opaque`-line match is prose in `Corollary74Fusion.lean`.  Scoped scans found no
+  whole-circuit exact-Toffoli choice, unclassified/forged primitive, runtime
+  classical choice, matrix-equality decision, hard-coded width branch, or hidden
+  U(4) output.  The three ordinary `decide` uses certify symbolic free-group word
+  nonidentity only.  Diagnostics remain root-excluded and `git diff --check`
+  passes.
+- README, traceability, C-004, conventions, final report, and axiom-audit tables
+  are synchronized with the compiled API.  Source and documentation each contain
+  480 audit entries, and the public source tree contains 145 Lean files below
+  `Barenco/`.  The disposable 256-orientation exploration is explicitly excluded
+  from completion evidence.
