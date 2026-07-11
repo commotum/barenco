@@ -79,6 +79,63 @@ theorem eval_erase_adjoint {Atom : Type*} {n : ℕ}
       (FusionCircuit.eval (erase valuation circuit))⁻¹ := by
   rw [erase_adjoint, FusionCircuit.eval_adjoint]
 
+@[simp]
+theorem gateCount_adjoint {Atom : Type*} {n : ℕ}
+    (circuit : SymbolicCircuit Atom n) :
+    gateCount circuit.adjoint = gateCount circuit := by
+  simp [adjoint, gateCount]
+
+@[simp]
+theorem oneQubitWeight_adjoint {Atom : Type*} {n : ℕ}
+    (primitive : SymbolicPrimitive Atom n) :
+    oneQubitWeight primitive.adjoint = oneQubitWeight primitive := by
+  cases primitive <;> rfl
+
+@[simp]
+theorem cnotWeight_adjoint {Atom : Type*} {n : ℕ}
+    (primitive : SymbolicPrimitive Atom n) :
+    cnotWeight primitive.adjoint = cnotWeight primitive := by
+  cases primitive <;> rfl
+
+@[simp]
+theorem oneQubitCount_adjoint {Atom : Type*} {n : ℕ}
+    (circuit : SymbolicCircuit Atom n) :
+    oneQubitCount circuit.adjoint = oneQubitCount circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      rw [show adjoint (primitive :: circuit) =
+          adjoint circuit ++ [primitive.adjoint] by
+        simp [adjoint]]
+      simp [ih]
+      omega
+
+@[simp]
+theorem cnotCount_adjoint {Atom : Type*} {n : ℕ}
+    (circuit : SymbolicCircuit Atom n) :
+    cnotCount circuit.adjoint = cnotCount circuit := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      rw [show adjoint (primitive :: circuit) =
+          adjoint circuit ++ [primitive.adjoint] by
+        simp [adjoint]]
+      simp [ih]
+      omega
+
+@[simp]
+theorem cnotTrace_adjoint {Atom : Type*} {n : ℕ}
+    (circuit : SymbolicCircuit Atom n) :
+    cnotTrace circuit.adjoint = (cnotTrace circuit).reverse := by
+  induction circuit with
+  | nil => rfl
+  | cons primitive circuit ih =>
+      rw [show adjoint (primitive :: circuit) =
+          adjoint circuit ++ [primitive.adjoint] by
+        simp [adjoint]]
+      rw [cnotTrace_append, ih]
+      cases primitive <;> simp [cnotTrace, SymbolicPrimitive.adjoint]
+
 end SymbolicCircuit
 
 end Barenco.Optimization
