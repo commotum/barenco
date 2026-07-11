@@ -301,6 +301,63 @@ theorem normalizeAtWire_atom_across_avoiding_inverse {Atom : Type*}
     (FreeGroup.of atom) ((FreeGroup.of atom)⁻¹) middle havoid]
   exact normalize_append_atom_inverse middle wire atom
 
+/--
+Deleting a formal inverse/atom pair across a structurally avoiding middle is an
+exact evaluator-preserving rewrite, even when the middle is not normalized.
+-/
+theorem eval_erase_delete_inverse_across_avoiding {Atom : Type*}
+    [DecidableEq Atom] {n : ℕ}
+    (valuation : Atom → QubitUnitary) (wire : Fin n) (atom : Atom)
+    (middle : SymbolicCircuit Atom n)
+    (havoid : ∀ gate ∈ middle, SymbolicPrimitive.AvoidsWire wire gate) :
+    FusionCircuit.eval
+        (erase valuation
+          ([SymbolicPrimitive.inverseAtom wire atom] ++ middle ++
+            [SymbolicPrimitive.atom wire atom])) =
+      FusionCircuit.eval (erase valuation middle) := by
+  calc
+    FusionCircuit.eval
+        (erase valuation
+          ([SymbolicPrimitive.inverseAtom wire atom] ++ middle ++
+            [SymbolicPrimitive.atom wire atom])) =
+        FusionCircuit.eval
+          (erase valuation
+            (normalizeAtWire wire
+              ([SymbolicPrimitive.inverseAtom wire atom] ++ middle ++
+                [SymbolicPrimitive.atom wire atom]))) :=
+      (eval_erase_normalizeAtWire valuation wire _).symm
+    _ = FusionCircuit.eval (erase valuation (normalize middle)) := by
+      rw [normalizeAtWire_inverse_across_avoiding wire atom middle havoid]
+    _ = FusionCircuit.eval (erase valuation middle) :=
+      eval_erase_normalize valuation middle
+
+/-- The symmetric formal atom/inverse deletion is also exact. -/
+theorem eval_erase_delete_atom_across_avoiding_inverse {Atom : Type*}
+    [DecidableEq Atom] {n : ℕ}
+    (valuation : Atom → QubitUnitary) (wire : Fin n) (atom : Atom)
+    (middle : SymbolicCircuit Atom n)
+    (havoid : ∀ gate ∈ middle, SymbolicPrimitive.AvoidsWire wire gate) :
+    FusionCircuit.eval
+        (erase valuation
+          ([SymbolicPrimitive.atom wire atom] ++ middle ++
+            [SymbolicPrimitive.inverseAtom wire atom])) =
+      FusionCircuit.eval (erase valuation middle) := by
+  calc
+    FusionCircuit.eval
+        (erase valuation
+          ([SymbolicPrimitive.atom wire atom] ++ middle ++
+            [SymbolicPrimitive.inverseAtom wire atom])) =
+        FusionCircuit.eval
+          (erase valuation
+            (normalizeAtWire wire
+              ([SymbolicPrimitive.atom wire atom] ++ middle ++
+                [SymbolicPrimitive.inverseAtom wire atom]))) :=
+      (eval_erase_normalizeAtWire valuation wire _).symm
+    _ = FusionCircuit.eval (erase valuation (normalize middle)) := by
+      rw [normalizeAtWire_atom_across_avoiding_inverse wire atom middle havoid]
+    _ = FusionCircuit.eval (erase valuation middle) :=
+      eval_erase_normalize valuation middle
+
 /-- Join two stable circuits across one explicitly blocked boundary. -/
 theorem Stable.append_of_last_first {Atom : Type*} [DecidableEq Atom]
     {n : ℕ} (earlier : SymbolicCircuit Atom n)

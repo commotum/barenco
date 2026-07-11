@@ -44,6 +44,22 @@ Status: in progress (2026-07-10).
 - A successful count must come from the emitted list of a named executable pass.
   A semantic short circuit, an arithmetic count function, or inspection of one
   low-width trace is insufficient.
+- The transparent mixed orientation and certified all-wire sweep now reduce the
+  diagnostic balanced profiles to `(66,68,134)`, `(90,92,182)`, and
+  `(114,116,230)` at widths seven, eight, and nine.  These agree with the
+  candidate general profile `(24n-102,24n-100,48n-202)`, but the diagnostic
+  reductions are not yet the required arbitrary-width resource theorem.
+- The four savings beyond separately merged A/B components have now been
+  localized exactly: two dirty-wire `relative⁻¹; phase` products fuse across
+  target-disjoint syntax, and one formal exact-factor `A⁻¹; A` pair cancels
+  across syntax avoiding the final target.  Running `normalizeAtWire` first on
+  the dirty wire and then on the final target realizes all four savings in the
+  width-seven/eight/nine diagnostics.
+- A complete width-seven search over the `4^4 = 256` forward/adjoint and
+  standard/swapped exact-occurrence orientations in the declared deterministic
+  symbolic sweep found minimum one-qubit count 66, not the printed target 64.
+  This is evidence for “not recovered” in that finite orientation class, not a
+  general lower bound or refutation.
 
 ## Updated Assumptions
 
@@ -124,11 +140,16 @@ that named construction realizes the paper's `48n-204` count.
   lowering is a new explicit circuit surface because literal equality to the old
   opaque whole-circuit choices is impossible; evaluator equality connects the two.
 - Add `Barenco/MultiControl/Corollary74Mergers.lean` only for the coherent mixed
-  exact-gate orientations, symbolic builders, executable merger, named normalized
-  family, exact evaluator bridges, and general resource theorems. It may import
+  exact-gate orientations, recursive half/B symbolic builders, and their exact
+  evaluator/resource bridges. It may import
   the existing Corollary expansion for baseline comparison plus the new raw
   fusion leaves and symbolic exposure, but must not edit the `Primitive`/`Circuit`
   trust core.
+- Add `Barenco/MultiControl/Corollary74CompleteMergers.lean` as the final public
+  proof leaf for the two cross-block dirty-wire fusions, final-target exact-factor
+  cancellation, balanced wrapper, and general syntax-derived profile.  Splitting
+  this from the already large recursive-component leaf keeps the final proof and
+  its diagnostics incrementally buildable without changing the trust core.
 - Add the low-dependency reusable leaf
   `Barenco/Optimization/SymbolicAdjoint.lean` if the final construction needs a
   literal formal adjoint of a generated symbolic ladder. It may only reverse

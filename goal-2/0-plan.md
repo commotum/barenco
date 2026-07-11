@@ -207,16 +207,28 @@ collection of hand-simplified paper examples.
   `selectedColumnABCFactors (specialUnitaryPart (unitarySquareRoot pauliX))`
   provides one transparent checked factor package. Stage 8 must connect those
   factors to explicit fusion/symbolic syntax before claiming any merger.
+- Stage 8 diagnostics now isolate a strongest checked candidate profile
+  `(24n-102,24n-100,48n-202)`: widths seven, eight, and nine emit
+  `(66,68,134)`, `(90,92,182)`, and `(114,116,230)`.  The extra four
+  one-qubit savings beyond separately merged A/B blocks are exactly two
+  dirty-wire word fusions and one two-node exact-factor cancellation across a
+  final-target-avoiding middle.  These diagnostics still require a general
+  syntax theorem before becoming a public resource result.
+- Exhaustive width-seven testing of all 256 standard/swapped and
+  forward/adjoint orientations in the declared deterministic symbolic sweep did
+  not reach the paper's target 64 one-qubit nodes; the best was 66.  This finite
+  failure supports only “not recovered” for that tested class, not refutation or
+  a global lower bound.
 
 ## Remaining Assumptions to Test
 - The Corollary 7.4 constant may require rewrites beyond the general Gray mergers.
   Its source arithmetic and phase errors remain corrected regardless of whether a
   lower count is found.
-- It is not yet known whether a coherent orientation of the four explicit exact
-  Toffoli expansions exposes the four extra one-qubit deletions required by the
-  paper's final constant, or whether the verified normalizer reaches a larger
-  stable profile. One chosen orientation failing establishes only “not recovered”
-  for that named construction, not a lower bound or refutation.
+- The coherent mixed orientation exposes two dirty-wire fusions and one
+  exact-factor inverse cancellation, giving the candidate total `48n-202`, but
+  no checked rewrite has exposed the additional two one-qubit savings required
+  by `48n-204`.  The finite orientation search and named normalizer outcome can
+  establish only “not recovered,” not a lower bound or refutation.
 
 ## Success Metrics and Final Verification
 
