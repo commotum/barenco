@@ -541,6 +541,288 @@ theorem selectiveRelativeHalfNormalForm_end {b n : ℕ}
       simp [selectiveRelativeHalfNormalForm,
         relativeToffoliTailSymbolicCircuit, List.append_assoc]
 
+/-- Every emitted half-ladder normal form is stable for symbolic normalization. -/
+theorem selectiveRelativeHalfNormalForm_stable {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.Stable (selectiveRelativeHalfNormalForm b layout) := by
+  induction b with
+  | zero =>
+      simp [selectiveRelativeHalfNormalForm,
+        relativeBaseSymbolicCircuit, relativeToffoliSymbolicCircuit,
+        SymbolicCircuit.Stable, NormalizeCore.Stable,
+        SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+        SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+  | succ b ih =>
+      let lastCNOT : SymbolicPrimitive Corollary74FactorAtom n :=
+        .cnot (layout.borrowedWire (Fin.last b)) layout.targetWire
+          (layout.borrowedWire_ne_targetWire _)
+      let prefixInitial : SymbolicCircuit Corollary74FactorAtom n :=
+        [relativeToffoliStartSymbolic layout.targetWire,
+          .cnot (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.borrowedWire_ne_targetWire _),
+          SymbolicPrimitive.atom layout.targetWire .relative,
+          .cnot (layout.controlWire (Fin.last (b + 2))) layout.targetWire
+            (layout.controlWire_ne_targetWire _),
+          SymbolicPrimitive.inverseAtom layout.targetWire .relative]
+      let tailLater : SymbolicCircuit Corollary74FactorAtom n :=
+        [SymbolicPrimitive.atom layout.targetWire .relative,
+          .cnot (layout.controlWire (Fin.last (b + 2))) layout.targetWire
+            (layout.controlWire_ne_targetWire _),
+          SymbolicPrimitive.inverseAtom layout.targetWire .relative,
+          .cnot (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.borrowedWire_ne_targetWire _),
+          relativeToffoliEndSymbolic layout.targetWire]
+      have hprefix : layout.relativeOuterPrefixSymbolicCircuit =
+          prefixInitial ++ [lastCNOT] := by rfl
+      have htail : relativeToffoliTailSymbolicCircuit
+            (layout.controlWire (Fin.last (b + 2)))
+            (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.controlWire_ne_targetWire _)
+            (layout.borrowedWire_ne_targetWire _) =
+          lastCNOT :: tailLater := by rfl
+      have hprefixStable : SymbolicCircuit.Stable
+          (prefixInitial ++ [lastCNOT]) := by
+        simp [prefixInitial, lastCNOT, SymbolicCircuit.Stable,
+          NormalizeCore.Stable, relativeToffoliStartSymbolic,
+          SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+          SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+      have htailStable : SymbolicCircuit.Stable
+          (lastCNOT :: tailLater) := by
+        simp [tailLater, lastCNOT, SymbolicCircuit.Stable,
+          NormalizeCore.Stable, relativeToffoliEndSymbolic,
+          SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+          SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+      rcases selectiveRelativeHalfNormalForm_start layout.smaller with
+        ⟨smallTail, hsmallStart⟩
+      have hleft : SymbolicCircuit.Stable
+          (layout.relativeOuterPrefixSymbolicCircuit ++
+            selectiveRelativeHalfNormalForm b layout.smaller) := by
+        rw [hprefix, hsmallStart]
+        exact SymbolicCircuit.Stable.append_of_last_first
+          prefixInitial lastCNOT
+          (relativeToffoliStartSymbolic layout.smaller.targetWire)
+          smallTail hprefixStable
+          (by simpa [hsmallStart] using ih layout.smaller)
+          (by rfl)
+      rcases selectiveRelativeHalfNormalForm_end layout.smaller with
+        ⟨smallInitial, hsmallEnd⟩
+      rw [selectiveRelativeHalfNormalForm, htail]
+      rw [hsmallEnd] at hleft ⊢
+      rw [← List.append_assoc]
+      exact SymbolicCircuit.Stable.append_of_last_first
+        (layout.relativeOuterPrefixSymbolicCircuit ++ smallInitial)
+        (relativeToffoliEndSymbolic layout.smaller.targetWire)
+        lastCNOT tailLater (by simpa [List.append_assoc] using hleft)
+        htailStable (by rfl)
+
+theorem normalize_selectiveRelativeHalfNormalForm {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.normalize (selectiveRelativeHalfNormalForm b layout) =
+      selectiveRelativeHalfNormalForm b layout :=
+  SymbolicCircuit.normalize_eq_self_of_stable
+    (selectiveRelativeHalfNormalForm_stable layout)
+
+/-- The executable recursive merger emits the explicit normal form. -/
+@[simp]
+theorem selectiveMergedRelativeHalfSymbolicCircuit_eq_normalForm {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    selectiveMergedRelativeHalfSymbolicCircuit b layout =
+      selectiveRelativeHalfNormalForm b layout := by
+  induction b with
+  | zero => rfl
+  | succ b ih =>
+      rw [selectiveMergedRelativeHalfSymbolicCircuit,
+        selectiveRelativeHalfNormalForm]
+      rw [ih layout.smaller]
+      simp only [relativeToffoliEndSymbolic,
+        relativeToffoliStartSymbolic]
+      rw [SymbolicCircuit.normalizeAtWire_inverse_across_avoiding
+        layout.targetWire Corollary74FactorAtom.relative
+        (selectiveRelativeHalfNormalForm b layout.smaller)
+        (selectiveRelativeHalfNormalForm_smaller_avoids_target layout)]
+      rw [normalize_selectiveRelativeHalfNormalForm]
+
+/-- Literal unnormalized regrouping around one across-smaller boundary. -/
+def selectiveRelativeHalfRegroupedAtStep {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  layout.relativeOuterPrefixSymbolicCircuit ++
+    [relativeToffoliEndSymbolic layout.targetWire] ++
+      selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller ++
+        [relativeToffoliStartSymbolic layout.targetWire] ++
+          relativeToffoliTailSymbolicCircuit
+            (layout.controlWire (Fin.last (b + 2)))
+            (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.controlWire_ne_targetWire _)
+            (layout.borrowedWire_ne_targetWire _)
+
+theorem eval_erase_selectiveMergedRelativeHalf_eq_regrouped {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedRelativeHalfSymbolicCircuit (b + 1) layout)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveRelativeHalfRegroupedAtStep layout)) := by
+  simp only [selectiveMergedRelativeHalfSymbolicCircuit,
+    selectiveRelativeHalfRegroupedAtStep, erase_append,
+    FusionCircuit.eval_append]
+  rw [SymbolicCircuit.eval_erase_normalizeAtWire]
+  simp only [erase_append, FusionCircuit.eval_append, mul_assoc]
+
+@[simp]
+theorem selectiveRelativeHalfRegroupedAtStep_eq_raw_with_merged_smaller
+    {b n : ℕ} (layout : InwardLadderLayout (b + 1) n) :
+    selectiveRelativeHalfRegroupedAtStep layout =
+      layout.relativeOuterSymbolicCircuit ++
+        selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller ++
+          layout.relativeOuterSymbolicCircuit := by
+  simp [selectiveRelativeHalfRegroupedAtStep,
+    relativeOuterSymbolicCircuit, relativeOuterPrefixSymbolicCircuit,
+    relativeOuterCoreSymbolicCircuit,
+    relativeToffoliSymbolicCircuit,
+    relativeToffoliTailSymbolicCircuit,
+    relativeToffoliCoreSymbolicCircuit,
+    relativeToffoliStartSymbolic, relativeToffoliEndSymbolic,
+    List.append_assoc]
+
+/-- Every recursive relative-half merger preserves exact valued evaluation. -/
+@[simp]
+theorem eval_erase_selectiveMergedRelativeHalfSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedRelativeHalfSymbolicCircuit b layout)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (relativeHalfLadderSymbolicCircuit b layout)) := by
+  induction b with
+  | zero => rfl
+  | succ b ih =>
+      rw [eval_erase_selectiveMergedRelativeHalf_eq_regrouped,
+        selectiveRelativeHalfRegroupedAtStep_eq_raw_with_merged_smaller]
+      simp only [relativeHalfLadderSymbolicCircuit,
+        erase_append, FusionCircuit.eval_append]
+      rw [ih layout.smaller]
+
+@[simp]
+theorem eval_erase_selectiveMergedRelativeHalfSymbolicCircuit_eq_fusion
+    {b n : ℕ} (layout : InwardLadderLayout b n) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedRelativeHalfSymbolicCircuit b layout)) =
+      FusionCircuit.eval (relativeHalfLadderFusionCircuit b layout) := by
+  rw [eval_erase_selectiveMergedRelativeHalfSymbolicCircuit,
+    ← erase_relativeHalfLadderSymbolicCircuit]
+
+/-! ### Syntax-derived relative resources -/
+
+@[simp]
+theorem selectiveRelativeHalfNormalForm_oneQubitCount {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.oneQubitCount
+        (selectiveRelativeHalfNormalForm b layout) = 6 * b + 4 := by
+  induction b with
+  | zero => rfl
+  | succ b ih =>
+      simp [selectiveRelativeHalfNormalForm,
+        relativeOuterPrefixSymbolicCircuit,
+        relativeOuterCoreSymbolicCircuit,
+        relativeToffoliTailSymbolicCircuit,
+        relativeToffoliCoreSymbolicCircuit,
+        relativeToffoliStartSymbolic, relativeToffoliEndSymbolic,
+        SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+        SymbolicCircuit.oneQubitWeight, ih]
+      omega
+
+@[simp]
+theorem selectiveRelativeHalfNormalForm_cnotCount {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.cnotCount
+        (selectiveRelativeHalfNormalForm b layout) = 6 * b + 3 := by
+  induction b with
+  | zero => rfl
+  | succ b ih =>
+      simp [selectiveRelativeHalfNormalForm,
+        relativeOuterPrefixSymbolicCircuit,
+        relativeOuterCoreSymbolicCircuit,
+        relativeToffoliTailSymbolicCircuit,
+        relativeToffoliCoreSymbolicCircuit,
+        relativeToffoliStartSymbolic, relativeToffoliEndSymbolic,
+        SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+        SymbolicCircuit.cnotWeight, ih]
+      omega
+
+@[simp]
+theorem selectiveMergedRelativeHalfSymbolicCircuit_oneQubitCount {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.oneQubitCount
+        (selectiveMergedRelativeHalfSymbolicCircuit b layout) = 6 * b + 4 := by
+  rw [selectiveMergedRelativeHalfSymbolicCircuit_eq_normalForm]
+  exact selectiveRelativeHalfNormalForm_oneQubitCount layout
+
+@[simp]
+theorem selectiveMergedRelativeHalfSymbolicCircuit_cnotCount {b n : ℕ}
+    (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.cnotCount
+        (selectiveMergedRelativeHalfSymbolicCircuit b layout) = 6 * b + 3 := by
+  rw [selectiveMergedRelativeHalfSymbolicCircuit_eq_normalForm]
+  exact selectiveRelativeHalfNormalForm_cnotCount layout
+
+/-! ### Complete all-relative A -/
+
+/-- The two halves have distinct targets, so no cross-half rewrite is inserted. -/
+def selectiveMergedRelativeInwardNormalForm {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  selectiveRelativeHalfNormalForm (b + 1) layout ++
+    selectiveRelativeHalfNormalForm b layout.smaller
+
+def selectiveMergedRelativeInwardSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  selectiveMergedRelativeHalfSymbolicCircuit (b + 1) layout ++
+    selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller
+
+@[simp]
+theorem selectiveMergedRelativeInwardSymbolicCircuit_eq_normalForm {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    selectiveMergedRelativeInwardSymbolicCircuit layout =
+      selectiveMergedRelativeInwardNormalForm layout := by
+  simp [selectiveMergedRelativeInwardSymbolicCircuit,
+    selectiveMergedRelativeInwardNormalForm]
+
+@[simp]
+theorem eval_erase_selectiveMergedRelativeInwardSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedRelativeInwardSymbolicCircuit layout)) =
+      FusionCircuit.eval layout.relativeInwardLadderFusionCircuit := by
+  rw [selectiveMergedRelativeInwardSymbolicCircuit,
+    erase_append, FusionCircuit.eval_append,
+    eval_erase_selectiveMergedRelativeHalfSymbolicCircuit_eq_fusion,
+    eval_erase_selectiveMergedRelativeHalfSymbolicCircuit_eq_fusion,
+    relativeInwardLadderFusionCircuit, FusionCircuit.eval_append]
+
+@[simp]
+theorem selectiveMergedRelativeInwardSymbolicCircuit_oneQubitCount {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit.oneQubitCount
+        (selectiveMergedRelativeInwardSymbolicCircuit layout) =
+      12 * b + 14 := by
+  simp [selectiveMergedRelativeInwardSymbolicCircuit]
+  omega
+
+@[simp]
+theorem selectiveMergedRelativeInwardSymbolicCircuit_cnotCount {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit.cnotCount
+        (selectiveMergedRelativeInwardSymbolicCircuit layout) =
+      12 * b + 12 := by
+  simp [selectiveMergedRelativeInwardSymbolicCircuit]
+  omega
+
 /-! ## Coherent mixed orientations for the two exact outer occurrences -/
 
 private theorem twoControlSet_swap {n : ℕ}

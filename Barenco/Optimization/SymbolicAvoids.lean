@@ -43,6 +43,24 @@ theorem normalize_append_inverse_atom_atom {Atom : Type*} [DecidableEq Atom]
       simp only [normalize] at ih
       rw [ih]
 
+/-- A formal atom/inverse suffix also cancels after every earlier prefix. -/
+@[simp]
+theorem normalize_append_atom_inverse {Atom : Type*} [DecidableEq Atom]
+    {n : ℕ} (earlier : SymbolicCircuit Atom n) (wire : Fin n) (atom : Atom) :
+    normalize
+        (earlier ++ [SymbolicPrimitive.atom wire atom,
+          SymbolicPrimitive.inverseAtom wire atom]) =
+      normalize earlier := by
+  induction earlier with
+  | nil =>
+      simp [normalize, NormalizeCore.normalize, NormalizeCore.insert,
+        SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+        SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+  | cons gate tail ih =>
+      simp only [List.cons_append, normalize, NormalizeCore.normalize]
+      simp only [normalize] at ih
+      rw [ih]
+
 /-- Exposure is inert when every node avoids the selected wire. -/
 theorem exposeWire_eq_self_of_all_avoids {Atom : Type*} {n : ℕ}
     (wire : Fin n) (circuit : SymbolicCircuit Atom n)
@@ -164,6 +182,30 @@ theorem normalizeAtWire_inverse_across_avoiding {Atom : Type*}
   rw [exposeWireInsert_before_same_after_all_avoids wire
     ((FreeGroup.of atom)⁻¹) (FreeGroup.of atom) middle havoid]
   exact normalize_append_inverse_atom_atom middle wire atom
+
+/-- Exact formal atom/inverse cancellation across an arbitrary avoiding middle. -/
+theorem normalizeAtWire_atom_across_avoiding_inverse {Atom : Type*}
+    [DecidableEq Atom] {n : ℕ} (wire : Fin n) (atom : Atom)
+    (middle : SymbolicCircuit Atom n)
+    (havoid : ∀ gate ∈ middle, SymbolicPrimitive.AvoidsWire wire gate) :
+    normalizeAtWire wire
+        ([SymbolicPrimitive.atom wire atom] ++ middle ++
+          [SymbolicPrimitive.inverseAtom wire atom]) =
+      normalize middle := by
+  rw [normalizeAtWire]
+  simp only [SymbolicPrimitive.inverseAtom, SymbolicPrimitive.atom,
+    List.singleton_append]
+  have htail := exposeWire_append_selected_of_all_avoids wire
+    (FreeGroup.of atom)⁻¹ middle havoid
+  change normalize
+      (exposeWireInsert wire (.oneQubit wire (FreeGroup.of atom))
+        (exposeWire wire
+          (middle ++ [.oneQubit wire (FreeGroup.of atom)⁻¹]))) =
+    normalize middle
+  rw [htail]
+  rw [exposeWireInsert_before_same_after_all_avoids wire
+    (FreeGroup.of atom) ((FreeGroup.of atom)⁻¹) middle havoid]
+  exact normalize_append_atom_inverse middle wire atom
 
 /-- Join two stable circuits across one explicitly blocked boundary. -/
 theorem Stable.append_of_last_first {Atom : Type*} [DecidableEq Atom]
