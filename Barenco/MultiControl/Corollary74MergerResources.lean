@@ -11,6 +11,7 @@ contains only one-qubit and CNOT nodes.
 namespace Barenco.MultiControl
 
 open Barenco.Optimization
+open scoped Matrix
 
 noncomputable section
 
@@ -261,6 +262,29 @@ def balancedCompleteMergedRelativeCorollary74Circuit
   (balancedCompleteMergedRelativeCorollary74FusionCircuit sourceWidth hwidth).lower
 
 @[simp]
+theorem eval_balancedCompleteMergedRelativeCorollary74FusionCircuit
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    (balancedCompleteMergedRelativeCorollary74FusionCircuit
+      sourceWidth hwidth).eval =
+      positiveControlledUnitary
+        (balancedLayout sourceWidth hwidth).targetWire
+        (balancedLayout sourceWidth hwidth).dataLayout.controlSet pauliX := by
+  apply eval_completeMergedRelativeCorollary74FusionCircuit
+  exact balancedLeftTail_le_right_add_one hwidth
+
+@[simp]
+theorem eval_balancedCompleteMergedRelativeCorollary74Circuit
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.eval
+        (balancedCompleteMergedRelativeCorollary74Circuit sourceWidth hwidth) =
+      positiveControlledUnitary
+        (balancedLayout sourceWidth hwidth).targetWire
+        (balancedLayout sourceWidth hwidth).dataLayout.controlSet pauliX := by
+  rw [balancedCompleteMergedRelativeCorollary74Circuit,
+    FusionCircuit.eval_lower,
+    eval_balancedCompleteMergedRelativeCorollary74FusionCircuit]
+
+@[simp]
 theorem balancedCompleteMergedRelativeCorollary74FusionCircuit_oneQubitCount
     (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
     FusionCircuit.oneQubitCount
@@ -366,6 +390,27 @@ theorem balancedCompleteMergedRelativeCorollary74Circuit_gateCount
   rw [balancedCompleteMergedRelativeCorollary74Circuit,
     FusionCircuit.gateCount_lower,
     balancedCompleteMergedRelativeCorollary74FusionCircuit_gateCount]
+
+/--
+The checked emitted circuit remains exactly two gates above the paper's printed
+`48n-204`; this compares one named construction and is not a lower bound.
+-/
+theorem balancedCompleteMergedRelativeCorollary74Circuit_gateCount_eq_paper_add_two
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.gateCount
+        (balancedCompleteMergedRelativeCorollary74Circuit sourceWidth hwidth) =
+      (48 * sourceWidth - 204) + 2 := by
+  rw [balancedCompleteMergedRelativeCorollary74Circuit_gateCount]
+  omega
+
+/-- The named certified output does not realize the printed constant. -/
+theorem balancedCompleteMergedRelativeCorollary74Circuit_gateCount_ne_paper
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
+    Circuit.gateCount
+        (balancedCompleteMergedRelativeCorollary74Circuit sourceWidth hwidth) ≠
+      48 * sourceWidth - 204 := by
+  rw [balancedCompleteMergedRelativeCorollary74Circuit_gateCount]
+  omega
 
 @[simp]
 theorem balancedCompleteMergedRelativeCorollary74Circuit_oneQubitCNOTCost

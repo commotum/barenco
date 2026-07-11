@@ -1090,9 +1090,47 @@ theorem eval_completeMergedRelativeCorollary74SymbolicCircuit
     layout.eval_mixedExpandedRelativeCorollary74FusionCircuit
       hleft hright htargetFree]
 
+/-- The cross-block rewrites preserve every ordered CNOT endpoint exactly. -/
+theorem cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_regrouped
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    SymbolicCircuit.cnotTrace
+        (layout.completeMergedRelativeCorollary74SymbolicCircuit hleft hright) =
+      SymbolicCircuit.cnotTrace
+        (layout.corollary74MergerCompleteRegroupedSymbolicCircuit
+          hleft hright) := by
+  simp [completeMergedRelativeCorollary74SymbolicCircuit,
+    corollary74MergerCompleteRegroupedSymbolicCircuit,
+    corollary74MergerFinalCancellationMiddle,
+    corollary74MergerRelativePhaseAcrossSmaller,
+    corollary74MergerRelativePhaseAcrossSmallerInput,
+    corollary74MergerRelativePhaseAdjacent,
+    corollary74MergerRelativePhaseAdjacentInput,
+    corollary74MergerBoundaryWire,
+    relativeToffoliEndSymbolic, relativeToffoliStartSymbolic,
+    SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+
+/--
+The final emitted list has the complete ordered CNOT trace of the four
+selectively merged `A;B;A†;B` components.
+-/
+theorem cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_selected
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    SymbolicCircuit.cnotTrace
+        (layout.completeMergedRelativeCorollary74SymbolicCircuit hleft hright) =
+      SymbolicCircuit.cnotTrace
+        (layout.corollary74MergerSelectedFourBlockSymbolicCircuit
+          hleft hright) := by
+  rw [cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_regrouped,
+    layout.corollary74MergerCompleteRegrouped_eq_selected hleft hright]
+
 end FourBlockLayout
 
 end
 
 end Barenco.MultiControl
-
