@@ -16,6 +16,8 @@ import Barenco.Optimization.FusionResources
 import Barenco.Optimization.Normalize
 import Barenco.Optimization.SymbolicCancellation
 import Barenco.Optimization.SymbolicExpose
+import Barenco.Optimization.SymbolicAdjoint
+import Barenco.Optimization.SymbolicAvoids
 import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.CanonicalSelected
 import Barenco.OneQubit.CircuitBridge
@@ -27,6 +29,7 @@ import Barenco.OneQubit.U2Euler
 import Barenco.OneQubit.SelectedABC
 import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
+import Barenco.ThreeQubit.ExpansionFusion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.ThreeQubit.RelativePhaseFusion
 import Barenco.ThreeQubit.RelativePhaseThreeGate
@@ -38,6 +41,7 @@ import Barenco.MultiControl.FourBlock
 import Barenco.MultiControl.Corollary74
 import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
+import Barenco.MultiControl.Corollary74MergerResources
 import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.GrayFusion
 import Barenco.MultiControl.Recursive
@@ -241,6 +245,30 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootFusionCircuit_oneQubitCNOTCost
 #print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_arbitraryTwoQubitCost
 #print axioms Barenco.MultiControl.OrderedControlLayout.mergedGrayControlledViaRootCircuit_gateCount_isTheta
+
+/-! ## Goal 2 Stage 8: complete corrected Corollary 7.4 mergers -/
+
+#print axioms Barenco.Optimization.SymbolicCircuit.normalizeAtWire_words_across_avoiding
+#print axioms Barenco.Optimization.SymbolicCircuit.eval_erase_delete_inverse_across_avoiding
+#print axioms Barenco.Optimization.SymbolicCircuit.oneQubitCount_adjoint
+#print axioms Barenco.Optimization.SymbolicCircuit.cnotTrace_adjoint
+#print axioms Barenco.ThreeQubit.eval_selectedDoubleControlledExpansion16FusionCircuit
+#print axioms Barenco.MultiControl.InwardLadderLayout.eval_erase_selectiveMergedRelativeHalfSymbolicCircuit
+#print axioms Barenco.MultiControl.InwardLadderLayout.eval_erase_selectiveMergedRelativeInwardSymbolicCircuit
+#print axioms Barenco.MultiControl.InwardLadderLayout.eval_erase_selectiveMergedMixedHybridSymbolicCircuit
+#print axioms Barenco.MultiControl.FourBlockLayout.completeMergedRelativeCorollary74SymbolicCircuit_oneQubitCount
+#print axioms Barenco.MultiControl.FourBlockLayout.completeMergedRelativeCorollary74SymbolicCircuit_cnotCount
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_completeMergedRelativeCorollary74SymbolicCircuit_eq_raw
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_completeMergedRelativeCorollary74SymbolicCircuit
+#print axioms Barenco.MultiControl.FourBlockLayout.cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_raw
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_completeMergedRelativeCorollary74Circuit
+#print axioms Barenco.MultiControl.FourBlockLayout.eval_completeMergedRelativeCorollary74Circuit_mulVec_basisKet
+#print axioms Barenco.MultiControl.FourBlockLayout.completeMergedRelativeCorollary74Circuit_basisAction_and_restoration
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCompleteMergedRelativeCorollary74Circuit_oneQubitCount
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCompleteMergedRelativeCorollary74Circuit_cnotCount
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCompleteMergedRelativeCorollary74Circuit_gateCount
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCompleteMergedRelativeCorollary74Circuit_oneQubitCNOTCost
+#print axioms Barenco.MultiControl.FourBlockLayout.balancedCompleteMergedRelativeCorollary74Circuit_gateCount_ne_paper
 
 #print axioms Barenco.GlobalPhaseEq.mul
 #print axioms Barenco.BasisPhaseEq.postcompose
