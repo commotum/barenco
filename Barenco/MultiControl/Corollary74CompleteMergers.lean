@@ -1090,6 +1090,98 @@ theorem eval_completeMergedRelativeCorollary74SymbolicCircuit
     layout.eval_mixedExpandedRelativeCorollary74FusionCircuit
       hleft hright htargetFree]
 
+@[simp]
+theorem InwardLadderLayout.cnotTrace_selectiveMergedRelativeHalf_eq_raw
+    {b n : ℕ} (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.cnotTrace
+        (selectiveMergedRelativeHalfSymbolicCircuit b layout) =
+      SymbolicCircuit.cnotTrace
+        (relativeHalfLadderSymbolicCircuit b layout) := by
+  induction b with
+  | zero => rfl
+  | succ b ih =>
+      rw [selectiveMergedRelativeHalfSymbolicCircuit,
+        relativeHalfLadderSymbolicCircuit]
+      simp only [SymbolicCircuit.cnotTrace_append,
+        SymbolicCircuit.cnotTrace_normalizeAtWire]
+      rw [ih layout.smaller]
+      simp [relativeOuterSymbolicCircuit,
+        relativeOuterPrefixSymbolicCircuit,
+        relativeOuterCoreSymbolicCircuit,
+        relativeToffoliTailSymbolicCircuit,
+        relativeToffoliSymbolicCircuit,
+        relativeToffoliCoreSymbolicCircuit,
+        relativeToffoliStartSymbolic, relativeToffoliEndSymbolic,
+        SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom]
+
+@[simp]
+theorem InwardLadderLayout.cnotTrace_selectiveRelativeHalfNormalTail_eq_raw
+    {b n : ℕ} (layout : InwardLadderLayout b n) :
+    SymbolicCircuit.cnotTrace (selectiveRelativeHalfNormalTail b layout) =
+      SymbolicCircuit.cnotTrace
+        (relativeHalfLadderSymbolicCircuit b layout) := by
+  calc
+    SymbolicCircuit.cnotTrace (selectiveRelativeHalfNormalTail b layout) =
+        SymbolicCircuit.cnotTrace
+          (selectiveRelativeHalfNormalForm b layout) := by
+      rw [selectiveRelativeHalfNormalForm_eq_start_tail]
+      simp [relativeToffoliStartSymbolic, SymbolicPrimitive.atom]
+    _ = SymbolicCircuit.cnotTrace
+          (selectiveMergedRelativeHalfSymbolicCircuit b layout) := by
+      rw [selectiveMergedRelativeHalfSymbolicCircuit_eq_normalForm]
+    _ = _ := cnotTrace_selectiveMergedRelativeHalf_eq_raw layout
+
+@[simp]
+theorem InwardLadderLayout.cnotTrace_selectiveMergedRelativeInward_eq_raw
+    {b n : ℕ} (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit.cnotTrace
+        (selectiveMergedRelativeInwardSymbolicCircuit layout) =
+      SymbolicCircuit.cnotTrace layout.relativeInwardLadderSymbolicCircuit := by
+  rw [selectiveMergedRelativeInwardSymbolicCircuit,
+    relativeInwardLadderSymbolicCircuit]
+  simp only [SymbolicCircuit.cnotTrace_append]
+  rw [cnotTrace_selectiveMergedRelativeHalf_eq_raw,
+    cnotTrace_selectiveMergedRelativeHalf_eq_raw]
+
+@[simp]
+theorem InwardLadderLayout.cnotTrace_selectiveMergedMixedHybrid_eq_raw
+    {b n : ℕ} (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit.cnotTrace
+        (selectiveMergedMixedHybridSymbolicCircuit layout) =
+      SymbolicCircuit.cnotTrace layout.mixedHybridInwardLadderSymbolicCircuit := by
+  rw [selectiveMergedMixedHybridSymbolicCircuit,
+    mixedHybridInwardLadderSymbolicCircuit]
+  simp only [SymbolicCircuit.cnotTrace_append,
+    SymbolicCircuit.cnotTrace_normalizeAtWire]
+  rw [cnotTrace_selectiveMergedRelativeHalf_eq_raw,
+    cnotTrace_selectiveRelativeHalfNormalTail_eq_raw]
+  simp [swappedForwardOuterSymbolicCircuit,
+    standardAdjointOuterSymbolicCircuit,
+    exactToffoliForwardSymbolicCircuit,
+    exactToffoliForwardPrefixSymbolicCircuit,
+    exactToffoliAdjointSymbolicCircuit,
+    exactToffoliAdjointMiddleSymbolicCircuit,
+    phaseRelativeNormalizedBoundarySymbolicCircuit,
+    SymbolicPrimitive.atom, SymbolicPrimitive.inverseAtom,
+    SymbolicCircuit.adjoint, SymbolicPrimitive.adjoint]
+
+/-- The four selectively merged components preserve the complete raw CNOT trace. -/
+theorem cnotTrace_corollary74MergerSelectedFourBlock_eq_raw
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    SymbolicCircuit.cnotTrace
+        (layout.corollary74MergerSelectedFourBlockSymbolicCircuit hleft hright) =
+      SymbolicCircuit.cnotTrace
+        (layout.mixedExpandedRelativeCorollary74SymbolicCircuit hleft hright) := by
+  rw [corollary74MergerSelectedFourBlockSymbolicCircuit,
+    mixedExpandedRelativeCorollary74SymbolicCircuit]
+  simp only [SymbolicCircuit.cnotTrace_append,
+    SymbolicCircuit.cnotTrace_adjoint]
+  rw [InwardLadderLayout.cnotTrace_selectiveMergedRelativeInward_eq_raw,
+    InwardLadderLayout.cnotTrace_selectiveMergedMixedHybrid_eq_raw]
+
 /-- The cross-block rewrites preserve every ordered CNOT endpoint exactly. -/
 theorem cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_regrouped
     {leftTail rightTail n : ℕ}
@@ -1128,6 +1220,19 @@ theorem cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_selected
           hleft hright) := by
   rw [cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_regrouped,
     layout.corollary74MergerCompleteRegrouped_eq_selected hleft hright]
+
+/-- The final emitted syntax preserves the complete coherent raw CNOT trace. -/
+theorem cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_raw
+    {leftTail rightTail n : ℕ}
+    (layout : FourBlockLayout (leftTail + 1) (rightTail + 1) n)
+    (hleft : leftTail ≤ rightTail + 2)
+    (hright : rightTail ≤ leftTail + 2) :
+    SymbolicCircuit.cnotTrace
+        (layout.completeMergedRelativeCorollary74SymbolicCircuit hleft hright) =
+      SymbolicCircuit.cnotTrace
+        (layout.mixedExpandedRelativeCorollary74SymbolicCircuit hleft hright) := by
+  rw [cnotTrace_completeMergedRelativeCorollary74SymbolicCircuit_eq_selected,
+    cnotTrace_corollary74MergerSelectedFourBlock_eq_raw]
 
 end FourBlockLayout
 

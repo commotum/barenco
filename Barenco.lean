@@ -17,6 +17,9 @@ import Barenco.Optimization.FusionResources
 import Barenco.Optimization.Normalize
 import Barenco.Optimization.SymbolicCancellation
 import Barenco.Optimization.SymbolicExpose
+import Barenco.Optimization.SymbolicAdjoint
+import Barenco.Optimization.SymbolicSweep
+import Barenco.Optimization.SymbolicAvoids
 import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.Expansion
 import Barenco.ControlledCircuit.ControlledZ
@@ -32,6 +35,7 @@ import Barenco.OneQubit.CircuitBridge
 import Barenco.OneQubit.SelectedABC
 import Barenco.State.CleanWire
 import Barenco.ThreeQubit.Expansion
+import Barenco.ThreeQubit.ExpansionFusion
 import Barenco.ThreeQubit.RelativePhase
 import Barenco.ThreeQubit.RelativePhaseFusion
 import Barenco.ThreeQubit.RelativePhaseThreeGate
@@ -42,6 +46,9 @@ import Barenco.MultiControl.FourBlock
 import Barenco.MultiControl.Corollary74
 import Barenco.MultiControl.RelativePhase
 import Barenco.MultiControl.Corollary74Expansion
+import Barenco.MultiControl.RelativeHalfFusion
+import Barenco.MultiControl.Corollary74Fusion
+import Barenco.MultiControl.Corollary74MergerResources
 import Barenco.MultiControl.GrayExpansion
 import Barenco.MultiControl.GrayFusion
 import Barenco.MultiControl.GrayMergers
