@@ -211,8 +211,9 @@ collection of hand-simplified paper examples.
   the strongest checked profile `(24n-102,24n-100,48n-202)` for every balanced
   `n>=7`; widths seven, eight, and nine specialize to `(66,68,134)`,
   `(90,92,182)`, and `(114,116,230)`.  Exact full-register semantics,
-  basis-action/restoration, complete symbolic CNOT chronology, component counts,
-  total, and both accepted named costs are derived from the literal emitted list.
+  basis-action/restoration, the complete coherent mixed raw CNOT chronology,
+  component counts, total, and both accepted named costs are derived from the
+  literal emitted list.
   The extra four one-qubit savings beyond separately merged A/B blocks are exactly
   two dirty-wire word fusions and one two-node exact-factor cancellation across a
   final-target-avoiding middle.

@@ -228,22 +228,23 @@ that named construction realizes the paper's `48n-204` count.
 
 ## Completion Requirements
 
-- [ ] A transparent exact-Toffoli expansion with selected factors lowers to the
+- [x] A transparent exact-Toffoli expansion with selected factors lowers to the
   established sixteen-node chronology and has exact arbitrary-register semantics.
-- [ ] The corrected full Corollary family is available as optimizer-visible syntax
+- [x] The corrected full Corollary family is available as optimizer-visible syntax
   without opaque whole-circuit choices and is exactly equal to the established
   phase-safe evaluator.
-- [ ] A named executable normalized/stable output exists for every `n>=7`, with
+- [x] A named executable merged output assembled from certified normalization
+  rewrites exists for every `n>=7`, with
   exact full-register semantics and dirty-wire/spectator restoration inherited
   through an explicit evaluator bridge.
-- [ ] One-qubit, CNOT, total, and accepted early-model costs are derived from the
+- [x] One-qubit, CNOT, total, and accepted early-model costs are derived from the
   literal output syntax; the CNOT trace or any exact change to it is theoremized.
-- [ ] Width-seven/eight/nine examples compile and agree with the general formula.
-- [ ] `48n-204` receives a scoped verified/refuted/not-recovered status with named
+- [x] Width-seven/eight/nine examples compile and agree with the general formula.
+- [x] `48n-204` receives a scoped verified/refuted/not-recovered status with named
   evidence; no optimizer limitation is overstated.
-- [ ] Every affected recursive/resource theorem is rederived or explicitly shown
+- [x] Every affected recursive/resource theorem is rederived or explicitly shown
   to remain based on the unchanged raw substitution.
-- [ ] Stable declarations are publicly integrated and representative headline
+- [x] Stable declarations are publicly integrated and representative headline
   theorems enter the maintained axiom audit; diagnostics remain root-excluded.
 - [ ] Focused/adjacent/public/full builds, strict, trust-zero, forbidden/no-cheating
   scans, documentation/table synchronization, and `git diff --check` pass with
@@ -253,3 +254,41 @@ that named construction realizes the paper's `48n-204` count.
 
 - Stage file created and Stage 8 arithmetic/current facts folded into `0-plan.md`
   before any Stage 8 Lean source edit.
+- `Barenco/Optimization/SymbolicAdjoint.lean`, `SymbolicSweep.lean`, and
+  `SymbolicAvoids.lean` add reusable formal-adjoint resource laws, scheduled
+  target normalization, structural avoiding-wire predicates, and exact inverse-
+  pair deletion across an avoiding middle.  Evaluator equality and complete CNOT
+  chronology are proved for the executable rewrites.
+- `Barenco/ThreeQubit/ExpansionFusion.lean` exposes the selected Corollary 6.2
+  sixteen-node schedule as transparent optimizer syntax.  It lowers literally to
+  `doubleControlledExpansion16Circuit`, implements the double-controlled target
+  unitary on every ambient register, and has syntax-derived profile `(8,8,16)`.
+- `RelativeHalfFusion.lean` and `Corollary74Fusion.lean` reify the repaired raw
+  relative ladders and complete `A;B;A†;B` construction without using the opaque
+  whole-circuit Toffoli choice.  Their exact lowering/evaluator and raw-resource
+  bridges retain the Goal 1 construction as a regression baseline.
+- `Corollary74Mergers.lean` selects one coherent factor valuation, proves the
+  recursive relative-half merger, and implements the mixed exact B orientations.
+  `Corollary74CompleteMergers.lean` then performs the two certified dirty-wire
+  fusions and the final-target inverse-pair deletion across a proved avoiding
+  middle.  The complete emitted symbolic circuit is exactly equal to the repaired
+  raw full-register evaluator and preserves the entire ordered CNOT trace of the
+  coherent mixed-orientation raw schedule.  This is an explicit executable
+  composition of certified `normalizeAtWire` subpasses and the generic avoiding-
+  middle deletion rewrite; no global fixed-point, canonicality, completeness, or
+  optimality theorem is claimed for the final list.
+- `Corollary74MergerResources.lean` exports visible and trusted-lowered wrappers,
+  exact basis action and dirty-wire/spectator restoration, and list-derived
+  general counts.  For every balanced `n>=7`, the named circuit has one-qubit
+  count `24n-102`, CNOT count `24n-100`, no generic U(4) nodes, and total/both
+  accepted costs `48n-202`.  Named comparison theorems prove that this particular
+  output is exactly two gates above and unequal to the paper's `48n-204`; the
+  source count is therefore **not recovered**, not refuted.
+- Root-excluded `Corollary74MergerExamples.lean` proves profiles
+  `(66,68,134)`, `(90,92,182)`, and `(114,116,230)` at widths seven, eight, and
+  nine, plus exact smallest-width semantics and inequality with the paper target.
+- `RecursiveExpansion.lean` continues to substitute the unchanged raw
+  `expandedRelativeCorollary74Circuit`; the optimized family is a separate public
+  construction.  Consequently its existing exact recurrences and asymptotic
+  constants remain valid and are not silently edited to use an unproved
+  substitution.

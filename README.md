@@ -132,8 +132,9 @@ claim or a lower bound on arbitrary implementations of `U`.
   time-dependent “most efficient known” claim.
 - Corollary 7.4 now has a separate transparent complete-merger circuit for every
   width `n>=7`. It is exactly equal to the corrected dirty-wire controlled-X
-  evaluator, restores all non-target wires, preserves the raw CNOT trace, and has
-  literal profile `24n-102` one-qubit plus `24n-100` CNOT gates, total/cost
+  evaluator, restores all non-target wires, preserves the complete coherent mixed
+  raw CNOT trace. Its literal profile is `24n-102` one-qubit plus `24n-100` CNOT
+  gates, with total/cost
   `48n-202`. The paper's `48n-204` is not recovered by this named construction;
   it is not refuted because no matched completeness or lower-bound theorem is
   claimed. Width-seven/eight/nine checks live in the root-excluded

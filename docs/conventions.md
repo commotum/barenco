@@ -372,7 +372,8 @@ and accepted total cost `56d²+364d+440`. For source width `n≥7`, the Nat-safe
 total is `56n²+636−420n`. These are counts of this named syntax and an
 `O(n²)` upper bound; they do not assert that optimal exact synthesis is
 quadratic. The coefficient 56 uses the literal checked Corollary 7.4 expansion,
-not the source's unresolved optimized count.
+not the separately exported `48n−202` merger; the paper's `48n−204` remains not
+recovered. The recursive substitution and its counts are unchanged.
 
 ### Approximation depth, truncation, and selected resources
 
@@ -1064,7 +1065,7 @@ These four cross-block savings are exact symbolic rewrites, not consequences of
 matrix equality or an arithmetic-only count function. The evaluator remains the
 exact intended full-register controlled X, the basis-action theorem restores all
 non-target wires for arbitrary input bits, and the complete ordered CNOT trace is
-proved equal to the raw trace.
+proved equal to the complete coherent mixed raw trace.
 
 For the balanced family, `ℓ+r+7=n`, so every `n≥7` has literal profile
 `(24n−102,24n−100,48n−202)`. Widths seven, eight, and nine compile to

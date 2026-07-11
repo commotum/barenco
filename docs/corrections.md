@@ -91,8 +91,8 @@ statement. “Open” means the repair is identified but not yet machine checked
   total/cost `48n−202`. The final printed `48n−204` still does not follow from
   the erroneous intermediate sentence and is not recovered by the named checked
   construction.
-- **Dependent impact:** exact early-basic count in Corollary 7.4 and leading counts
-  derived from it.
+- **Dependent impact:** exact early-basic count in Corollary 7.4 and any later
+  construction that explicitly chooses this new merged syntax.
 - **Formal evidence:** `corollary74Circuit_toffoliCount` and
   `balancedCorollary74Circuit_gateCount` establish `8(n−5)=8n−40` from explicit
   syntax; `balancedLayout_targetWire_not_mem_aImplementation_touchedSupport`
@@ -129,7 +129,7 @@ statement. “Open” means the repair is identified but not yet machine checked
   separates this particular emitted list from `48n−204`; it is not a lower bound
   over all exact constructions. Consequently the paper's number is **not
   recovered**, not refuted.
-- **Dependent impact:** `RecursiveExpansion` continues to import and substitute
+- **Recursive dependency:** `RecursiveExpansion` continues to import and substitute
   the raw `expandedRelativeCorollary74Circuit`. Its exact quadratic counts remain
   unchanged; the new optimized circuit is a separate public construction rather
   than a silent recurrence substitution.

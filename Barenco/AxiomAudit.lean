@@ -17,6 +17,7 @@ import Barenco.Optimization.Normalize
 import Barenco.Optimization.SymbolicCancellation
 import Barenco.Optimization.SymbolicExpose
 import Barenco.Optimization.SymbolicAdjoint
+import Barenco.Optimization.SymbolicSweep
 import Barenco.Optimization.SymbolicAvoids
 import Barenco.Optimization.NormalizeResources
 import Barenco.ControlledCircuit.CanonicalSelected

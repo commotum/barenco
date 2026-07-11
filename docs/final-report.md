@@ -42,7 +42,7 @@ claim.
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
 - Project Lean files below `Barenco/`: 145, plus `Barenco.lean`
-- Maintained kernel axiom checks: 478
+- Maintained kernel axiom checks: 480
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -316,7 +316,7 @@ adjoints and wire-avoidance cancellation, optimizer-visible relative ladders, an
 the complete corrected Corollary 7.4 merger. Two dirty-wire word fusions save one
 node each, and deletion of a formal `A⁻¹/A` pair across final-target-avoiding syntax
 saves two. The output preserves exact full-register semantics, restoration, and
-the complete CNOT trace and has balanced profile
+the complete coherent mixed raw CNOT trace and has balanced profile
 `(24n−102,24n−100,48n−202)` for every `n≥7`. Root-excluded diagnostics confirm
 widths seven, eight, and nine as `(66,68,134)`, `(90,92,182)`, and
 `(114,116,230)`. The existing recursive primitive construction still substitutes
@@ -325,12 +325,13 @@ the raw Corollary circuit, so its recurrence and quadratic counts remain unchang
 The Stage 7 focused/adjacent/public/audit sweep passed with 3,608 jobs, all twelve
 direct warning-as-error and trust-zero checks passed, and the integrated full build
 passed with 3,606 jobs. Twenty-one representative Stage 7 checks raised the
-maintained audit from 436 to 457. Stage 8 adds another 21 maintained checks, for
-478 total: 19 use only `propext`, `Classical.choice`, and `Quot.sound`, while the
+maintained audit from 436 to 457. Stage 8 adds another 23 maintained checks, for
+480 total: 21 use only `propext`, `Classical.choice`, and `Quot.sound`, while the
 two structural symbolic-adjoint count/trace results use only `propext` and
-`Quot.sound`. The audit source and documentation table both contain 478 entries;
+`Quot.sound`. The audit source and documentation table both contain 480 entries;
 the public tree contains 145 Lean files, and the Corollary merger diagnostics
-remain root-excluded.
+remain root-excluded. The integrated Stage 8 resource/diagnostic/public/audit
+build completed successfully with 3,617 jobs.
 
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic
