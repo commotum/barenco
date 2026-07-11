@@ -333,6 +333,37 @@ the public tree contains 145 Lean files, and the Corollary merger diagnostics
 remain root-excluded. The integrated Stage 8 resource/diagnostic/public/audit
 build completed successfully with 3,617 jobs.
 
+The Goal 2 Stage 9 release audit then rebuilt the final tree from scratch.
+`lake clean` exited 0, and the default `lake build` from the empty build tree
+passed with 3,623 jobs. A post-clean release build of
+`Barenco.TwoWireCircuitExamples`, `Barenco.FusionExamples`,
+`Barenco.NormalizeExamples`,
+`Barenco.ThreeQubit.RelativePhaseThreeGateExamples`,
+`Barenco.MultiControl.GrayMergerExamples`,
+`Barenco.MultiControl.Corollary74MergerExamples`, the public `Barenco` target,
+and `Barenco.AxiomAudit` also passed with 3,623 jobs. Direct
+warning-as-error compilation of all eight corresponding source files passed both
+normally and with `-t0`.
+
+The final kernel audit printed all 480 maintained checks. Every result was
+exactly one of `{propext}`, `{propext, Quot.sound}`, or
+`{propext, Classical.choice, Quot.sound}`; no project-specific axiom appeared.
+The audit source and documentation table agree at 480/480 entries, the public
+tree contains 145 Lean files, and the project remains pinned to Lean 4.31.0 and
+mathlib commit `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`.
+
+Final proof-hole and trace scans were empty. The custom-declaration scan produced
+only the word `opaque` in a comment at
+`Barenco/MultiControl/Corollary74Fusion.lean:14`; it found no declaration. The
+Stage 8 forbidden/runtime-choice scan was empty, all six diagnostic modules
+remain excluded from the public root, and the three remaining `decide` uses are
+proofs of free-group word nonidentity. Searches for arbitrary `U(4)` found only
+kind/cost theorem statements and confirmed that the complete Corollary 7.4 output
+emits zero such nodes; searches for the disputed formulas found only theorem
+conclusions. The documentation path/name/formula consistency audit and
+`git diff --check` both passed. A final cached `lake build` after the release
+documentation update passed with 3,615 jobs.
+
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic
 results use a strict subset). There is no project-specific axiom.

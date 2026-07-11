@@ -149,3 +149,35 @@ stage ledgers, and persistent goal status in exact agreement.
 
 - Stage file created after the completed Stage 8 evidence was folded into
   `goal-2/0-plan.md` and before any Stage 9 clean-build or release-status edit.
+- `lake clean` completed successfully, followed by a clean default `lake build`
+  from an empty Lake tree.  All 3,623 dependency and public-project jobs passed;
+  no cached project artifact was used as release evidence.
+- The post-clean build of `TwoWireCircuitExamples`, `FusionExamples`,
+  `NormalizeExamples`, `RelativePhaseThreeGateExamples`, `GrayMergerExamples`,
+  `Corollary74MergerExamples`, `Barenco`, and `Barenco.AxiomAudit` also passed with
+  3,623 jobs.  This separately covers the six representative root-excluded
+  workflows that the default public build intentionally omits.
+- All eight representative diagnostic/root/audit files passed direct
+  `-DwarningAsError=true` compilation and direct
+  `-t0 -DwarningAsError=true` compilation.  The audit printed all 480 maintained
+  results in both modes; the only dependency sets were `{propext}`,
+  `{propext, Quot.sound}`, and
+  `{propext, Classical.choice, Quot.sound}`.  No project-specific axiom appears.
+- Repository-wide proof-hole and trace scans are empty.  The custom-declaration
+  scan has one classified prose-only hit (`Corollary74Fusion.lean:14`, “opaque
+  expansion”) and no actual `axiom`/`opaque` declaration.  Scoped runtime scans
+  found no whole-circuit exact-Toffoli choice, unclassified/forged primitive,
+  runtime classical choice, matrix/unitary equality decision, hard-coded width
+  branch, or diagnostic public import.  Three ordinary `decide` calls prove only
+  free-group word nonidentity; arbitrary-two-qubit and `48n` hits occur only in
+  kind/cost/count theorem statements, and the emitted Corollary U(4) count is zero.
+- Audit source/table counts are exactly 480/480, the public tree has 145 Lean files
+  below `Barenco/`, Lean is pinned to 4.31.0, and mathlib is pinned to
+  `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`.  An independent documentation
+  audit found every local path and Stage 8 declaration, matched the source/table
+  name sets exactly, confirmed every formula/status/trace qualification and the
+  unchanged recursive substitution, and found no use of the disposable
+  orientation search as evidence.  `git diff --check` passes.
+- A final cached default `lake build` after the release-documentation update
+  passed with 3,615 jobs, confirming that the recorded public source still matches
+  the freshly rebuilt artifacts.
