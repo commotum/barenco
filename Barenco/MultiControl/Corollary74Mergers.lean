@@ -1233,14 +1233,101 @@ theorem selectiveMergedMixedHybridSymbolicCircuit_eq_normalForm {b n : ℕ}
   rw [normalize_selectiveRelativeHalfNormalForm,
     phaseRelativeNormalizedBoundarySymbolicCircuit_eq_normalForm]
 
+/-- Literal unnormalized chronology exposed by the two mixed-B normalizer calls. -/
+def selectiveMergedMixedHybridRegroupedSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    SymbolicCircuit Corollary74FactorAtom n :=
+  exactToffoliForwardPrefixSymbolicCircuit
+      (layout.borrowedWire (Fin.last b))
+      (layout.controlWire (Fin.last (b + 2))) layout.targetWire
+      (layout.controlWire_ne_borrowedWire _ _).symm
+      (layout.borrowedWire_ne_targetWire _)
+      (layout.controlWire_ne_targetWire _) ++
+    [SymbolicPrimitive.atom layout.targetWire .C] ++
+      selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller ++
+        [SymbolicPrimitive.inverseAtom layout.targetWire .C] ++
+          exactToffoliAdjointMiddleSymbolicCircuit
+            (layout.controlWire (Fin.last (b + 2)))
+            (layout.borrowedWire (Fin.last b)) layout.targetWire
+            (layout.controlWire_ne_borrowedWire _ _)
+            (layout.controlWire_ne_targetWire _)
+            (layout.borrowedWire_ne_targetWire _) ++
+            [SymbolicPrimitive.inverseAtom
+              (layout.borrowedWire (Fin.last b)) .phase,
+             relativeToffoliStartSymbolic
+              (layout.borrowedWire (Fin.last b))] ++
+              selectiveRelativeHalfNormalTail b layout.smaller
+
+/-- Both executable mixed-B boundary normalizations preserve exact evaluation. -/
+theorem eval_erase_selectiveMergedMixedHybrid_eq_regrouped {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedMixedHybridSymbolicCircuit layout)) =
+      FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedMixedHybridRegroupedSymbolicCircuit layout)) := by
+  simp only [selectiveMergedMixedHybridSymbolicCircuit,
+    selectiveMergedMixedHybridRegroupedSymbolicCircuit,
+    phaseRelativeNormalizedBoundarySymbolicCircuit,
+    erase_append, FusionCircuit.eval_append]
+  rw [SymbolicCircuit.eval_erase_normalizeAtWire]
+  rw [SymbolicCircuit.eval_erase_normalizeAtWire]
+  simp only [relativeToffoliStartSymbolic, erase_append,
+    FusionCircuit.eval_append, mul_assoc]
+
+/-- Regrouping recovers both exact schedules and both complete relative halves. -/
+theorem selectiveMergedMixedHybridRegrouped_eq_raw_with_merged_halves
+    {b n : ℕ} (layout : InwardLadderLayout (b + 1) n) :
+    selectiveMergedMixedHybridRegroupedSymbolicCircuit layout =
+      layout.swappedForwardOuterSymbolicCircuit ++
+        selectiveMergedRelativeHalfSymbolicCircuit b layout.smaller ++
+          layout.standardAdjointOuterSymbolicCircuit ++
+            selectiveRelativeHalfNormalForm b layout.smaller := by
+  rw [swappedForwardOuterSymbolicCircuit,
+    exactToffoliForwardSymbolicCircuit_eq_prefix_end,
+    standardAdjointOuterSymbolicCircuit,
+    exactToffoliAdjointSymbolicCircuit_eq_start_middle_end,
+    selectiveRelativeHalfNormalForm_eq_start_tail]
+  simp [selectiveMergedMixedHybridRegroupedSymbolicCircuit,
+    relativeToffoliStartSymbolic, smaller_targetWire, List.append_assoc]
+
+/-- Exact valued semantics of the selective mixed-B merger. -/
+@[simp]
+theorem eval_erase_selectiveMergedMixedHybridSymbolicCircuit {b n : ℕ}
+    (layout : InwardLadderLayout (b + 1) n) :
+    FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveMergedMixedHybridSymbolicCircuit layout)) =
+      FusionCircuit.eval layout.mixedHybridInwardLadderFusionCircuit := by
+  rw [eval_erase_selectiveMergedMixedHybrid_eq_regrouped,
+    selectiveMergedMixedHybridRegrouped_eq_raw_with_merged_halves]
+  repeat' rw [erase_append]
+  repeat' rw [FusionCircuit.eval_append]
+  rw [erase_swappedForwardOuterSymbolicCircuit,
+    eval_erase_selectiveMergedRelativeHalfSymbolicCircuit_eq_fusion,
+    erase_standardAdjointOuterSymbolicCircuit]
+  rw [show FusionCircuit.eval
+        (SymbolicCircuit.erase corollary74FactorValuation
+          (selectiveRelativeHalfNormalForm b layout.smaller)) =
+      FusionCircuit.eval
+        (relativeHalfLadderFusionCircuit b layout.smaller) by
+    rw [← selectiveMergedRelativeHalfSymbolicCircuit_eq_normalForm]
+    exact eval_erase_selectiveMergedRelativeHalfSymbolicCircuit_eq_fusion
+      layout.smaller]
+  simp [mixedHybridInwardLadderFusionCircuit,
+    FusionCircuit.eval_append]
+  simp only [mul_assoc]
+
 @[simp]
 theorem selectiveMergedMixedHybridSymbolicCircuit_oneQubitCount {b n : ℕ}
     (layout : InwardLadderLayout (b + 1) n) :
     SymbolicCircuit.oneQubitCount
         (selectiveMergedMixedHybridSymbolicCircuit layout) = 12 * b + 21 := by
   rw [selectiveMergedMixedHybridSymbolicCircuit_eq_normalForm]
-  simp [selectiveMergedMixedHybridNormalForm]
-  trace_state
+  simp [selectiveMergedMixedHybridNormalForm,
+    relativeToffoliStartSymbolic, SymbolicPrimitive.atom,
+    SymbolicCircuit.oneQubitWeight]
   omega
 
 @[simp]
@@ -1249,8 +1336,9 @@ theorem selectiveMergedMixedHybridSymbolicCircuit_cnotCount {b n : ℕ}
     SymbolicCircuit.cnotCount
         (selectiveMergedMixedHybridSymbolicCircuit layout) = 12 * b + 22 := by
   rw [selectiveMergedMixedHybridSymbolicCircuit_eq_normalForm]
-  simp [selectiveMergedMixedHybridNormalForm]
-  trace_state
+  simp [selectiveMergedMixedHybridNormalForm,
+    relativeToffoliStartSymbolic, SymbolicPrimitive.atom,
+    SymbolicCircuit.cnotWeight]
   omega
 
 end InwardLadderLayout
