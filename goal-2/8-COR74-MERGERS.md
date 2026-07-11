@@ -147,9 +147,13 @@ that named construction realizes the paper's `48n-204` count.
   trust core.
 - Add `Barenco/MultiControl/Corollary74CompleteMergers.lean` as the final public
   proof leaf for the two cross-block dirty-wire fusions, final-target exact-factor
-  cancellation, balanced wrapper, and general syntax-derived profile.  Splitting
+  cancellation, and exact arbitrary-width evaluator.  Splitting
   this from the already large recursive-component leaf keeps the final proof and
   its diagnostics incrementally buildable without changing the trust core.
+- Add `Barenco/MultiControl/Corollary74MergerResources.lean` above that proof leaf
+  for visible/lowered wrappers, general and balanced syntax-derived profiles, both
+  accepted named costs, and the scoped comparison with the paper's constant.
+  Width-seven/eight/nine regressions remain in the root-excluded examples leaf.
 - Add the low-dependency reusable leaf
   `Barenco/Optimization/SymbolicAdjoint.lean` if the final construction needs a
   literal formal adjoint of a generated symbolic ladder. It may only reverse
