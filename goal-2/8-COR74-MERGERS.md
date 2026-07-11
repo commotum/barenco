@@ -138,6 +138,10 @@ that named construction realizes the paper's `48n-204` count.
   `normalizeAtWire` over an explicit wire schedule. It owns only the executable
   fold and exact evaluator/CNOT-trace/nonincrease lifts; the Corollary module owns
   the schedule choice and every paper-facing output/count theorem.
+- Add `Barenco/Optimization/SymbolicAvoids.lean` for the structural predicate
+  that a symbolic node avoids one wire and the generic theorem that
+  `normalizeAtWire` cancels a formal inverse pair across any avoiding middle.
+  Layout-specific avoidance proofs remain in the Corollary leaf.
 - Keep width-seven/eight/nine traces and alternative-orientation probes in the
   root-excluded diagnostic leaf
   `Barenco/MultiControl/Corollary74MergerExamples.lean`.
