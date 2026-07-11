@@ -1,6 +1,6 @@
 # 9-AUDIT
 
-Status: in progress (2026-07-11).
+Status: complete (2026-07-11).
 
 ## Current Facts
 
@@ -124,25 +124,25 @@ stage ledgers, and persistent goal status in exact agreement.
 
 ## Completion Requirements
 
-- [ ] Every original Goal 2 success metric and all three test-case outcomes have
+- [x] Every original Goal 2 success metric and all three test-case outcomes have
   direct current source/build/documentation evidence.
-- [ ] Stable public imports and all representative root-excluded workflows compile;
+- [x] Stable public imports and all representative root-excluded workflows compile;
   diagnostics remain absent from root and audit imports.
-- [ ] README, traceability, correction log, conventions, final report, axiom audit,
+- [x] README, traceability, correction log, conventions, final report, axiom audit,
   `0-plan.md`, and all completed stage files agree on formulas and statuses.
-- [ ] A clean default build and post-clean public/diagnostic/audit build pass with
+- [x] A clean default build and post-clean public/diagnostic/audit build pass with
   exact commands and job counts recorded.
-- [ ] Direct warning-as-error and trust-zero compilation passes for root, audit,
+- [x] Direct warning-as-error and trust-zero compilation passes for root, audit,
   and all six representative diagnostic files.
-- [ ] The maintained axiom audit has matching source/table counts and no
+- [x] The maintained axiom audit has matching source/table counts and no
   project-specific foundation.
-- [ ] Repository-wide forbidden scans, scoped Goal 2 no-cheating scans,
+- [x] Repository-wide forbidden scans, scoped Goal 2 no-cheating scans,
   root-exclusion checks, documentation consistency checks, and `git diff --check`
   pass with classified expected matches only.
-- [ ] The final report contains the completed Goal 2 additions, honest unresolved
+- [x] The final report contains the completed Goal 2 additions, honest unresolved
   claims, exact/asymptotic resource status, build/axiom results, and future-use
   guidance.
-- [ ] `goal-2/0-plan.md`, this stage, and the persistent goal status are marked
+- [x] `goal-2/0-plan.md`, this stage, and the persistent goal status are marked
   complete only after the requirement-by-requirement audit passes.
 
 ## Stage Results
@@ -181,3 +181,9 @@ stage ledgers, and persistent goal status in exact agreement.
 - A final cached default `lake build` after the release-documentation update
   passed with 3,615 jobs, confirming that the recorded public source still matches
   the freshly rebuilt artifacts.
+- A separate final read-only requirement audit rechecked every original objective,
+  test-case outcome, public/diagnostic boundary, theorem/formula surface,
+  documentation artifact, build record, axiom name set, pin, inventory count, and
+  no-cheating rule against the current tree.  It found no mathematical, Lean,
+  documentation, build, or trust-boundary blocker; only this completion
+  bookkeeping remained.

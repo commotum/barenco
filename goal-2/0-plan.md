@@ -2,8 +2,7 @@
 
 Shorthand: `TWOFUSE`
 
-Status: active. Stages 1–8 are complete; Stage 9 release audit is the first
-incomplete stage.
+Status: complete (2026-07-11).  Stages 1–9 and the release audit are complete.
 
 ## Big-Picture Objective
 
@@ -274,7 +273,7 @@ The goal is complete only when all of the following hold:
 - [x] `6-TOFFOLI-THREE` — certify or precisely delimit the cost-three claim.
 - [x] `7-GRAY-MERGERS` — normalize the general Gray family and settle its checked count.
 - [x] `8-COR74-MERGERS` — test the optimized Corollary 7.4 count and dependencies.
-- [ ] `9-AUDIT` — public integration, documentation, builds, and axiom audit.
+- [x] `9-AUDIT` — public integration, documentation, builds, and axiom audit.
 
 ## 1-GUARDRAILS
 
@@ -703,7 +702,7 @@ construction and test the paper's optimized total `48n - 204`.
   maintained audit has 480 checks, its 23 Stage 8 additions use only standard
   foundations, repository forbidden/no-cheating scans and root-exclusion checks
   are clean, documentation is synchronized, and `git diff --check` passes.  Full
-  clean-room release verification remains Stage 9.
+  clean-room release verification was completed in Stage 9.
 
 ## 9-AUDIT
 
@@ -743,3 +742,25 @@ and deliver release-grade documentation and verification.
   with exact commands and results recorded.
 - `goal-2/0-plan.md`, the completed stage files, traceability/corrections, and the
   final project report agree on what was achieved and what remains open.
+
+### Stage Results
+
+- A final requirement-by-requirement audit found all three original deliverables
+  complete: certified ordered two-wire semantics/syntax, the payload-preserving
+  exact normalizer with model-specific resource proofs, and named outputs for all
+  three paper tests.  Relative-Toffoli cost three and the general Gray count are
+  verified constructive upper bounds.  Corollary 7.4 has the exact checked
+  `48n-202` output; the paper's `48n-204` remains not recovered and not refuted.
+- `lake clean` followed by the default public build passed all 3,623 jobs.  The
+  post-clean build of six representative root-excluded diagnostics plus public
+  root and audit also passed with 3,623 jobs, and a final cached public build
+  passed with 3,615 jobs.  All eight diagnostic/root/audit files passed direct
+  warning-as-error and trust-zero compilation.
+- The maintained audit contains 480 checks and the documentation table contains
+  the same 480 declaration names.  Results use only `propext`, `Quot.sound`, and
+  `Classical.choice` in the recorded subsets; no project-specific axiom appears.
+  Repository proof-hole, trace, custom-declaration, no-cheating, root-exclusion,
+  formula, path/name, pin, inventory, and whitespace audits pass.  The final tree
+  has 145 Lean files below `Barenco/`, is pinned to Lean 4.31.0 and mathlib
+  `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`, and its public documentation and
+  final report agree with the compiled API.
