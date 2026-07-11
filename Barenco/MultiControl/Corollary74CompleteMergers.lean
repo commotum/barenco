@@ -1071,8 +1071,10 @@ theorem eval_completeMergedRelativeCorollary74SymbolicCircuit_eq_raw
     layout.corollary74MergerCompleteRegrouped_eq_selected hleft hright,
     layout.corollary74MergerEvalEraseSelectedFourBlock_eq_mixedExpanded hleft hright]
 
-/-- Consequently the selective 66-one-qubit/68-CNOT construction implements
-the intended multiply controlled Pauli-X exactly on the full register. -/
+/-- Consequently the selectively merged construction implements the intended
+multiply controlled Pauli-X exactly on the full register.  Its general resource
+profile is stated in `Corollary74MergerResources`; `66` one-qubit gates and `68`
+CNOTs are the separate smallest-width (`n = 7`) specialization. -/
 @[simp]
 theorem eval_completeMergedRelativeCorollary74SymbolicCircuit
     {leftTail rightTail n : ℕ}

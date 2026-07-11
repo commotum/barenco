@@ -207,28 +207,32 @@ collection of hand-simplified paper examples.
   `selectedColumnABCFactors (specialUnitaryPart (unitarySquareRoot pauliX))`
   provides one transparent checked factor package. Stage 8 must connect those
   factors to explicit fusion/symbolic syntax before claiming any merger.
-- Stage 8 diagnostics now isolate a strongest checked candidate profile
-  `(24n-102,24n-100,48n-202)`: widths seven, eight, and nine emit
-  `(66,68,134)`, `(90,92,182)`, and `(114,116,230)`.  The extra four
-  one-qubit savings beyond separately merged A/B blocks are exactly two
-  dirty-wire word fusions and one two-node exact-factor cancellation across a
-  final-target-avoiding middle.  These diagnostics still require a general
-  syntax theorem before becoming a public resource result.
-- Exhaustive width-seven testing of all 256 standard/swapped and
-  forward/adjoint orientations in the declared deterministic symbolic sweep did
-  not reach the paper's target 64 one-qubit nodes; the best was 66.  This finite
-  failure supports only “not recovered” for that tested class, not refutation or
-  a global lower bound.
+- Stage 8's public named symbolic, visible, and lowered circuit families realize
+  the strongest checked profile `(24n-102,24n-100,48n-202)` for every balanced
+  `n>=7`; widths seven, eight, and nine specialize to `(66,68,134)`,
+  `(90,92,182)`, and `(114,116,230)`.  Exact full-register semantics,
+  basis-action/restoration, complete symbolic CNOT chronology, component counts,
+  total, and both accepted named costs are derived from the literal emitted list.
+  The extra four one-qubit savings beyond separately merged A/B blocks are exactly
+  two dirty-wire word fusions and one two-node exact-factor cancellation across a
+  final-target-avoiding middle.
+- A disposable width-seven enumeration of 256 standard/swapped and
+  forward/adjoint exact-occurrence orientations reported best one-qubit count 66
+  for the tested deterministic sweep, but it is not maintained completion
+  evidence and is not needed for the exported classification.  The named
+  construction's proved `48n-202` result establishes only that the paper's
+  `48n-204` was not recovered; neither result is a refutation or global lower
+  bound.
 
 ## Remaining Assumptions to Test
 - The Corollary 7.4 constant may require rewrites beyond the general Gray mergers.
   Its source arithmetic and phase errors remain corrected regardless of whether a
   lower count is found.
 - The coherent mixed orientation exposes two dirty-wire fusions and one
-  exact-factor inverse cancellation, giving the candidate total `48n-202`, but
-  no checked rewrite has exposed the additional two one-qubit savings required
-  by `48n-204`.  The finite orientation search and named normalizer outcome can
-  establish only “not recovered,” not a lower bound or refutation.
+  exact-factor inverse cancellation, giving the proved total `48n-202`, but no
+  checked rewrite has exposed the additional two one-qubit savings required by
+  `48n-204`.  The named normalizer outcome establishes only “not recovered,” not
+  a lower bound or refutation.
 
 ## Success Metrics and Final Verification
 

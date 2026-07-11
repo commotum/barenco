@@ -1,6 +1,6 @@
 # Final Formalization Report
 
-Date: 2026-07-10
+Date: 2026-07-11
 
 ## Outcome
 
@@ -41,8 +41,8 @@ claim.
 - mathlib: `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - Lake library target: `Barenco`
 - Public umbrella import: `import Barenco`
-- Project Lean files below `Barenco/`: 135, plus `Barenco.lean`
-- Maintained kernel axiom checks: 457
+- Project Lean files below `Barenco/`: 145, plus `Barenco.lean`
+- Maintained kernel axiom checks: 478
 
 The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 `lake-manifest.json`.
@@ -55,20 +55,20 @@ The pinned inputs are in `lean-toolchain`, `lakefile.toml`, and
 | Ordered two-wire gates | `TwoWire/Layout`, `TwoWire/Semantics`, `TwoWire/ControlledBridges`, `TwoWire/Circuit` | certified arbitrary-`U(4)` embeddings, spectator/orientation laws, trusted syntax, adjoints, and model-specific costs |
 | Circuit syntax | `Circuit`, `Cost` | chronological primitive lists, exact evaluation, support, gate counts, named partial cost models |
 | Exact fusion input | `Optimization/FusionIR`, `Optimization/FusionResources` | closed payload-preserving one-/two-wire syntax, exact lowering, explicit opaque barriers, and syntax-derived model-specific resources |
-| Exact normalization | `Optimization/NormalizeCore`, `FusionLaws`, `FusionCommutation`, `Normalize`, `SymbolicCancellation`, `SymbolicExpose`, `NormalizeResources` | terminating exact rewrite policies, target-directed exposure, barrier-separated programs, honest syntactic inverse provenance, ordered-CNOT preservation, and conditional partial-cost nonincrease |
+| Exact normalization | `Optimization/NormalizeCore`, `FusionLaws`, `FusionCommutation`, `Normalize`, `SymbolicCancellation`, `SymbolicExpose`, `SymbolicAdjoint`, `SymbolicSweep`, `SymbolicAvoids`, `NormalizeResources` | terminating exact rewrite policies, target-directed exposure, formal adjoints, certified wire schedules, cancellation across wire-avoiding syntax, barrier-separated programs, ordered-CNOT preservation, and conditional partial-cost nonincrease |
 | Equivalence and error | `Equivalence/*` | exact global phase, basis-dependent phase, basis behavior, channel/all-measurement equality, L2 operator distance, event-probability bounds |
 | One-qubit algebra | `OneQubit/*` | row/column convention bridge, Euler forms, Pauli/rotation identities, ABC factors, exact and coherent roots |
 | Controlled gates | `ControlledCircuit/*` | target-block semantics, general and special controlled-U decompositions, controlled scalar phases, explicit expansions |
 | Three-qubit gates | `ThreeQubit/*` | Lemma 6.1, exact primitive expansion, signed relative-phase Toffoli circuits, and the explicit three-`U(4)` Section 8 implementation |
-| Multi-control | `MultiControl/*` | raw and coherently merged Gray circuits, dirty-wire ladders, four-block and recursive constructions, relative-phase substitution, clean ancillas, exact resources |
+| Multi-control | `MultiControl/*`, especially `Corollary74CompleteMergers` and `Corollary74MergerResources` | raw and coherently merged Gray circuits, dirty-wire ladders, four-block and recursive constructions, complete relative-phase Corollary 7.4 merging, clean ancillas, exact resources |
 | Approximation | `MultiControl/Approximate*`, `ApproximationResources` | truncated coherent roots, exact residual formula, operator/event error, capacity-aware synthesis |
 | Lower bounds | `LowerBounds/*` | restricted basic syntax, interaction graph, cut factorization, nonscalar obstruction, `n-1` CNOT lower bound |
 | Exact universality | `Universality/*` | Givens elimination, finite reindex bridge, affine two-level circuits, diagonal synthesis, circuit-product chronology, exact assembly |
 | Aggregate resources | `Universality/*Resources` | exact schedule lengths, quadratic component bounds, Section 8 pricing, finite and asymptotic synthesis bounds |
 
-Files named `*Examples.lean`, including
-`Universality/ResourceExamples.lean`, are diagnostics and are intentionally not
-imported by the public root.
+Files named `*Examples.lean`, including `Universality/ResourceExamples.lean` and
+`MultiControl/Corollary74MergerExamples.lean`, are diagnostics and are
+intentionally not imported by the public root.
 
 ## Main Public APIs
 
@@ -94,6 +94,9 @@ imported by the public root.
 | `relativePhaseToffoliThreeGateCircuit_ne_toffoli`, `relativePhaseToffoliThreeGateCircuit_not_globalPhaseEq_toffoli` | explicit separation from exact and global-phase Toffoli |
 | `mergedGrayControlledViaRootSymbolicCircuit`, `mergedGrayControlledViaRootNormalForm` | executable coherent Gray boundary merger and its exact emitted syntax |
 | `eval_mergedGrayControlledCircuit`, `mergedGrayControlledFusionCircuit_profile` | exact arbitrary-register controlled-unitary semantics and syntax-derived post-merger counts |
+| `completeMergedRelativeCorollary74SymbolicCircuit`, `completeMergedRelativeCorollary74Circuit` | transparent complete Corollary 7.4 merger and trusted lowering |
+| `eval_completeMergedRelativeCorollary74Circuit`, `completeMergedRelativeCorollary74Circuit_basisAction_and_restoration` | exact full-register controlled-X semantics and explicit basis-wire restoration |
+| `balancedCompleteMergedRelativeCorollary74Circuit_oneQubitCount`, `balancedCompleteMergedRelativeCorollary74Circuit_cnotCount`, `balancedCompleteMergedRelativeCorollary74Circuit_gateCount` | exact `(24n−102,24n−100,48n−202)` balanced profile for every `n≥7` |
 | `cleanAncillaCircuit`, `expandedCleanAncillaCircuit_oneCleanAncillaContract`, `eval_expandedCleanAncillaCircuit_factorization` | clean-zero construction, structural one-ancilla contract, and semantic restoration/factorization |
 | `decomposeFiniteUnitary` | arbitrary finite-index exact two-level decomposition with diagonal residual |
 | `twoLevelCircuit`, `diagonalCircuit`, `exactSynthesisCircuit` | literal no-ancilla positive-width synthesis layers |
@@ -179,7 +182,7 @@ a proved affine X/CNOT endpoint normalization.
 | Four-bit Gray circuit | exact Section 8 cost 13: seven singly controlled roots and six CNOTs |
 | General Gray expansion and merger | for `m>=1` controls, exact raw profile `4(2^m-1)` one-qubit, `3*2^m-4` CNOT, total `7*2^m-8`; the coherent executable merger emits exactly `2*2^m` one-qubit, the same `3*2^m-4` CNOTs, and total/cost `5*2^m-4`, verifying the paper's post-merger count as a constructive upper bound and yielding a syntax-linked fixed-construction `Theta(2^m)` theorem |
 | Lemma 7.2 dirty ladder | for `m>=3` controls with stated ambient capacity, exact `4(m-2)` Toffoli occurrences and restoration |
-| Corollary 7.4 | for logical width `n>=7`, exact macro total `8(n-5)`; selected raw expansion `32n-144` one-qubit + `24n-100` CNOT = `56n-244`; printed optimized `48n-204` unresolved |
+| Corollary 7.4 | for logical width `n>=7`, exact macro total `8(n-5)`; selected raw expansion `32n-144` one-qubit + `24n-100` CNOT = `56n-244`; complete exact merger `24n-102` one-qubit + `24n-100` CNOT = `48n-202`, with both named costs accepted; the paper's `48n-204` is not recovered by this construction and is not refuted |
 | Recursive exact multi-control | for width `n>=7`, with depth offset `d=n-7`: exact total `56d^2+364d+440`; construction-specific `IsBigOWith 56` in width |
 | Lemma 7.7 lower bound | exact same-register implementation of a nonscalar fully controlled target needs at least `n-1` CNOTs, hence at least that many total accepted gates |
 | Approximate multi-control | for width `n>=7` and `epsilon>0`, exact truncated component formulas, capacity-aware exact fallback, and operator/event error at most epsilon; the explicit logarithmic-regime bound assumes `epsilon<=1`; no optimal `Theta(n log(1/epsilon))` claim |
@@ -207,9 +210,10 @@ families are:
 - **Root assumptions:** square and iterated unitary roots are chosen and certified;
   inverse order and coherent approximation branches are not assumed informally.
 - **Corollary 7.4:** the printed split fails at the smallest legal width and a
-  remainder formula is arithmetically wrong. The repaired partition and actual
-  raw expansion have different constants from the paper's unresolved optimized
-  count.
+  remainder formula is arithmetically wrong. The repaired partition has four exact
+  and `8n−44` relative occurrences. Two exact dirty-wire word fusions and one
+  two-node formal inverse-pair cancellation yield the checked `48n−202` output,
+  two gates above the printed number.
 - **Relative phase:** basis-dependent signs are not global phase. Several
   cancellation arguments require an adjoint implementation, and controlled `W`
   carries its minus sign on a precisely identified input.
@@ -252,7 +256,10 @@ families are:
   proves exact generation with arbitrary one-qubit primitives, not finite-set
   density or compilation.
 - The paper's optimized Corollary 7.4 count `48n-204` is not obtained by the
-  explicit checked normalization; the library exports its literal `56n-244` count.
+  explicit checked normalization. The library exports both the raw `56n-244`
+  expansion and an exact complete merger of cost `48n-202`. The latter's
+  two-gate gap is a theorem about that named output, not a lower bound or a
+  refutation of the paper's claimed upper bound.
 - Numerical minimality of the five-, three-, and thirteen-operation Section 8
   circuits is not theoremized.
 - The six-`U(4)` architecture for arbitrary `U(8)` is unresolved. Matching
@@ -304,14 +311,26 @@ Stage 7 added target-directed symbolic exposure and the coherent Gray streaming
 merger: the executable output is proved equal to its explicit normal form, exactly
 equal to the established arbitrary-register evaluator, and counted from syntax.
 
+Stage 8 added transparent selected exact-Toffoli expansion, formal symbolic
+adjoints and wire-avoidance cancellation, optimizer-visible relative ladders, and
+the complete corrected Corollary 7.4 merger. Two dirty-wire word fusions save one
+node each, and deletion of a formal `A⁻¹/A` pair across final-target-avoiding syntax
+saves two. The output preserves exact full-register semantics, restoration, and
+the complete CNOT trace and has balanced profile
+`(24n−102,24n−100,48n−202)` for every `n≥7`. Root-excluded diagnostics confirm
+widths seven, eight, and nine as `(66,68,134)`, `(90,92,182)`, and
+`(114,116,230)`. The existing recursive primitive construction still substitutes
+the raw Corollary circuit, so its recurrence and quadratic counts remain unchanged.
+
 The Stage 7 focused/adjacent/public/audit sweep passed with 3,608 jobs, all twelve
 direct warning-as-error and trust-zero checks passed, and the integrated full build
-passed with 3,606 jobs. Twenty-one representative Stage 7 checks raise the maintained
-audit from 436 to 457; every new result stays within `propext`,
-`Classical.choice`, and `Quot.sound` (some use a strict subset). The audit table and
-source both contain 457 entries, the public tree contains 135 Lean files, the
-root-excluded diagnostics remain excluded, and all hygiene scans and
-`git diff --check` passed.
+passed with 3,606 jobs. Twenty-one representative Stage 7 checks raised the
+maintained audit from 436 to 457. Stage 8 adds another 21 maintained checks, for
+478 total: 19 use only `propext`, `Classical.choice`, and `Quot.sound`, while the
+two structural symbolic-adjoint count/trace results use only `propext` and
+`Quot.sound`. The audit source and documentation table both contain 478 entries;
+the public tree contains 145 Lean files, and the Corollary merger diagnostics
+remain root-excluded.
 
 Every maintained headline result uses only the standard foundations reported by
 Lean/mathlib: `propext`, `Classical.choice`, and `Quot.sound` (some arithmetic

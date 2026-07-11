@@ -44,22 +44,25 @@ Status: in progress (2026-07-10).
 - A successful count must come from the emitted list of a named executable pass.
   A semantic short circuit, an arithmetic count function, or inspection of one
   low-width trace is insufficient.
-- The transparent mixed orientation and certified all-wire sweep now reduce the
-  diagnostic balanced profiles to `(66,68,134)`, `(90,92,182)`, and
-  `(114,116,230)` at widths seven, eight, and nine.  These agree with the
-  candidate general profile `(24n-102,24n-100,48n-202)`, but the diagnostic
-  reductions are not yet the required arbitrary-width resource theorem.
+- Public `completeMergedRelativeCorollary74SymbolicCircuit`, its visible erasure,
+  and its trusted lowering now realize the general profile
+  `(24n-102,24n-100,48n-202)` for every balanced `n>=7`.  Exact evaluator,
+  basis-action/restoration, complete symbolic CNOT-trace, component-count, total,
+  and both accepted named-cost theorems are derived from the emitted syntax.
+  Root-excluded width-seven/eight/nine regressions specialize this to
+  `(66,68,134)`, `(90,92,182)`, and `(114,116,230)`.
 - The four savings beyond separately merged A/B components have now been
   localized exactly: two dirty-wire `relative⁻¹; phase` products fuse across
   target-disjoint syntax, and one formal exact-factor `A⁻¹; A` pair cancels
   across syntax avoiding the final target.  Running `normalizeAtWire` first on
   the dirty wire and then on the final target realizes all four savings in the
   width-seven/eight/nine diagnostics.
-- A complete width-seven search over the `4^4 = 256` forward/adjoint and
-  standard/swapped exact-occurrence orientations in the declared deterministic
-  symbolic sweep found minimum one-qubit count 66, not the printed target 64.
-  This is evidence for “not recovered” in that finite orientation class, not a
-  general lower bound or refutation.
+- An exploratory width-seven enumeration over the `4^4 = 256` forward/adjoint
+  and standard/swapped exact-occurrence orientations reported a best one-qubit
+  count of 66 for the declared deterministic symbolic sweep.  That disposable
+  search is not maintained as completion evidence.  The exported named circuit's
+  proved count already supports the narrower “not recovered” classification;
+  neither fact is a general lower bound or refutation.
 
 ## Updated Assumptions
 

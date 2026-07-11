@@ -1054,9 +1054,31 @@ the four exact macros, its one-qubit/CNOT cost is correctly `none`.
 circuits and proves evaluator preservation. The resulting unmerged syntax has
 exactly `32n−144` one-qubit gates plus `24n−100` CNOTs, or `56n−244` total,
 and its partial cost is `some (56n−244)`.
-The paper's optimized `48n−204` is not accepted from semantic equality or informal
-merger arithmetic; it requires a separately named normalized circuit and exact
-evaluator-preservation theorem.
+The complete Stage 8 merger supplies that separate artifact. For arbitrary legal
+tails its named symbolic, fusion, and trusted outputs have one-qubit count
+`24(ℓ+r)+66`, CNOT count `24(ℓ+r)+68`, no arbitrary-two-qubit nodes, and total
+`48(ℓ+r)+134`. Two dirty-wire relative-inverse/phase words are fused across
+certified target-avoiding syntax, saving one node each; a formal `A⁻¹/A` pair is
+deleted across a middle circuit proved to avoid the final target, saving two more.
+These four cross-block savings are exact symbolic rewrites, not consequences of
+matrix equality or an arithmetic-only count function. The evaluator remains the
+exact intended full-register controlled X, the basis-action theorem restores all
+non-target wires for arbitrary input bits, and the complete ordered CNOT trace is
+proved equal to the raw trace.
+
+For the balanced family, `ℓ+r+7=n`, so every `n≥7` has literal profile
+`(24n−102,24n−100,48n−202)`. Widths seven, eight, and nine compile to
+`(66,68,134)`, `(90,92,182)`, and `(114,116,230)`. Both named cost models return
+the same total here because the emitted syntax contains only one-qubit and CNOT
+nodes; the paper-facing comparison is nevertheless the early one-qubit/CNOT
+model. The result is exactly two gates above `48n−204`, so the printed value is
+not recovered by this construction. It is not refuted: no completeness theorem
+or matched lower bound rules out another exact construction.
+
+The pre-existing recursive primitive construction still imports and substitutes
+the raw `expandedRelativeCorollary74Circuit`; none of its recurrence or quadratic
+count theorems is silently transferred to the new merger. Using the merged circuit
+there would require a separately rederived recursive syntax and resource proof.
 
 ## API Evidence and Representation Decision
 

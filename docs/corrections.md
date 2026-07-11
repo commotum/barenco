@@ -86,10 +86,11 @@ statement. “Open” means the repair is identified but not yet machine checked
 - **Repair:** use four exact and `8n−44` relative-phase Toffoli occurrences. The
   literal named expansion uses four sixteen-node exact circuits and `8n−44`
   seven-node relative circuits, hence `32n−144` one-qubit gates,
-  `24n−100` CNOTs, and `56n−244` total primitives.  The final printed
-  `48n−204` does not follow from the erroneous intermediate sentence and must
-  be reconstructed by an explicit evaluator-preserving normalization before it
-  can be exported.
+  `24n−100` CNOTs, and `56n−244` total primitives. The certified complete merger
+  then emits `24n−102` one-qubit gates and the same `24n−100` CNOTs, for exact
+  total/cost `48n−202`. The final printed `48n−204` still does not follow from
+  the erroneous intermediate sentence and is not recovered by the named checked
+  construction.
 - **Dependent impact:** exact early-basic count in Corollary 7.4 and leading counts
   derived from it.
 - **Formal evidence:** `corollary74Circuit_toffoliCount` and
@@ -102,8 +103,16 @@ statement. “Open” means the repair is identified but not yet machine checked
   semantics with four exact and `8n−44` relative occurrences.
   `eval_balancedExpandedRelativeCorollary74Circuit` and the accompanying syntax
   theorems prove the literal expansion's exact semantics, `32n−144` one-qubit
-  count, `24n−100` CNOT count, and `56n−244` accepted total cost. No claim that
-  `48n−204` is correct is made.
+  count, `24n−100` CNOT count, and `56n−244` accepted total cost.
+  `eval_completeMergedRelativeCorollary74SymbolicCircuit_eq_raw` proves that the
+  complete symbolic output preserves that full-register evaluator;
+  `eval_completeMergedRelativeCorollary74Circuit` and
+  `completeMergedRelativeCorollary74Circuit_basisAction_and_restoration` carry
+  the result to trusted syntax and explicit basis-wire restoration. The balanced
+  component/count/cost theorems prove profile
+  `(24n−102,24n−100,48n−202)` for every `n≥7`, while
+  `balancedCompleteMergedRelativeCorollary74Circuit_gateCount_eq_paper_add_two`
+  records the exact two-gate gap for this named output.
 - **Additional structural requirement:** a generic minimally capacitated Lemma 7.3
   substitution may borrow the final target inside an A ladder, causing additional
   Toffolis to touch it. The repaired balanced partition satisfies a stronger
@@ -111,15 +120,21 @@ statement. “Open” means the repair is identified but not yet machine checked
   controls. The later “four exact target occurrences” statement is therefore
   valid, if at all, only for that phase-ready balanced syntax and needs its own
   touched-target theorem.
-- **Optimization obstruction:** independent symbolic audits recover the raw
-  `56n−244` count but do not recover the printed optimized constant. The obvious
-  palindrome-boundary fusions leave central base-Toffoli pairs separated by
-  gates using the same target as a control. Disjoint-support commutation therefore
-  cannot justify their cancellation. Different coordinated exact-gate
-  orientations produce different provisional constants, so none is accepted
-  without named normalized syntax and an exact evaluator theorem.
-- **Status:** corrected and proved through a literal primitive upper bound;
-  optimized source count unresolved.
+- **Checked normalization and remaining obstruction:** the complete merger
+  certifies four cross-block one-qubit savings beyond its separately merged
+  components: two dirty-wire relative-inverse/phase products fuse across
+  target-disjoint syntax, and one formal `A⁻¹/A` pair cancels across syntax proved
+  to avoid the final target. The resulting `48n−202` is two gates above the
+  paper's number. `balancedCompleteMergedRelativeCorollary74Circuit_gateCount_ne_paper`
+  separates this particular emitted list from `48n−204`; it is not a lower bound
+  over all exact constructions. Consequently the paper's number is **not
+  recovered**, not refuted.
+- **Dependent impact:** `RecursiveExpansion` continues to import and substitute
+  the raw `expandedRelativeCorollary74Circuit`. Its exact quadratic counts remain
+  unchanged; the new optimized circuit is a separate public construction rather
+  than a silent recurrence substitution.
+- **Status:** corrected and proved through a literal normalized upper bound;
+  printed optimized constant not recovered and not refuted.
 
 ## C-005 — Quadratic “Theta” is not an optimal-synthesis theorem
 
@@ -140,9 +155,9 @@ statement. “Open” means the repair is identified but not yet machine checked
   recurrences, the Nat-safe width form `56n²+636−420n`, and
   `recursivePrimitiveTotalCount_isBigOWith_width` with constant 56. No optimal
   lower bound or two-sided synthesis theorem is exported. The leading constant
-  differs from the paper because C-004's advertised optimized Corollary 7.4
-  circuit remains unproved; every present coefficient comes from literal checked
-  syntax.
+  differs from the paper because this recursive syntax still substitutes C-004's
+  raw Corollary 7.4 expansion rather than the separately proved `48n−202` merger;
+  every present coefficient comes from literal checked syntax.
 - **Status:** corrected and proved as an exact construction count and quadratic
   upper bound; optimal-synthesis `Θ(n²)` intentionally not claimed.
 

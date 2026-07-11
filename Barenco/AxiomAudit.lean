@@ -252,6 +252,8 @@ to `docs/axiom-audit.md` at stage boundaries.
 #print axioms Barenco.Optimization.SymbolicCircuit.eval_erase_delete_inverse_across_avoiding
 #print axioms Barenco.Optimization.SymbolicCircuit.oneQubitCount_adjoint
 #print axioms Barenco.Optimization.SymbolicCircuit.cnotTrace_adjoint
+#print axioms Barenco.Optimization.SymbolicCircuit.eval_erase_sweepBoth
+#print axioms Barenco.Optimization.SymbolicCircuit.cnotTrace_sweepBoth
 #print axioms Barenco.ThreeQubit.eval_selectedDoubleControlledExpansion16FusionCircuit
 #print axioms Barenco.MultiControl.InwardLadderLayout.eval_erase_selectiveMergedRelativeHalfSymbolicCircuit
 #print axioms Barenco.MultiControl.InwardLadderLayout.eval_erase_selectiveMergedRelativeInwardSymbolicCircuit

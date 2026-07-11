@@ -284,6 +284,32 @@ theorem eval_balancedCompleteMergedRelativeCorollary74Circuit
     FusionCircuit.eval_lower,
     eval_balancedCompleteMergedRelativeCorollary74FusionCircuit]
 
+/-- Exact computational-basis action of the balanced `n ≥ 7` construction. -/
+theorem eval_balancedCompleteMergedRelativeCorollary74Circuit_mulVec_basisKet
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) (input : Basis sourceWidth) :
+    (Circuit.eval
+      (balancedCompleteMergedRelativeCorollary74Circuit sourceWidth hwidth) :
+        Gate sourceWidth) *ᵥ basisKet input =
+      basisKet ((balancedLayout sourceWidth hwidth).fourBlockUpdate input) := by
+  exact eval_completeMergedRelativeCorollary74Circuit_mulVec_basisKet
+    (balancedLayout sourceWidth hwidth)
+    (balancedLeftCapacity hwidth) (balancedRightCapacity hwidth)
+    (balancedLeftTail_le_right_add_one hwidth) input
+
+/-- Every balanced non-target wire, including the borrowed dirty wire, is restored. -/
+theorem balancedCompleteMergedRelativeCorollary74Circuit_basisAction_and_restoration
+    (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) (input : Basis sourceWidth) :
+    (Circuit.eval
+      (balancedCompleteMergedRelativeCorollary74Circuit sourceWidth hwidth) :
+        Gate sourceWidth) *ᵥ basisKet input =
+        basisKet ((balancedLayout sourceWidth hwidth).fourBlockUpdate input) ∧
+      (∀ wire, wire ≠ (balancedLayout sourceWidth hwidth).targetWire →
+        (balancedLayout sourceWidth hwidth).fourBlockUpdate input wire = input wire) := by
+  exact completeMergedRelativeCorollary74Circuit_basisAction_and_restoration
+    (balancedLayout sourceWidth hwidth)
+    (balancedLeftCapacity hwidth) (balancedRightCapacity hwidth)
+    (balancedLeftTail_le_right_add_one hwidth) input
+
 @[simp]
 theorem balancedCompleteMergedRelativeCorollary74FusionCircuit_oneQubitCount
     (sourceWidth : ℕ) (hwidth : 7 ≤ sourceWidth) :
