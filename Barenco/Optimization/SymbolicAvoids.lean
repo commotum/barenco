@@ -159,6 +159,100 @@ theorem exposeWireInsert_before_same_after_all_avoids
           simp [SymbolicPrimitive.AvoidsWire] at hgate
           simp [exposeWireInsert, hgate, ih htail]
 
+/--
+Tail-first normalization replaces two final same-wire words by their exact
+chronological product before processing any earlier prefix.
+-/
+theorem normalize_append_oneQubit_pair {Atom : Type*} [DecidableEq Atom]
+    {n : ℕ} (earlier : SymbolicCircuit Atom n) (wire : Fin n)
+    (first second : QubitWord Atom) :
+    normalize
+        (earlier ++ [.oneQubit wire first, .oneQubit wire second]) =
+      normalize
+        (earlier ++ [.oneQubit wire (second * first)]) := by
+  induction earlier with
+  | nil =>
+      by_cases hsecond : second = 1
+      · subst second
+        simp [normalize, NormalizeCore.normalize, NormalizeCore.insert,
+          SymbolicPrimitive.isIdentity]
+      · by_cases hfirst : first = 1
+        · subst first
+          simp [normalize, NormalizeCore.normalize, NormalizeCore.insert,
+            SymbolicPrimitive.isIdentity, hsecond]
+        · simp [normalize, NormalizeCore.normalize, NormalizeCore.insert,
+            SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+            hsecond, hfirst]
+  | cons gate earlier ih =>
+      simp only [List.cons_append, normalize, NormalizeCore.normalize]
+      simp only [normalize] at ih
+      rw [ih]
+
+/--
+Appending a nonidentity selected-wire word preserves stability when every
+existing node is structurally disjoint from that wire.
+-/
+theorem Stable.append_selected_of_all_avoids {Atom : Type*}
+    [DecidableEq Atom] {n : ℕ}
+    (wire : Fin n) (word : QubitWord Atom)
+    (circuit : SymbolicCircuit Atom n)
+    (hstable : Stable circuit)
+    (havoid : ∀ gate ∈ circuit, SymbolicPrimitive.AvoidsWire wire gate)
+    (hne : word ≠ 1) :
+    Stable (circuit ++ [.oneQubit wire word]) := by
+  induction circuit with
+  | nil =>
+      simp [Stable, NormalizeCore.Stable,
+        SymbolicPrimitive.isIdentity, hne]
+  | cons gate circuit ih =>
+      cases circuit with
+      | nil =>
+          have hgate := havoid gate (by simp)
+          cases gate with
+          | oneQubit target gateWord =>
+              simp [Stable, NormalizeCore.Stable,
+                SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+                SymbolicPrimitive.AvoidsWire, hne] at hstable hgate ⊢
+              aesop
+          | cnot control target h =>
+              simp [Stable, NormalizeCore.Stable,
+                SymbolicPrimitive.isIdentity, SymbolicPrimitive.combine,
+                SymbolicPrimitive.AvoidsWire, hne] at hstable hgate ⊢
+      | cons next rest =>
+          have htailAvoid : ∀ later ∈ next :: rest,
+              SymbolicPrimitive.AvoidsWire wire later := by
+            intro later hlater
+            exact havoid later (by simp [hlater])
+          exact ⟨hstable.1, hstable.2.1,
+            ih hstable.2.2 htailAvoid⟩
+
+/--
+Two selected-wire words fuse across an arbitrary stable avoiding middle.  The
+emitted word uses the library's head-first chronology: `second * first`.
+-/
+theorem normalizeAtWire_words_across_avoiding {Atom : Type*}
+    [DecidableEq Atom] {n : ℕ}
+    (wire : Fin n) (first second : QubitWord Atom)
+    (middle : SymbolicCircuit Atom n)
+    (havoid : ∀ gate ∈ middle, SymbolicPrimitive.AvoidsWire wire gate)
+    (hstable : Stable middle)
+    (hne : second * first ≠ 1) :
+    normalizeAtWire wire
+        ([.oneQubit wire first] ++ middle ++ [.oneQubit wire second]) =
+      middle ++ [.oneQubit wire (second * first)] := by
+  rw [normalizeAtWire]
+  have htail := exposeWire_append_selected_of_all_avoids wire second middle havoid
+  change normalize
+      (exposeWireInsert wire (.oneQubit wire first)
+        (exposeWire wire (middle ++ [.oneQubit wire second]))) = _
+  rw [htail]
+  rw [exposeWireInsert_before_same_after_all_avoids wire
+    first second middle havoid]
+  rw [normalize_append_oneQubit_pair]
+  exact normalize_eq_self_of_stable
+    (Stable.append_selected_of_all_avoids wire
+      (second * first) middle hstable havoid hne)
+
 /-- Exact formal inverse cancellation across an arbitrary avoiding middle. -/
 theorem normalizeAtWire_inverse_across_avoiding {Atom : Type*}
     [DecidableEq Atom] {n : ℕ} (wire : Fin n) (atom : Atom)
